@@ -1,0 +1,3 @@
+thresholds:
+  relevance: 0.7
+  correctness: 0.65
