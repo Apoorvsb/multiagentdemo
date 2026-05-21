@@ -1,0 +1,26 @@
+order_id,customer_name,status,carrier,tracking_number,estimated_delivery,items,shipping_mode,order_region,order_country,order_city,market,late_delivery_risk,benefit_per_order,sales_per_customer,order_date
+ORD001,John Doe,IN_TRANSIT,FedEx,FX100001,2024-01-16,"[""Laptop"", ""Mouse""]",Standard Class,South Asia,India,Mumbai,Pacific Asia,0,45.5,299.99,2024-01-10
+ORD002,Jane Smith,DELIVERED,Delhivery,DL100002,2024-01-14,"[""Phone Case""]",First Class,South Asia,India,Delhi,Pacific Asia,0,12.3,49.99,2024-01-11
+ORD003,Alice Kumar,OUT_FOR_DELIVERY,Bluedart,BD100003,2024-01-15,"[""Headphones""]",Second Class,South Asia,India,Bangalore,Pacific Asia,1,22.75,149.99,2024-01-09
+ORD004,Bob Sharma,PENDING,DTDC,DT100004,2024-01-18,"[""Keyboard"", ""Mouse""]",Standard Class,South Asia,India,Chennai,Pacific Asia,0,35.0,189.99,2024-01-12
+ORD005,Priya Patel,DELAYED,FedEx,FX100005,2024-01-20,"[""Monitor""]",Standard Class,South Asia,India,Ahmedabad,Pacific Asia,1,67.25,399.99,2024-01-08
+ORD006,Rahul Verma,IN_TRANSIT,Ekart,EK100006,2024-01-17,"[""Tablet""]",First Class,South Asia,India,Hyderabad,Pacific Asia,0,89.5,499.99,2024-01-11
+ORD007,Anita Singh,DELIVERED,Delhivery,DL100007,2024-01-13,"[""Smartwatch""]",Same Day,South Asia,India,Pune,Pacific Asia,0,55.0,249.99,2024-01-13
+ORD008,Vijay Reddy,RETURNED,FedEx,FX100008,2024-01-12,"[""Camera""]",First Class,South Asia,India,Kolkata,Pacific Asia,1,-15.0,699.99,2024-01-07
+ORD009,Meena Nair,OUT_FOR_DELIVERY,Bluedart,BD100009,2024-01-15,"[""Speaker""]",Second Class,South Asia,India,Ahmedabad,Pacific Asia,0,28.75,129.99,2024-01-10
+ORD010,Arjun Mehta,IN_TRANSIT,DTDC,DT100010,2024-01-17,"[""Charger"", ""Cable""]",Standard Class,South Asia,India,Surat,Pacific Asia,0,18.5,79.99,2024-01-12
+ORD011,Sunita Joshi,PENDING,FedEx,FX100011,2024-01-19,"[""Laptop Stand""]",Standard Class,South Asia,India,Jaipur,Pacific Asia,1,25.0,89.99,2024-01-13
+ORD012,Ravi Gupta,DELIVERED,Ekart,EK100012,2024-01-13,"[""Earbuds""]",First Class,South Asia,India,Jaipur,Pacific Asia,0,19.99,99.99,2024-01-11
+ORD013,Deepa Rao,IN_TRANSIT,Delhivery,DL100013,2024-01-16,"[""Gaming Mouse""]",Second Class,South Asia,India,Lucknow,Pacific Asia,0,32.5,159.99,2024-01-10
+ORD014,Suresh Pillai,DELAYED,Bluedart,BD100014,2024-01-21,"[""Webcam""]",Standard Class,South Asia,India,Nagpur,Pacific Asia,1,41.25,199.99,2024-01-08
+ORD015,Kavitha Iyer,OUT_FOR_DELIVERY,FedEx,FX100015,2024-01-15,"[""Printer""]",First Class,South Asia,India,Coimbatore,Pacific Asia,0,75.0,349.99,2024-01-12
+ORD016,Arun Mishra,DELIVERED,DTDC,DT100016,2024-01-12,"[""Router""]",Same Day,South Asia,India,Indore,Pacific Asia,0,48.5,229.99,2024-01-12
+ORD017,Sneha Patil,IN_TRANSIT,Ekart,EK100017,2024-01-17,"[""Hard Drive""]",Standard Class,South Asia,India,Bhopal,Pacific Asia,0,38.75,179.99,2024-01-11
+ORD018,Kiran Desai,PENDING,FedEx,FX100018,2024-01-20,"[""SSD"", ""RAM""]",Second Class,South Asia,India,Mumbai,Pacific Asia,1,95.0,449.99,2024-01-13
+ORD019,Pooja Nambiar,RETURNED,Delhivery,DL100019,2024-01-11,"[""Power Bank""]",First Class,South Asia,India,Delhi,Pacific Asia,1,-8.5,59.99,2024-01-07
+ORD020,Ashok Tiwari,DELIVERED,Bluedart,BD100020,2024-01-13,"[""USB Hub""]",Standard Class,South Asia,India,Kochi,Pacific Asia,0,15.25,69.99,2024-01-10
+ORD021,Nisha Kulkarni,IN_TRANSIT,DTDC,DT100021,2024-01-18,"[""Microphone""]",Second Class,South Asia,India,Patna,Pacific Asia,1,52.0,269.99,2024-01-11
+ORD022,Vikram Bose,OUT_FOR_DELIVERY,FedEx,FX100022,2024-01-15,"[""Desk Lamp""]",Same Day,South Asia,India,Chandigarh,Pacific Asia,0,22.5,109.99,2024-01-15
+ORD023,Lakshmi Menon,DELAYED,Ekart,EK100023,2024-01-22,"[""Chair""]",Standard Class,South Asia,India,Vadodara,Pacific Asia,1,125.0,599.99,2024-01-08
+ORD024,Gopal Krishnan,DELIVERED,Delhivery,DL100024,2024-01-12,"[""Laptop Bag""]",First Class,South Asia,India,Mysore,Pacific Asia,0,29.75,139.99,2024-01-10
+ORD025,Rekha Shetty,IN_TRANSIT,Bluedart,BD100025,2024-01-16,"[""Phone""]",Second Class,South Asia,India,Guwahati,Pacific Asia,0,85.0,399.99,2024-01-11

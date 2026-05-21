@@ -1,0 +1,604 @@
+2026-05-20T12:48:23 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T12:48:23 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T12:48:23 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T12:48:24 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T12:48:24 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T12:54:28 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T12:54:28 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T12:54:28 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T12:54:29 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T12:57:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T12:58:05 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T13:01:50 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T13:01:50 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T13:01:50 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T13:05:57 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T13:05:57 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T13:10:03 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T13:10:03 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T14:21:27 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T14:21:27 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T14:21:27 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T14:25:35 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T14:25:35 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T14:29:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T14:29:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T14:33:47 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T14:33:47 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T14:38:44 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T14:38:44 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T14:38:44 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T14:42:51 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T14:42:51 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T14:46:58 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T14:46:58 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T14:51:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T14:51:04 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T14:57:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T14:57:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T14:57:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T15:01:07 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T15:01:07 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T15:05:13 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T15:05:13 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T15:09:20 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T15:09:20 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T15:09:20 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T16:00:20 | INFO     | request_id=128f0475-134d-4c9e-93f1-e5759f71aad2 | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T16:00:20 | WARNING  | request_id=128f0475-134d-4c9e-93f1-e5759f71aad2 | agent=- | node=- | Session error: Session not found.
+2026-05-20T16:29:15 | INFO     | request_id=b9bd7b98-2851-43eb-af85-78de3b2256a2 | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T16:29:15 | INFO     | request_id=b9bd7b98-2851-43eb-af85-78de3b2256a2 | agent=- | node=- | Session loaded | session_id=5329d33d-e5cb-417f-a51e-8ea4a8b9919d | history=0 messages
+2026-05-20T16:29:17 | INFO     | request_id=b9bd7b98-2851-43eb-af85-78de3b2256a2 | agent=router | node=intent_router | Node entered
+2026-05-20T16:29:58 | ERROR    | request_id=b9bd7b98-2851-43eb-af85-78de3b2256a2 | agent=- | node=- | Pipeline failed: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 1.531225988s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '1s'}]}}
+2026-05-20T16:38:44 | INFO     | request_id=99c4c8cc-05b9-4881-8f54-f643b391bbef | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T16:38:44 | INFO     | request_id=99c4c8cc-05b9-4881-8f54-f643b391bbef | agent=- | node=- | Session loaded | session_id=ef85d376-91a2-4a4a-a466-2c7aae67e84e | history=0 messages
+2026-05-20T16:38:44 | INFO     | request_id=99c4c8cc-05b9-4881-8f54-f643b391bbef | agent=router | node=intent_router | Node entered
+2026-05-20T16:39:19 | ERROR    | request_id=99c4c8cc-05b9-4881-8f54-f643b391bbef | agent=- | node=- | Pipeline failed: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 40.967663825s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '40s'}]}}
+2026-05-20T16:41:32 | INFO     | request_id=ca01078b-31ff-41a6-8f42-4bfbfdb868ad | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T16:41:32 | INFO     | request_id=ca01078b-31ff-41a6-8f42-4bfbfdb868ad | agent=- | node=- | Session loaded | session_id=8ffd62ad-11eb-463c-928e-1f6ffa6aac40 | history=0 messages
+2026-05-20T16:41:33 | INFO     | request_id=ca01078b-31ff-41a6-8f42-4bfbfdb868ad | agent=router | node=intent_router | Node entered
+2026-05-20T16:42:07 | ERROR    | request_id=ca01078b-31ff-41a6-8f42-4bfbfdb868ad | agent=- | node=- | Pipeline failed: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 52.426694668s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '52s'}]}}
+2026-05-20T16:46:03 | INFO     | request_id=9e9ee995-9227-4f77-b43a-aff4f96657db | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T16:46:04 | INFO     | request_id=9e9ee995-9227-4f77-b43a-aff4f96657db | agent=- | node=- | Session loaded | session_id=95a20992-4de9-4471-8c60-fe584d9c320d | history=0 messages
+2026-05-20T16:46:04 | INFO     | request_id=9e9ee995-9227-4f77-b43a-aff4f96657db | agent=router | node=intent_router | Node entered
+2026-05-20T16:46:46 | ERROR    | request_id=9e9ee995-9227-4f77-b43a-aff4f96657db | agent=- | node=- | Pipeline failed: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 13.513981648s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-flash', 'location': 'global'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '13s'}]}}
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=- | node=- | Session loaded | session_id=53fe63a8-ab41-4d6a-a4d4-deb684f984b6 | history=0 messages
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=entry | Order agent started
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=order_agent | node=entry | Order agent completed
+2026-05-20T16:50:43 | INFO     | request_id=60195bae-dbc9-4bba-a609-254d211d5816 | agent=- | node=- | Response returned | intent=order_query | tokens=40 | latency=257ms
+2026-05-20T16:51:59 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T16:51:59 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=- | node=- | Session loaded | session_id=566bf91f-6787-46be-b4d6-2a72a0cdfc0c | history=0 messages
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=entry | Order agent started
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=order_agent | node=entry | Order agent completed
+2026-05-20T16:52:00 | INFO     | request_id=3199ad4c-c592-4f93-b9dc-bcea2b8bdd79 | agent=- | node=- | Response returned | intent=order_query | tokens=40 | latency=401ms
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=- | node=- | Session loaded | session_id=5a451a56-2c9f-4a3b-b3e3-e637fdb8bfd6 | history=0 messages
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=entry | Order agent started
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=order_agent | node=entry | Order agent completed
+2026-05-20T18:27:11 | INFO     | request_id=81e29938-9cd3-458d-9667-7aaa1671a627 | agent=- | node=- | Response returned | intent=order_query | tokens=40 | latency=156ms
+2026-05-20T18:27:32 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T18:27:32 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=- | node=- | Session loaded | session_id=f2357352-5853-45ac-8e03-b1299a859a32 | history=0 messages
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=entry | Order agent started
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T18:27:33 | INFO     | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T18:28:09 | ERROR    | request_id=b4902fd0-9b86-4f1e-82e6-b965364293f9 | agent=- | node=- | Pipeline failed: Error calling model 'gemini-2.0-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 50.789613537s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash'}}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '50s'}]}}
+2026-05-20T21:48:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T21:48:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T21:48:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T21:48:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T21:48:40 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-20T21:50:41 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T21:50:42 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T21:53:46 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=- | node=- | Session loaded | session_id=7e5a5dc0-7c0d-4282-8310-8d28e0b6e7b8 | history=0 messages
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=entry | Order agent started
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=validate_input | Node entered
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T21:53:47 | INFO     | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T21:53:47 | ERROR    | request_id=6d3ddaa5-e6de-40e8-b99f-70354d2f3c4c | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T21:54:35 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order #12345'
+2026-05-20T21:54:35 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=- | node=- | Session loaded | session_id=297af10c-90e3-4f71-9c56-da7eb21a200e | history=0 messages
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=entry | Order agent started
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T21:54:36 | INFO     | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T21:54:36 | ERROR    | request_id=649fdf50-69da-4b0e-83cc-1a4dd39b3186 | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=- | node=- | Session loaded | session_id=820db9dd-023e-4406-a0bf-71295e1e6a74 | history=0 messages
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=entry | Order agent started
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=validate_input | Node entered
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T21:57:41 | INFO     | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T21:57:42 | ERROR    | request_id=9deed8fc-e921-42bd-b8a3-0b59245aaa0e | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=- | node=- | Session loaded | session_id=b0d2fd38-5acf-48e9-bc05-8d958be09d34 | history=0 messages
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=entry | Order agent started
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=validate_input | Node entered
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T22:02:42 | INFO     | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T22:02:42 | ERROR    | request_id=f992fb12-72cf-406d-a1d4-7c2d531c5fa2 | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=- | node=- | Session loaded | session_id=3828dbb6-c696-496f-ae00-ab3020a8d606 | history=0 messages
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=entry | Order agent started
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=validate_input | Node entered
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T22:11:21 | INFO     | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T22:11:21 | ERROR    | request_id=e2859eef-54cf-4205-9576-a4bcf93c369d | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=- | node=- | Session loaded | session_id=2c535b74-eeeb-4f32-8c74-74eb78dfe8e0 | history=0 messages
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=entry | Order agent started
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=validate_input | Node entered
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T22:12:35 | INFO     | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T22:12:35 | ERROR    | request_id=ab3376e9-3fc4-4d4b-9a92-ab826203820a | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=- | node=- | Session loaded | session_id=c3d7560f-191c-4b02-88a3-913ab9731c0f | history=0 messages
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=entry | Order agent started
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=validate_input | Node entered
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T22:12:40 | INFO     | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T22:12:40 | ERROR    | request_id=627946de-991e-41f6-9a49-7177cab10cdd | agent=- | node=- | Pipeline failed: Error code: 404 - {'error': {'message': 'The model `gemini-2.0-flash` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'code': 'model_not_found'}}
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=- | node=- | Request received | user_id=test-user | input='where is my order #12345'
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=- | node=- | Session loaded | session_id=64facefb-1093-4555-91a6-b293c260539e | history=0 messages
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=entry | Order agent started
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=validate_input | Node entered
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-20T22:29:17 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=generate_response | LLM called
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=generate_response | Response generated
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=save_to_db | Response saved
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=order_agent | node=entry | Order agent completed
+2026-05-20T22:29:18 | INFO     | request_id=9e7c5b79-81eb-4b77-a7b4-8b5a11bc745e | agent=- | node=- | Response returned | intent=order_query | tokens=790 | latency=1182ms
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T11:15:01 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T11:15:02 | INFO     | request_id=test-req-001 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T11:15:02 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T11:15:02 | INFO     | request_id=test-req-001 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T11:22:15 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Node entered
+2026-05-21T11:22:15 | INFO     | request_id=test-req-001 | agent=order_agent | node=validate_input | Extracted order_id=12345
+2026-05-21T11:22:15 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:22:15 | INFO     | request_id=test-req-001 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:22:15 | WARNING  | request_id=test-req-001 | agent=order_agent | node=error_response | Order not found: 12345
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=- | node=- | Session loaded | session_id=1b6b8e9e-5c55-4af7-bfca-e7ec5b736313 | history=0 messages
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=validate_input | Node entered
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-21T11:23:46 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:23:47 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:23:47 | WARNING  | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:23:47 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:23:47 | INFO     | request_id=b25298b5-6b65-47a7-8ee5-f35ebb158a69 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=284ms
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=- | node=- | Session loaded | session_id=1bca3499-f5cb-4210-8fa2-2139dc6dd029 | history=0 messages
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:25:27 | WARNING  | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:25:27 | INFO     | request_id=a5bd732d-2caf-4b08-aede-7af2a2f7e04a | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=337ms
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=- | node=- | Session loaded | session_id=280efeab-5223-4e59-844e-a5cb6f6f89a1 | history=0 messages
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:25:51 | WARNING  | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:25:51 | INFO     | request_id=704a9f38-62fb-453e-8503-072515a3bf85 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=209ms
+2026-05-21T11:29:18 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=- | node=- | Session loaded | session_id=75ff2361-b482-4a1a-b956-74e69ede75f4 | history=0 messages
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:29:19 | WARNING  | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:29:19 | INFO     | request_id=463f702d-21ac-413a-834a-581a04f1c9c6 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=387ms
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=- | node=- | Session loaded | session_id=6d256c7c-750e-4b07-a1dc-04c9b2b9a2af | history=0 messages
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:31:02 | WARNING  | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:31:02 | INFO     | request_id=238bcc19-793a-488b-a3f0-a08d9ed13c23 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=360ms
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=- | node=- | Session loaded | session_id=c175c8e7-6dd9-41a8-81b8-1332df4c34e2 | history=0 messages
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:32:50 | WARNING  | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:32:50 | INFO     | request_id=f9514205-f176-4037-aa12-1a4b3049e171 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=355ms
+2026-05-21T11:40:39 | INFO     | request_id=test-req | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:40:39 | INFO     | request_id=test-req | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=- | node=- | Session loaded | session_id=57fb2371-3944-4ae6-8f14-1e72ac5f41bd | history=0 messages
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:46:29 | WARNING  | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:46:29 | INFO     | request_id=82741005-b933-4561-87d3-77cb50b1ae4b | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=485ms
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=- | node=- | Session loaded | session_id=7dbb6bf6-f389-4605-9a71-4df3f0633108 | history=0 messages
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T11:48:00 | WARNING  | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:48:00 | INFO     | request_id=97ed05ae-b74d-4cc8-91da-91c792ad71bc | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=180ms
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=- | node=- | Session loaded | session_id=00e23dfa-ff98-4509-942a-0574ac9cfd06 | history=0 messages
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=entry | Order agent started
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T11:51:30 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T11:51:41 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T11:51:42 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T11:51:42 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T11:51:42 | INFO     | request_id=4443fcd1-6068-4a31-8659-770ed6513e11 | agent=- | node=- | Response returned | intent=order_query | tokens=762 | latency=11648ms
+2026-05-21T12:57:35 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=- | node=- | Session loaded | session_id=5e1e3094-1070-4cb5-a498-fc22aaafb632 | history=0 messages
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=entry | Order agent started
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T12:57:36 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T12:57:37 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T12:57:38 | INFO     | request_id=9bd63f8d-57bc-4d5d-ac4c-c95e30636996 | agent=- | node=- | Response returned | intent=order_query | tokens=762 | latency=1951ms
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=- | node=- | Request received | user_id=user-001 | input='find me a good laptop'
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=- | node=- | Session loaded | session_id=77e54b5b-148e-4ce2-8301-5e5e58b3f97f | history=0 messages
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=router | node=intent_router | Node entered — hardcoded to order_query for testing
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=order_agent | node=entry | Order agent started
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=order_agent | node=fetch_order_data | Order found: False
+2026-05-21T12:58:05 | WARNING  | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=order_agent | node=error_response | Order not found: None
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=order_agent | node=entry | Order agent completed
+2026-05-21T12:58:05 | INFO     | request_id=a70058e5-9947-4028-8910-48577346b4ad | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=153ms
+2026-05-21T12:59:00 | INFO     | request_id=ce0fdc2d-ad7e-4f1e-b34d-e6a8456b79be | agent=- | node=- | Request received | user_id=user-001 | input='find me a good laptop'
+2026-05-21T12:59:00 | INFO     | request_id=ce0fdc2d-ad7e-4f1e-b34d-e6a8456b79be | agent=- | node=- | Session loaded | session_id=488bad73-66d0-4f8c-b9ba-ffd239f7d88a | history=0 messages
+2026-05-21T12:59:01 | INFO     | request_id=ce0fdc2d-ad7e-4f1e-b34d-e6a8456b79be | agent=router | node=intent_router | Node entered
+2026-05-21T12:59:01 | ERROR    | request_id=ce0fdc2d-ad7e-4f1e-b34d-e6a8456b79be | agent=- | node=- | Pipeline failed: name 'IntentOutput' is not defined
+2026-05-21T12:59:24 | INFO     | request_id=be344642-2252-4fde-9a66-7f90de1354a6 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T12:59:24 | INFO     | request_id=be344642-2252-4fde-9a66-7f90de1354a6 | agent=- | node=- | Session loaded | session_id=71594ca3-64d6-44e7-a660-16b45f6c443b | history=0 messages
+2026-05-21T12:59:24 | INFO     | request_id=be344642-2252-4fde-9a66-7f90de1354a6 | agent=router | node=intent_router | Node entered
+2026-05-21T12:59:24 | ERROR    | request_id=be344642-2252-4fde-9a66-7f90de1354a6 | agent=- | node=- | Pipeline failed: name 'IntentOutput' is not defined
+2026-05-21T13:01:45 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T13:01:45 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=- | node=- | Session loaded | session_id=5a127085-a3d8-48da-97dd-218322e1a2b7 | history=0 messages
+2026-05-21T13:01:45 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=router | node=intent_router | Node entered
+2026-05-21T13:01:46 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T13:01:46 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=entry | Order agent started
+2026-05-21T13:01:46 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T13:01:46 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T13:01:46 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=generate_response | LLM called
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=generate_response | Response generated
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=order_agent | node=entry | Order agent completed
+2026-05-21T13:01:47 | INFO     | request_id=e95d2459-863a-4b0d-a7d9-847f17e14eba | agent=- | node=- | Response returned | intent=order_query | tokens=762 | latency=1902ms
+2026-05-21T13:01:51 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=- | node=- | Request received | user_id=user-001 | input='find me a good laptop'
+2026-05-21T13:01:51 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=- | node=- | Session loaded | session_id=17967e86-d094-49a3-8a77-53217ec0dc5a | history=0 messages
+2026-05-21T13:01:52 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=router | node=intent_router | Node entered
+2026-05-21T13:01:52 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=router | node=intent_router | Intent classified: product_query
+2026-05-21T13:01:52 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=product_agent | node=placeholder | Product agent not built yet
+2026-05-21T13:01:52 | INFO     | request_id=7e1cc151-f347-4da9-914c-57a25e10323c | agent=- | node=- | Response returned | intent=product_query | tokens=0 | latency=676ms
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=- | node=- | Request received | user_id=user-001 | input='find me a good laptop'
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=- | node=- | Session loaded | session_id=ac3d09e4-f839-4cc5-9eb0-d7320f24ea66 | history=0 messages
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=router | node=intent_router | Node entered
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=router | node=intent_router | Intent classified: product_query
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=product_agent | node=placeholder | Product agent not built yet
+2026-05-21T14:41:33 | INFO     | request_id=13c6511e-51ee-4d97-8560-f9342248b2f7 | agent=- | node=- | Response returned | intent=product_query | tokens=0 | latency=554ms
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=- | node=- | Request received | user_id=user-001 | input='where is my order ORD001'
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=- | node=- | Session loaded | session_id=5a1df8c1-647b-436d-a036-8b2c2b205d7f | history=0 messages
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=router | node=intent_router | Node entered
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=entry | Order agent started
+2026-05-21T14:41:46 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T14:41:47 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T14:41:47 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T14:41:48 | INFO     | request_id=432b5044-06fd-4b41-9bed-d0ff8c18c961 | agent=- | node=- | Response returned | intent=order_query | tokens=762 | latency=2046ms
+2026-05-21T16:45:43 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T16:45:43 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=- | node=- | Session loaded | session_id=10e2ed9a-407e-4ae0-aef3-7a62954a8b32 | history=0 messages
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=router | node=intent_router | Node entered
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=entry | Order agent started
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T16:45:44 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T16:45:45 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T16:45:46 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T16:45:46 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T16:45:46 | INFO     | request_id=85aebdd1-12c2-4a08-b9f6-579ef4efb675 | agent=- | node=- | Response returned | intent=order_query | tokens=1108 | latency=2115ms
+2026-05-21T16:54:25 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T16:54:25 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=- | node=- | Session loaded | session_id=e1de20a2-3faa-4094-a1ca-4930dba86dfd | history=0 messages
+2026-05-21T16:54:25 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=router | node=intent_router | Node entered
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=entry | Order agent started
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T16:54:26 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T16:54:27 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T16:54:27 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T16:54:27 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T16:54:27 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T16:54:28 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T16:54:28 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T16:54:28 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T16:54:28 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T16:54:28 | INFO     | request_id=b27fc24b-1fba-4eff-a880-f001b40e9947 | agent=- | node=- | Response returned | intent=order_query | tokens=1108 | latency=2403ms
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=- | node=- | Session loaded | session_id=f3ed4684-2534-46d4-8db5-cf27356576f0 | history=0 messages
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=router | node=intent_router | Node entered
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=entry | Order agent started
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T16:54:28 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T16:54:29 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T16:54:29 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T16:54:29 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T16:54:29 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=generate_response | LLM called
+2026-05-21T16:54:30 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=generate_response | Response generated
+2026-05-21T16:54:30 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T16:54:30 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T16:54:30 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=order_agent | node=entry | Order agent completed
+2026-05-21T16:54:30 | INFO     | request_id=1c5efe12-f298-46f0-8da9-e3beb666072d | agent=- | node=- | Response returned | intent=order_query | tokens=1108 | latency=2059ms
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=- | node=- | Session loaded | session_id=36223adc-718e-441b-acae-7b904bf7ea8b | history=0 messages
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=router | node=intent_router | Node entered
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=entry | Order agent started
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T16:54:30 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T16:54:31 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T16:54:31 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T16:54:31 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T16:54:31 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=generate_response | LLM called
+2026-05-21T16:54:32 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=generate_response | Response generated
+2026-05-21T16:54:32 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T16:54:32 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T16:54:32 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=order_agent | node=entry | Order agent completed
+2026-05-21T16:54:32 | INFO     | request_id=93aea317-da8f-44ca-9808-be4bcba5647d | agent=- | node=- | Response returned | intent=order_query | tokens=1108 | latency=1764ms
+2026-05-21T17:14:00 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:14:00 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=- | node=- | Session loaded | session_id=86244d46-740a-4c15-8246-91b3277f8010 | history=0 messages
+2026-05-21T17:14:00 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=router | node=intent_router | Node entered
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=entry | Order agent started
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T17:14:02 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T17:14:03 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T17:14:04 | INFO     | request_id=ef949bab-e2a9-4257-8532-e5dba48df3c0 | agent=- | node=- | Response returned | intent=order_query | tokens=1108 | latency=3232ms
+2026-05-21T17:27:27 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:27:27 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=- | node=- | Session loaded | session_id=bfd35bf0-b3a5-406d-8aae-cb7bb28194a5 | history=0 messages
+2026-05-21T17:27:27 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=router | node=intent_router | Node entered
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=entry | Order agent started
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T17:27:38 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=generate_response | LLM called
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=generate_response | Response generated
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=order_agent | node=entry | Order agent completed
+2026-05-21T17:27:39 | INFO     | request_id=d7b4a248-96b4-42ea-8c12-0fb6d2af6b6d | agent=- | node=- | Response returned | intent=order_query | tokens=994 | latency=12282ms
+2026-05-21T17:33:51 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:33:51 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=- | node=- | Session loaded | session_id=2d85bdf0-3709-4383-a559-cc43a1bc2739 | history=0 messages
+2026-05-21T17:33:51 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=router | node=intent_router | Node entered
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=entry | Order agent started
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T17:33:52 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T17:33:53 | INFO     | request_id=baadde96-254a-46ec-87da-de490ed5f427 | agent=- | node=- | Response returned | intent=order_query | tokens=994 | latency=2762ms
+2026-05-21T17:42:45 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:42:45 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=- | node=- | Session loaded | session_id=5f8854b1-2ed2-499f-a884-a354eac3c612 | history=0 messages
+2026-05-21T17:42:46 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=router | node=intent_router | Node entered
+2026-05-21T17:42:46 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=entry | Order agent started
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T17:42:47 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=generate_response | LLM called
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=generate_response | Response generated
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=order_agent | node=entry | Order agent completed
+2026-05-21T17:42:48 | INFO     | request_id=fab29756-9b53-4288-9e85-cec5fd94f4bd | agent=- | node=- | Response returned | intent=order_query | tokens=994 | latency=2445ms
+2026-05-21T17:52:24 | INFO     | request_id=074784fe-daf6-48c4-bcae-37c5733444a6 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:52:24 | INFO     | request_id=074784fe-daf6-48c4-bcae-37c5733444a6 | agent=- | node=- | Session loaded | session_id=c17651c9-dba6-49f8-9bc7-4a60475b05bf | history=0 messages
+2026-05-21T17:52:24 | ERROR    | request_id=074784fe-daf6-48c4-bcae-37c5733444a6 | agent=- | node=- | Pipeline failed: module 'mlflow' has no attribute 'start_trace'
+2026-05-21T17:52:24 | INFO     | request_id=8b240ee1-cf76-414c-9391-0db25a55c407 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T17:52:25 | INFO     | request_id=8b240ee1-cf76-414c-9391-0db25a55c407 | agent=- | node=- | Session loaded | session_id=e5004e45-f933-42d3-9261-b65bdb42ab43 | history=0 messages
+2026-05-21T17:52:25 | ERROR    | request_id=8b240ee1-cf76-414c-9391-0db25a55c407 | agent=- | node=- | Pipeline failed: module 'mlflow' has no attribute 'start_trace'
+2026-05-21T18:13:16 | INFO     | request_id=758cf636-71cd-41ad-b0ce-678ed3055d7e | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T18:13:16 | INFO     | request_id=758cf636-71cd-41ad-b0ce-678ed3055d7e | agent=- | node=- | Session loaded | session_id=b5978c38-c7cd-4416-807e-7044358010ba | history=0 messages
+2026-05-21T18:13:16 | ERROR    | request_id=758cf636-71cd-41ad-b0ce-678ed3055d7e | agent=- | node=- | Pipeline failed: module 'mlflow' has no attribute 'start_trace'
+2026-05-21T18:15:04 | INFO     | request_id=021afa1d-49b8-4131-9264-b510155fb1f2 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T18:15:04 | INFO     | request_id=021afa1d-49b8-4131-9264-b510155fb1f2 | agent=- | node=- | Session loaded | session_id=4338fc09-1dbc-4106-ab96-3afa384b87fe | history=0 messages
+2026-05-21T18:15:04 | ERROR    | request_id=021afa1d-49b8-4131-9264-b510155fb1f2 | agent=- | node=- | Pipeline failed: start_run() got an unexpected keyword argument 'name'
+2026-05-21T18:20:08 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=- | node=- | Request received | user_id=user_001 | input='where is my order ORD001'
+2026-05-21T18:20:08 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=- | node=- | Session loaded | session_id=2ea82f6a-42e5-4388-b8bd-5aa0017b9e6a | history=0 messages
+2026-05-21T18:20:08 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=router | node=intent_router | Node entered
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=entry | Order agent started
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=fetch_order_data | Order found: True
+2026-05-21T18:20:09 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-21T18:20:11 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-21T18:20:11 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX100001
+2026-05-21T18:20:11 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-21T18:20:11 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=generate_response | LLM called
+2026-05-21T18:20:12 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=generate_response | Response generated
+2026-05-21T18:20:12 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-21T18:20:12 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=save_to_db | Response saved
+2026-05-21T18:20:12 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=order_agent | node=entry | Order agent completed
+2026-05-21T18:20:12 | INFO     | request_id=1ed33272-1fa9-4383-8e13-1ff57c754538 | agent=- | node=- | Response returned | intent=order_query | tokens=994 | latency=3757ms
