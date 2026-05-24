@@ -1,3 +1,35 @@
+evaluation:
+  experiment_name: "multiagent-ci-eval"
+  dataset_path: "eval/dataset.json"
+
 thresholds:
-  relevance: 0.7
-  correctness: 0.65
+  relevance:     0.70
+  correctness:   0.70
+  completeness:  0.70
+  hallucination: 0.70
+
+dimensions:
+  - name: relevance
+    description: "Response is relevant to the user question"
+    threshold: 0.70
+
+  - name: correctness
+    description: "Response contains correct information based on context"
+    threshold: 0.65
+
+  - name: completeness
+    description: "Response covers all key points from expected answer"
+    threshold: 0.65
+
+  - name: hallucination
+    description: "Response does not contain facts not present in context"
+    threshold: 0.70
+
+reporting:
+  json_report:  "eval/reports/eval_report.json"
+  html_report:  "eval/reports/eval_report.html"
+  mlflow_experiment: "multiagent-ci-eval"
+
+live_eval:
+  enabled: false
+  flag: "RUN_LIVE_EVAL"

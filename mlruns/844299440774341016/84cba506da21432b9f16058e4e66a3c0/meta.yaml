@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/84cba506da21432b9f16058e4e66a3c0/artifacts
+end_time: 1779514180555
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 84cba506da21432b9f16058e4e66a3c0
+run_name: bald-seal-590
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779514179595
+status: 3
+tags: []
+user_id: sigmoid

@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/4eccbbb535a94efd93e3cf1b1db73bd3/artifacts
+end_time: 1779515384766
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 4eccbbb535a94efd93e3cf1b1db73bd3
+run_name: marvelous-smelt-410
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779515384414
+status: 3
+tags: []
+user_id: sigmoid

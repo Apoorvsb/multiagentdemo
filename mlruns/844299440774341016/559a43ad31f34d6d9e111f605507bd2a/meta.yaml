@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/559a43ad31f34d6d9e111f605507bd2a/artifacts
+end_time: 1779515778107
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 559a43ad31f34d6d9e111f605507bd2a
+run_name: adorable-fowl-185
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779515777717
+status: 3
+tags: []
+user_id: sigmoid

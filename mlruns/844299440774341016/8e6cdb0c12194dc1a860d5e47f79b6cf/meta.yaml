@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/8e6cdb0c12194dc1a860d5e47f79b6cf/artifacts
+end_time: 1779514202648
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 8e6cdb0c12194dc1a860d5e47f79b6cf
+run_name: secretive-gnat-471
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779514202314
+status: 3
+tags: []
+user_id: sigmoid

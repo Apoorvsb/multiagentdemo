@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/10b7711d48dc4d3f863866046ef8b2df/artifacts
+end_time: 1779450481805
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 10b7711d48dc4d3f863866046ef8b2df
+run_name: ambitious-conch-95
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779450481450
+status: 4
+tags: []
+user_id: sigmoid

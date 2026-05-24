@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/92d676a5e97f4c22ac1e5a8fa99c8386/artifacts
+end_time: 1779515360582
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 92d676a5e97f4c22ac1e5a8fa99c8386
+run_name: casual-pig-505
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779515359993
+status: 3
+tags: []
+user_id: sigmoid

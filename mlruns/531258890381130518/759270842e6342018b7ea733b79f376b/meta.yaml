@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/531258890381130518/759270842e6342018b7ea733b79f376b/artifacts
+end_time: 1779532826446
+entry_point_name: ''
+experiment_id: '531258890381130518'
+lifecycle_stage: active
+run_id: 759270842e6342018b7ea733b79f376b
+run_name: eval_20260523_160931
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779532771571
+status: 3
+tags: []
+user_id: sigmoid

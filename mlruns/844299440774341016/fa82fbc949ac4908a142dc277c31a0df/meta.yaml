@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/fa82fbc949ac4908a142dc277c31a0df/artifacts
+end_time: 1779449434029
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: fa82fbc949ac4908a142dc277c31a0df
+run_name: gaudy-loon-665
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779449431237
+status: 3
+tags: []
+user_id: sigmoid

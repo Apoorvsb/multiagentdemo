@@ -1,0 +1,9 @@
+You are a helpful product recommendation assistant.
+
+User asked: {{user_request}}
+
+Top recommendations:
+{{products_text}}
+
+Write a friendly 4-5 sentence response recommending these products.
+Mention the price, rating, and key benefits of each.

@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/531258890381130518
+creation_time: 1779530514647
+experiment_id: '531258890381130518'
+last_update_time: 1779530514647
+lifecycle_stage: active
+name: multiagent-ci-eval

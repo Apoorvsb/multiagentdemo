@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/f4c53adfb74f49e7a7191a8d2fe2fa9b/artifacts
+end_time: 1779456772904
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: f4c53adfb74f49e7a7191a8d2fe2fa9b
+run_name: brawny-slug-721
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779456771387
+status: 4
+tags: []
+user_id: sigmoid

@@ -1,0 +1,135 @@
+{
+  "run_timestamp": "2026-05-24T04:07:43.994364+00:00",
+  "git_commit_sha": "3d8e8d05908b98cdca44a156a77e872a50e6d4f2",
+  "branch_name": "main",
+  "eval_mode": "mocked",
+  "total_samples": 10,
+  "overall_pass": true,
+  "failures": [],
+  "per_metric_averages": {
+    "relevance": 0.962,
+    "correctness": 0.872,
+    "completeness": 0.992,
+    "hallucination": 1.0,
+    "overall": 0.957
+  },
+  "thresholds": {
+    "relevance": 0.7,
+    "correctness": 0.7,
+    "completeness": 0.7,
+    "hallucination": 0.7
+  },
+  "per_sample_scores": [
+    {
+      "id": "eval_001",
+      "agent": "order_agent",
+      "input": "Where is my order ORD1491?",
+      "relevance": 0.914,
+      "correctness": 0.7,
+      "completeness": 0.923,
+      "hallucination": 1.0,
+      "avg_score": 0.884,
+      "passed": true
+    },
+    {
+      "id": "eval_002",
+      "agent": "order_agent",
+      "input": "What is the status of ORD1455?",
+      "relevance": 0.914,
+      "correctness": 0.8,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.928,
+      "passed": true
+    },
+    {
+      "id": "eval_003",
+      "agent": "order_agent",
+      "input": "When will ORD1473 arrive?",
+      "relevance": 0.914,
+      "correctness": 0.933,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.962,
+      "passed": true
+    },
+    {
+      "id": "eval_004",
+      "agent": "order_agent",
+      "input": "What is the status of ORD1437?",
+      "relevance": 0.96,
+      "correctness": 0.9,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.965,
+      "passed": true
+    },
+    {
+      "id": "eval_005",
+      "agent": "order_agent",
+      "input": "Is ORD1419 still in transit?",
+      "relevance": 0.96,
+      "correctness": 0.84,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.95,
+      "passed": true
+    },
+    {
+      "id": "eval_006",
+      "agent": "order_agent",
+      "input": "Has ORD1401 been delivered?",
+      "relevance": 0.96,
+      "correctness": 0.9,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.965,
+      "passed": true
+    },
+    {
+      "id": "eval_007",
+      "agent": "order_agent",
+      "input": "What are my orders in transit?",
+      "relevance": 1.0,
+      "correctness": 0.862,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.966,
+      "passed": true
+    },
+    {
+      "id": "eval_008",
+      "agent": "order_agent",
+      "input": "Give me a summary of all my orders",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    },
+    {
+      "id": "eval_009",
+      "agent": "order_agent",
+      "input": "Track my shipment for ORD1491",
+      "relevance": 1.0,
+      "correctness": 0.787,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.947,
+      "passed": true
+    },
+    {
+      "id": "eval_010",
+      "agent": "order_agent",
+      "input": "Which of my orders are pending?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    }
+  ],
+  "failed_samples": []
+}

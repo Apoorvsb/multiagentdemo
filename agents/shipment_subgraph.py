@@ -58,7 +58,7 @@ def mock_carrier_api_call(carrier: str, tracking_number: str) -> dict:
 # ─────────────────────────────────────────────
 # SUBGRAPH NODES
 # ─────────────────────────────────────────────
-
+@mlflow.trace(name="get_carrier_info", span_type="TOOL")
 def get_carrier_info(state: AgentState) -> AgentState:
     order_data = state.get("order_data") or {}
     tracking_info = {
@@ -69,6 +69,7 @@ def get_carrier_info(state: AgentState) -> AgentState:
 
 
 
+@mlflow.trace(name="fetch_tracking", span_type="TOOL")
 def fetch_tracking(state: AgentState) -> AgentState:
     tracking_info = state.get("tracking_info") or {}
     carrier        = tracking_info.get("carrier", "FedEx")
@@ -107,6 +108,7 @@ def fetch_tracking(state: AgentState) -> AgentState:
         }
 
 
+@mlflow.trace(name="parse_eta", span_type="CHAIN")
 def parse_eta(state: AgentState) -> AgentState:
     tracking_info   = state.get("tracking_info") or {}
     raw_eta         = tracking_info.get("estimated_delivery", "")

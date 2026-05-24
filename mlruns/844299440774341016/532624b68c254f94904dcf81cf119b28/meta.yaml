@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/532624b68c254f94904dcf81cf119b28/artifacts
+end_time: 1779513703574
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 532624b68c254f94904dcf81cf119b28
+run_name: sassy-shrike-327
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779513703157
+status: 3
+tags: []
+user_id: sigmoid

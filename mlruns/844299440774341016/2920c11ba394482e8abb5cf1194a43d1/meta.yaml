@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/2920c11ba394482e8abb5cf1194a43d1/artifacts
+end_time: 1779513674744
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 2920c11ba394482e8abb5cf1194a43d1
+run_name: hilarious-gnu-580
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779513673356
+status: 3
+tags: []
+user_id: sigmoid

@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/f7b73882c586460fab940ec9ee263ce0/artifacts
+end_time: 1779435789584
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: f7b73882c586460fab940ec9ee263ce0
+run_name: spiffy-flea-115
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779435788239
+status: 3
+tags: []
+user_id: sigmoid

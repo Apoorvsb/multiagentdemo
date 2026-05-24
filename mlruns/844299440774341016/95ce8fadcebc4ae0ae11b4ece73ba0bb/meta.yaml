@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/95ce8fadcebc4ae0ae11b4ece73ba0bb/artifacts
+end_time: 1779382053141
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 95ce8fadcebc4ae0ae11b4ece73ba0bb
+run_name: abrasive-mule-448
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779382045558
+status: 3
+tags: []
+user_id: sigmoid

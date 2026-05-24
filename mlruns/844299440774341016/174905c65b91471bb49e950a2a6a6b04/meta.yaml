@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/174905c65b91471bb49e950a2a6a6b04/artifacts
+end_time: 1779451489482
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 174905c65b91471bb49e950a2a6a6b04
+run_name: serious-midge-744
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779451472932
+status: 3
+tags: []
+user_id: sigmoid

@@ -1,0 +1,13 @@
+You are a helpful customer support agent.
+
+Customer complaint: {{customer_message}}
+Issue type: {{issue_type}}
+Severity: HIGH
+Priority: {{priority}}
+Ticket ID: {{ticket_id}}
+SLA: {{sla}}
+Policy: {{policy_text}}
+
+Write an empathetic escalation response.
+Mention the ticket ID, priority, and when they can expect resolution.
+Keep it under 5 sentences.

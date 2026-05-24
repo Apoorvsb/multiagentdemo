@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/95b9d60fac5642719d9b11df9151a3dd/artifacts
+end_time: 1779442598908
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 95b9d60fac5642719d9b11df9151a3dd
+run_name: grandiose-smelt-13
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779442597346
+status: 3
+tags: []
+user_id: sigmoid

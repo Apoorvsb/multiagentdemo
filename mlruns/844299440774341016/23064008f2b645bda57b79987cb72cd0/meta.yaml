@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/23064008f2b645bda57b79987cb72cd0/artifacts
+end_time: 1779457467006
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 23064008f2b645bda57b79987cb72cd0
+run_name: beautiful-snipe-184
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779457464994
+status: 3
+tags: []
+user_id: sigmoid

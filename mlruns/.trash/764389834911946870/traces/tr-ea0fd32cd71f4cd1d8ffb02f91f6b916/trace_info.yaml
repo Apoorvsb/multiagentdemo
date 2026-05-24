@@ -1,0 +1,25 @@
+execution_duration_ms: 2739
+request_preview: '{"state": {"session_id": "a7612e27-30af-419a-83f0-4585f1fd3ede",
+  "user_id": "user_001", "request_id": "497ce907-1a81-4e6d-b5a3-ccf4972b1c5f", "messages":
+  [], "current_input": "where is my order ORD001", "intent": null, "order_id": null,
+  "order_data": null, "order_analysis": null, "tracking_info": null, "response": null,
+  "error": null, "mlflow_run_id": "", "total_tokens": 0, "total_cost_usd": 0.0}}'
+request_time: '2026-05-21T16:19:56.665Z'
+response_preview: '{"session_id": "a7612e27-30af-419a-83f0-4585f1fd3ede", "user_id":
+  "user_001", "request_id": "497ce907-1a81-4e6d-b5a3-ccf4972b1c5f", "messages": [],
+  "current_input": "where is my order ORD001", "intent": "order_query", "order_id":
+  "ORD001", "order_data": {"order_id": "ORD001", "customer_name": "John Doe", "status":
+  "IN_TRANSIT", "carrier": "FedEx", "tracking_number": "FX100001", "estimated_delivery":
+  "2024-01-16", "items": ["Laptop", "Mouse"], "shipping_mode": "Standard Class", "order_region":
+  "South Asia", "order_country": "India", "order_city": "Mumbai", "market": "Pacific
+  Asia", "late_delivery_risk": 0, "benefit_per_order": 45.5, "sales_per_customer":
+  299.99, "order_date": "2024-01-10"}, "order_analysis": "Based on the provided order
+  data, here''s the analysis:\n\n**Conversation History:**\n- Order Status Assistant:
+  Hello, I''m here to help you with your order status.\n- Customer: (No previous conversation)\n\n**Order
+  Status Analysis:**\n\n1. **Current Status in Plain English:** You...'
+state: OK
+trace_id: tr-ea0fd32cd71f4cd1d8ffb02f91f6b916
+trace_location:
+  mlflow_experiment:
+    experiment_id: '764389834911946870'
+  type: MLFLOW_EXPERIMENT

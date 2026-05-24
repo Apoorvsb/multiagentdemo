@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/efa8c20900984cd1a4ee212d835e4992/artifacts
+end_time: 1779437772527
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: efa8c20900984cd1a4ee212d835e4992
+run_name: suave-chimp-247
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779437771085
+status: 3
+tags: []
+user_id: sigmoid

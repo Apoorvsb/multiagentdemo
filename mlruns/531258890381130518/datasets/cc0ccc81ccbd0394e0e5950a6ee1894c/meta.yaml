@@ -1,0 +1,13 @@
+digest: f1bef730
+name: multiagent_eval_dataset
+profile: '{"num_rows": 10, "num_elements": 90}'
+schema: '{"mlflow_colspec": [{"type": "string", "name": "id", "required": true}, {"type":
+  "string", "name": "agent", "required": true}, {"type": "string", "name": "input",
+  "required": true}, {"type": "string", "name": "expected", "required": true}, {"type":
+  "string", "name": "response", "required": true}, {"type": "double", "name": "relevance",
+  "required": true}, {"type": "double", "name": "correctness", "required": true},
+  {"type": "double", "name": "completeness", "required": true}, {"type": "double",
+  "name": "avg_score", "required": true}]}'
+source: '{"tags": {"mlflow.user": "sigmoid", "mlflow.source.name": "run_eval.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "3d8e8d05908b98cdca44a156a77e872a50e6d4f2"}}'
+source_type: code

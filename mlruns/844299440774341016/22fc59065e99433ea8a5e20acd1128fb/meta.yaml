@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/22fc59065e99433ea8a5e20acd1128fb/artifacts
+end_time: 1779456584134
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 22fc59065e99433ea8a5e20acd1128fb
+run_name: peaceful-pig-408
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779456583246
+status: 4
+tags: []
+user_id: sigmoid

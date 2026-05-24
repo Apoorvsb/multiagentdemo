@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/1cb304c15bc04e6b851df8f09ebabf64/artifacts
+end_time: 1779533178150
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 1cb304c15bc04e6b851df8f09ebabf64
+run_name: upset-penguin-252
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779533176930
+status: 3
+tags: []
+user_id: sigmoid

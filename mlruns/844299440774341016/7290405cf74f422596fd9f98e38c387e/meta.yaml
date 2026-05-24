@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/7290405cf74f422596fd9f98e38c387e/artifacts
+end_time: 1779450069449
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 7290405cf74f422596fd9f98e38c387e
+run_name: invincible-tern-215
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779450068600
+status: 3
+tags: []
+user_id: sigmoid

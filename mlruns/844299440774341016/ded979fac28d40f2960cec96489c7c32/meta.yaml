@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/ded979fac28d40f2960cec96489c7c32/artifacts
+end_time: 1779449730356
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: ded979fac28d40f2960cec96489c7c32
+run_name: capricious-colt-781
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779449729898
+status: 3
+tags: []
+user_id: sigmoid

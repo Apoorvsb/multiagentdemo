@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/fc67e764d3e647ee8fee139986a92099/artifacts
+end_time: 1779515831163
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: fc67e764d3e647ee8fee139986a92099
+run_name: righteous-vole-33
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779515830845
+status: 3
+tags: []
+user_id: sigmoid

@@ -1,29 +1,36 @@
+import patch_mlflow 
 import mlflow
 from typing import Literal
 from pydantic import BaseModel
 from langgraph.graph import StateGraph, END
-
 from langchain_groq import ChatGroq
+ # ← must be first
+
+...
 from state import AgentState, empty_state
 from config import config
 from logger import get_log
-from mlflow_helpers import log_llm_span, setup_mlflow
-from agents.order_agent import order_agent
+from mlflow_helpers import setup_mlflow
+from agents.order_agent   import order_agent
+from agents.product_agent import product_agent
+from agents.support_agent import support_agent
 
 setup_mlflow()
-llm=ChatGroq(
+
+llm = ChatGroq(
     model=config.LLM_MODEL,
     temperature=0,
     api_key=config.GROQ_API_KEY
 )
 
 
-class IntentOutput(BaseModel):
-    intent: Literal["order_query", "product_query", "support_query"]
-
 # ═══════════════════════════════════════════════════════
 # INTENT ROUTER
 # ═══════════════════════════════════════════════════════
+
+class IntentOutput(BaseModel):
+    intent: Literal["order_query", "product_query", "support_query"]
+
 
 def intent_router(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "router", "intent_router")
@@ -32,62 +39,30 @@ def intent_router(state: AgentState) -> AgentState:
     prompt = f"""Classify the user message into exactly one of these three intents:
 - order_query   (tracking, delivery, shipment, order status)
 - product_query (find products, recommendations, specs, price)
-- support_query (complaints, refunds, damaged items, policy)
+- support_query (complaints, refunds, damaged items, policy, cancellation)
 
 User message: {state['current_input']}
 
 Return only the intent label. Nothing else."""
 
-    structured = llm.with_structured_output(IntentOutput)
-    result     = structured.invoke(prompt)
+    try:
+        structured = llm.with_structured_output(IntentOutput)
+        result     = structured.invoke(prompt)
+        intent     = result.intent
+    except Exception as e:
+        log.error(f"Router failed: {e}")
+        intent = "order_query"
 
-    log.info(f"Intent classified: {result.intent}")
-   
-    
-    
-    log_llm_span(
-        "intent_router",
-        prompt,
-        result.intent,
-        0, 0,
-        config.LLM_MODEL,
-        "intent_router_prompt",
-        1,
-    )
-
-    log.info(f"Intent classified: {result.intent}")
-    return {**state, "intent": result.intent}
+    log.info(f"Intent classified: {intent}")
+    return {**state, "intent": intent}
 
 
 def route_to_agent(state: AgentState) -> str:
     return state.get("intent", "order_query")
 
 
-
-
-
-
-
-
 # ═══════════════════════════════════════════════════════
-# PLACEHOLDERS — agents not built yet
-# ═══════════════════════════════════════════════════════
-
-def product_agent_placeholder(state: AgentState) -> AgentState:
-    log = get_log(state["request_id"], "product_agent", "placeholder")
-    log.info("Product agent not built yet")
-    return {**state, "response": "This agent is not yet available. We are working on it."}
-
-
-def support_agent_placeholder(state: AgentState) -> AgentState:
-    log = get_log(state["request_id"], "support_agent", "placeholder")
-    log.info("Support agent not built yet")
-    return {**state, "response": "This agent is not yet available. We are working on it."}
-
-
-# ═══════════════════════════════════════════════════════
-# ORDER AGENT WRAPPER
-# Calls the full order_agent graph as a single node
+# AGENT WRAPPERS
 # ═══════════════════════════════════════════════════════
 
 def run_order_agent(state: AgentState) -> AgentState:
@@ -95,6 +70,22 @@ def run_order_agent(state: AgentState) -> AgentState:
     log.info("Order agent started")
     result = order_agent.invoke(state)
     log.info("Order agent completed")
+    return result
+
+
+def run_product_agent(state: AgentState) -> AgentState:
+    log = get_log(state["request_id"], "product_agent", "entry")
+    log.info("Product agent started")
+    result = product_agent.invoke(state)
+    log.info("Product agent completed")
+    return result
+
+
+def run_support_agent(state: AgentState) -> AgentState:
+    log = get_log(state["request_id"], "support_agent", "entry")
+    log.info("Support agent started")
+    result = support_agent.invoke(state)
+    log.info("Support agent completed")
     return result
 
 
@@ -107,8 +98,8 @@ def build_pipeline():
 
     graph.add_node("intent_router",  intent_router)
     graph.add_node("order_agent",    run_order_agent)
-    graph.add_node("product_agent",  product_agent_placeholder)
-    graph.add_node("support_agent",  support_agent_placeholder)
+    graph.add_node("product_agent",  run_product_agent)
+    graph.add_node("support_agent",  run_support_agent)
 
     graph.set_entry_point("intent_router")
 
@@ -140,9 +131,9 @@ if __name__ == "__main__":
     session_id = get_or_create_session(None, "test-user")
 
     test_messages = [
-        "where is my order #12345",
-        "find me a laptop under 50000",
-        "my item arrived damaged",
+        "where is my order ORD0001",
+        "find me a good cable under 500 rupees",
+        "my laptop arrived with a cracked screen",
     ]
 
     for msg in test_messages:
@@ -156,4 +147,4 @@ if __name__ == "__main__":
         )
         result = pipeline.invoke(state)
         print(f"Intent:   {result['intent']}")
-        print(f"Response: {result['response']}")
+        print(f"Response: {result.get('response', 'No response')[:150]}")

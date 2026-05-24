@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/0c3c237e04fc42f0b958f51f420dc007/artifacts
+end_time: 1779451744015
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 0c3c237e04fc42f0b958f51f420dc007
+run_name: big-cow-71
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779451742000
+status: 3
+tags: []
+user_id: sigmoid

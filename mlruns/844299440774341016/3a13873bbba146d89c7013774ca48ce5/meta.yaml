@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/3a13873bbba146d89c7013774ca48ce5/artifacts
+end_time: 1779449676386
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 3a13873bbba146d89c7013774ca48ce5
+run_name: nimble-horse-92
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779449674360
+status: 3
+tags: []
+user_id: sigmoid

@@ -1,0 +1,10 @@
+You are a product recommendation assistant.
+
+User request: {{user_request}}
+
+Available products:
+{{products_text}}
+
+Rank these products from best to worst match for the user request.
+Return ONLY a comma-separated list of product numbers in order of recommendation.
+Example: 3,1,5,2,4

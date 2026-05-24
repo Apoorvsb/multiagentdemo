@@ -1,0 +1,12 @@
+{
+  "eval_001": "Your order ORD1491 is currently IN_TRANSIT with Delhivery. It contains a Motherboard and is expected to be delivered by 2024-05-28. Reply with the Order ID for full tracking details.",
+  "eval_002": "Your order ORD1455 has been successfully DELIVERED via Delhivery. Your Smartphone was delivered on 2024-03-05. No further action is needed.",
+  "eval_003": "Great news! Your order ORD1473 containing Books is OUT_FOR_DELIVERY with Delhivery and should arrive by 2024-04-23.",
+  "eval_004": "Your order ORD1437 containing RAM and SSD is currently PENDING with Delhivery. The estimated delivery date is 2024-06-08.",
+  "eval_005": "Yes, your order ORD1419 containing a Laptop Bag is currently IN_TRANSIT with FedEx. The estimated delivery date is 2024-04-11.",
+  "eval_006": "Yes, your order ORD1401 containing a Hard Drive has been DELIVERED via Ekart. The delivery was completed on 2024-01-06.",
+  "eval_007": "Here are your orders currently in transit:\n• ORD1491 — IN_TRANSIT via Delhivery (Delivery: 2024-05-28) — Items: Motherboard\n• ORD1419 — IN_TRANSIT via FedEx (Delivery: 2024-04-11) — Items: Laptop Bag\n\nReply with an Order ID for full tracking details.",
+  "eval_008": "Here is a summary of all your orders:\n• ORD1437 — PENDING via Delhivery (ETA: 2024-06-08) — Items: RAM, SSD\n• ORD1491 — IN_TRANSIT via Delhivery (ETA: 2024-05-28) — Items: Motherboard\n• ORD1473 — OUT_FOR_DELIVERY via Delhivery (ETA: 2024-04-23) — Items: Books\n• ORD1419 — IN_TRANSIT via FedEx (ETA: 2024-04-11) — Items: Laptop Bag\n• ORD1455 — DELIVERED via Delhivery (2024-03-05) — Items: Smartphone\n• ORD1401 — DELIVERED via Ekart (2024-01-06) — Items: Hard Drive",
+  "eval_009": "Your shipment for ORD1491 is being carried by Delhivery. The current status is IN_TRANSIT and the estimated delivery date is 2024-05-28. This order contains a Motherboard.",
+  "eval_010": "You have one pending order:\n• ORD1437 — PENDING via Delhivery (ETA: 2024-06-08) — Items: RAM, SSD"
+}

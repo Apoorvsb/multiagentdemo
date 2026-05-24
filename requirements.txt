@@ -16,4 +16,4 @@ pytest-asyncio
 flake8
 black
 deepeval
-
+langchain-groq

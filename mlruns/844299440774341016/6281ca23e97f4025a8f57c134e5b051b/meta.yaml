@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/6281ca23e97f4025a8f57c134e5b051b/artifacts
+end_time: 1779435775589
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 6281ca23e97f4025a8f57c134e5b051b
+run_name: burly-chimp-814
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779435774484
+status: 3
+tags: []
+user_id: sigmoid

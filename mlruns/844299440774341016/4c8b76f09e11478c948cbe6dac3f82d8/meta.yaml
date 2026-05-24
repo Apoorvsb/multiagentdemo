@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/4c8b76f09e11478c948cbe6dac3f82d8/artifacts
+end_time: 1779451157983
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 4c8b76f09e11478c948cbe6dac3f82d8
+run_name: invincible-whale-696
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779451155720
+status: 3
+tags: []
+user_id: sigmoid

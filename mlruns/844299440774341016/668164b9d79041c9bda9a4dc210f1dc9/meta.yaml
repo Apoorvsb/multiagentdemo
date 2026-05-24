@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/668164b9d79041c9bda9a4dc210f1dc9/artifacts
+end_time: 1779447451978
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 668164b9d79041c9bda9a4dc210f1dc9
+run_name: fortunate-duck-11
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779447450547
+status: 3
+tags: []
+user_id: sigmoid

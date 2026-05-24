@@ -1,1 +1,72 @@
-[]
+[
+  {
+    "id": "eval_001",
+    "agent": "order_agent",
+    "input": "Where is my order ORD1491?",
+    "expected": "Order ORD1491 is currently in transit with Delhivery. The estimated delivery date is 2024-05-28. The item in this order is a Motherboard.",
+    "context": "Order ORD1491 belongs to the user. Status: IN_TRANSIT. Carrier: Delhivery. Items: Motherboard. ETA: 2024-05-28."
+  },
+  {
+    "id": "eval_002",
+    "agent": "order_agent",
+    "input": "What is the status of ORD1455?",
+    "expected": "Order ORD1455 has been delivered successfully via Delhivery. The item Smartphone was delivered on 2024-03-05.",
+    "context": "Order ORD1455 belongs to the user. Status: DELIVERED. Carrier: Delhivery. Items: Smartphone. ETA: 2024-03-05."
+  },
+  {
+    "id": "eval_003",
+    "agent": "order_agent",
+    "input": "When will ORD1473 arrive?",
+    "expected": "Order ORD1473 containing Books is out for delivery with Delhivery and should arrive by 2024-04-23.",
+    "context": "Order ORD1473 belongs to the user. Status: OUT_FOR_DELIVERY. Carrier: Delhivery. Items: Books. ETA: 2024-04-23."
+  },
+  {
+    "id": "eval_004",
+    "agent": "order_agent",
+    "input": "What is the status of ORD1437?",
+    "expected": "Order ORD1437 containing RAM and SSD is pending with Delhivery. The estimated delivery date is 2024-06-08.",
+    "context": "Order ORD1437 belongs to the user. Status: PENDING. Carrier: Delhivery. Items: RAM, SSD. ETA: 2024-06-08."
+  },
+  {
+    "id": "eval_005",
+    "agent": "order_agent",
+    "input": "Is ORD1419 still in transit?",
+    "expected": "Yes, order ORD1419 containing a Laptop Bag is currently in transit with FedEx. The estimated delivery date is 2024-04-11.",
+    "context": "Order ORD1419 belongs to the user. Status: IN_TRANSIT. Carrier: FedEx. Items: Laptop Bag. ETA: 2024-04-11."
+  },
+  {
+    "id": "eval_006",
+    "agent": "order_agent",
+    "input": "Has ORD1401 been delivered?",
+    "expected": "Yes, order ORD1401 containing a Hard Drive has been delivered via Ekart. The delivery was completed on 2024-01-06.",
+    "context": "Order ORD1401 belongs to the user. Status: DELIVERED. Carrier: Ekart. Items: Hard Drive. ETA: 2024-01-06."
+  },
+  {
+    "id": "eval_007",
+    "agent": "order_agent",
+    "input": "What are my orders in transit?",
+    "expected": "You have two orders currently in transit. ORD1491 with a Motherboard is being shipped via Delhivery and expected by 2024-05-28. ORD1419 with a Laptop Bag is being shipped via FedEx and expected by 2024-04-11.",
+    "context": "User has multiple orders. ORD1491 is IN_TRANSIT via Delhivery (ETA 2024-05-28, Items: Motherboard). ORD1419 is IN_TRANSIT via FedEx (ETA 2024-04-11, Items: Laptop Bag)."
+  },
+  {
+    "id": "eval_008",
+    "agent": "order_agent",
+    "input": "Give me a summary of all my orders",
+    "expected": "Here is a summary of your orders: ORD1437 is PENDING via Delhivery (RAM, SSD, ETA 2024-06-08). ORD1491 is IN_TRANSIT via Delhivery (Motherboard, ETA 2024-05-28). ORD1473 is OUT_FOR_DELIVERY via Delhivery (Books, ETA 2024-04-23). ORD1419 is IN_TRANSIT via FedEx (Laptop Bag, ETA 2024-04-11). ORD1455 is DELIVERED via Delhivery (Smartphone). ORD1401 is DELIVERED via Ekart (Hard Drive).",
+    "context": "All user orders: ORD1437 PENDING Delhivery RAM SSD 2024-06-08, ORD1491 IN_TRANSIT Delhivery Motherboard 2024-05-28, ORD1473 OUT_FOR_DELIVERY Delhivery Books 2024-04-23, ORD1419 IN_TRANSIT FedEx Laptop Bag 2024-04-11, ORD1455 DELIVERED Delhivery Smartphone 2024-03-05, ORD1401 DELIVERED Ekart Hard Drive 2024-01-06."
+  },
+  {
+    "id": "eval_009",
+    "agent": "order_agent",
+    "input": "Track my shipment for ORD1491",
+    "expected": "Your shipment for ORD1491 is being carried by Delhivery. It is currently in transit and is expected to be delivered by 2024-05-28. The order contains a Motherboard.",
+    "context": "Order ORD1491. Status: IN_TRANSIT. Carrier: Delhivery. Items: Motherboard. ETA: 2024-05-28."
+  },
+  {
+    "id": "eval_010",
+    "agent": "order_agent",
+    "input": "Which of my orders are pending?",
+    "expected": "You have one pending order: ORD1437 containing RAM and SSD, being shipped via Delhivery with an estimated delivery date of 2024-06-08.",
+    "context": "User pending orders: ORD1437 PENDING Delhivery Items: RAM, SSD ETA 2024-06-08."
+  }
+]

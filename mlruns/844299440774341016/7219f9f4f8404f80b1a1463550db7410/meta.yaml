@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/7219f9f4f8404f80b1a1463550db7410/artifacts
+end_time: 1779457111982
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 7219f9f4f8404f80b1a1463550db7410
+run_name: caring-dove-526
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779457110008
+status: 3
+tags: []
+user_id: sigmoid

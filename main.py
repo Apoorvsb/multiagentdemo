@@ -1,10 +1,16 @@
+
+
 import uuid
 import time
+import logging
 import mlflow
+import psycopg2
+import psycopg2.extras
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 from config import config
 from state import empty_state
@@ -20,7 +26,17 @@ from database import (
 from mlflow_helpers import setup_mlflow
 from pipeline import pipeline
 
+# ── Suppress only the span warning, not all tracing ───────
+logging.getLogger("mlflow.entities.span").setLevel(logging.CRITICAL)
 
+# ── Traced pipeline wrapper ────────────────────────────────
+
+def run_pipeline(state):
+    return pipeline.invoke(state)
+
+import logging
+logging.getLogger("mlflow.entities.span").setLevel(logging.CRITICAL)
+logging.getLogger("mlflow.tracing").setLevel(logging.CRITICAL)
 # ═══════════════════════════════════════════════════════
 # STARTUP
 # ═══════════════════════════════════════════════════════
@@ -34,13 +50,76 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Multi-Agent App", version="1.0.0", lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ═══════════════════════════════════════════════════════
+# DB HELPERS
+# ═══════════════════════════════════════════════════════
+
+def get_conn():
+    return psycopg2.connect(
+        host=config.POSTGRES_HOST,
+        port=config.POSTGRES_PORT,
+        dbname=config.POSTGRES_DB,
+        user=config.POSTGRES_USER,
+        password=config.POSTGRES_PASSWORD,
+    )
+
+
+def get_session_row(session_id: str):
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT * FROM sessions WHERE session_id = %s",
+                [session_id]
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+
+def update_user_metadata(user_id: str, metadata: dict):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET metadata = %s WHERE user_id = %s",
+                [psycopg2.extras.Json(metadata), user_id]
+            )
+
+
+def user_exists(user_id: str) -> bool:
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT user_id FROM users WHERE user_id = %s",
+                [user_id]
+            )
+            return cur.fetchone() is not None
+
 
 # ═══════════════════════════════════════════════════════
 # MODELS
 # ═══════════════════════════════════════════════════════
 
-class ChatRequest(BaseModel):
+class RegisterRequest(BaseModel):
+    name:  str
+    email: str
+
+
+class LoginRequest(BaseModel):
     user_id: str
+
+
+class ChatRequest(BaseModel):
     message: str
 
 
@@ -61,245 +140,174 @@ def health():
     return {"status": "ok"}
 
 
-# @app.post("/chat", response_model=ChatResponse)
-# async def chat(
-#     body: ChatRequest,
-#     x_session_id: Optional[str] = Header(None),
-# ):
-#     request_id = str(uuid.uuid4())
-#     log        = get_log(request_id)
-#     start      = time.time()
+@app.post("/register")
+async def register(body: RegisterRequest):
+    user_id = body.email
 
-#     log.info(f"Request received | user_id={body.user_id} | input='{body.message[:60]}'")
+    if user_exists(user_id):
+        session_id = get_or_create_session(None, user_id)
+        return {
+            "user_id":       user_id,
+            "session_id":    session_id,
+            "name":          body.name,
+            "message":       "User already exists. Logged in successfully.",
+            "existing_user": True
+        }
 
-#     # Step 1 — ensure user exists
-#     try:
-#         get_or_create_user(body.user_id)
-#     except Exception as e:
-#         log.error(f"User DB error: {e}")
-#         raise HTTPException(status_code=500, detail="Database error")
+    get_or_create_user(user_id)
+    update_user_metadata(user_id, {"name": body.name, "email": body.email})
+    session_id = get_or_create_session(None, user_id)
 
-#     # Step 2 — load or create session
-#     try:
-#         session_id = get_or_create_session(x_session_id, body.user_id)
-#     except ValueError as e:
-#         log.warning(f"Session error: {e}")
-#         raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "user_id":       user_id,
+        "session_id":    session_id,
+        "name":          body.name,
+        "message":       "Registration successful.",
+        "existing_user": False
+    }
 
-#     # Step 3 — load conversation history
-#     history = load_conversation_history(session_id)
-#     log.info(f"Session loaded | session_id={session_id} | history={len(history)} messages")
 
-#     # Step 4 — save user message
-#     save_message(session_id=session_id, role="user", content=body.message)
+@app.post("/login")
+async def login(body: LoginRequest):
+    if not user_exists(body.user_id):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error":      "User not found.",
+                "action":     "Please sign up first.",
+                "signup_url": "/register"
+            }
+        )
 
-   
-#     # Step 5 — run pipeline under one MLflow run
-#     with mlflow.start_run() as run:
-#         mlflow.set_tags({
-#             "session_id": session_id,
-#             "user_id":    body.user_id,
-#             "request_id": request_id,
-#             "endpoint":   "/chat",
-#         })
+    session_id = get_or_create_session(None, body.user_id)
+    return {
+        "user_id":    body.user_id,
+        "session_id": session_id,
+        "message":    "Login successful.",
+        "next_step":  "Use session_id in X-Session-ID header for /chat."
+    }
 
-#     state = empty_state(
-#         session_id    = session_id,
-#         user_id       = body.user_id,
-#         request_id    = request_id,
-#         messages      = history,
-#         current_input = body.message,
-#         mlflow_run_id = run.info.run_id,
-#     )
 
-#     try:
-#         with mlflow.start_run(name="full_request") as trace:
-#             trace.set_attribute("user_message", body.message)
-#             trace.set_attribute("user_id",      body.user_id)
-#             trace.set_attribute("session_id",   session_id)
-
-#             result = pipeline.invoke(state)
-
-#             trace.set_attribute("intent",   result.get("intent", ""))
-#             trace.set_attribute("response", result.get("response", ""))
-#             trace.set_attribute("tokens",   result["total_tokens"])
-#             trace.set_attribute("cost_usd", result["total_cost_usd"])
-
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         log.error(f"Pipeline failed: {e}")
-#         raise HTTPException(status_code=500, detail=str(e))
-
-#     latency = (time.time() - start) * 1000
-#     mlflow.log_metrics({
-#         "total_tokens":   result["total_tokens"],
-#         "total_cost_usd": result["total_cost_usd"],
-#         "latency_ms":     latency,
-#     })
-#     # Step 6 — update session agent
-#     update_session_agent(session_id, result.get("intent"))
-
-#     log.info(
-#         f"Response returned | intent={result.get('intent')} | "
-#         f"tokens={result['total_tokens']} | latency={latency:.0f}ms"
-#     )
-
-#     # Step 7 — return response
-#     return ChatResponse(
-#         response    = result.get("response", "I could not process your request."),
-#         session_id  = session_id,
-#         intent      = result.get("intent"),
-#         tokens_used = result["total_tokens"],
-#         cost_usd    = result["total_cost_usd"],
-#     )
 @app.post("/chat", response_model=ChatResponse)
 async def chat(
-    body: ChatRequest,
+    body:         ChatRequest,
     x_session_id: Optional[str] = Header(None),
 ):
-    request_id = str(uuid.uuid4())
-    log = get_log(request_id)
-    start = time.time()
-
-    log.info(
-        f"Request received | user_id={body.user_id} | "
-        f"input='{body.message[:60]}'"
-    )
-
-    # Step 1 — ensure user exists
-    try:
-        get_or_create_user(body.user_id)
-
-    except Exception as e:
-        log.error(f"User DB error: {e}")
-
+    if not x_session_id:
         raise HTTPException(
-            status_code=500,
-            detail="Database error"
+            status_code=401,
+            detail={
+                "error":      "You are not logged in.",
+                "message":    "Please sign up or log in to continue.",
+                "signup_url": "/register",
+                "login_url":  "/login",
+            }
         )
 
-    # Step 2 — load or create session
+    request_id = str(uuid.uuid4())
+    log        = get_log(request_id)
+    start      = time.time()
+
+    # ── Load session ──────────────────────────────────────────────
+    session_row = get_session_row(x_session_id)
+    if not session_row:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error":     "Session not found.",
+                "message":   "Your session is invalid. Please log in again.",
+                "login_url": "/login"
+            }
+        )
+
+    user_id = session_row["user_id"]
+    log.info(f"Request received | user_id={user_id} | input='{body.message[:60]}'")
+
+    # ── Check session expiry ──────────────────────────────────────
     try:
-        session_id = get_or_create_session(
-            x_session_id,
-            body.user_id
-        )
-
+        session_id = get_or_create_session(x_session_id, user_id)
     except ValueError as e:
-        log.warning(f"Session error: {e}")
-
+        log.warning(f"Session expired: {e}")
         raise HTTPException(
             status_code=400,
-            detail=str(e)
+            detail={
+                "error":     "Session expired.",
+                "message":   "Your session has expired. Please log in again.",
+                "login_url": "/login"
+            }
         )
 
-    # Step 3 — load conversation history
+    # ── Load history ──────────────────────────────────────────────
     history = load_conversation_history(session_id)
+    history = history[-10:]
+    log.info(f"Session loaded | session_id={session_id} | history={len(history)} messages")
 
-    log.info(
-        f"Session loaded | "
-        f"session_id={session_id} | "
-        f"history={len(history)} messages"
+    # ── Save user message ─────────────────────────────────────────
+    save_message(session_id=session_id, role="user", content=body.message)
+
+    # ── Build state ───────────────────────────────────────────────
+    state = empty_state(
+        session_id    = session_id,
+        user_id       = user_id,
+        request_id    = request_id,
+        messages      = history,
+        current_input = body.message,
     )
 
-    # Step 4 — save user message
-    save_message(
-        session_id=session_id,
-        role="user",
-        content=body.message
-    )
+    # ── Run pipeline under MLflow run ─────────────────────────────
+    with mlflow.start_run() as run:
+        run_id = run.info.run_id
+        mlflow.set_tags({
+            "session_id": session_id,
+            "user_id":    user_id,
+            "request_id": request_id,
+            "endpoint":   "/chat",
+        })
 
-    try:
+        state["mlflow_run_id"] = run_id
 
-        # Step 5 — MLflow tracking
-        with mlflow.start_run(run_name="full_request") as run:
-
-            mlflow.set_tags({
-                "session_id": session_id,
-                "user_id": body.user_id,
-                "request_id": request_id,
-                "endpoint": "/chat",
-            })
-
-            mlflow.log_param(
-                "user_message",
-                body.message
-            )
-
-            # Build graph state
-            state = empty_state(
-                session_id=session_id,
-                user_id=body.user_id,
-                request_id=request_id,
-                messages=history,
-                current_input=body.message,
-                mlflow_run_id=run.info.run_id,
-            )
-
-            # Execute pipeline
+        try:
+            
             result = pipeline.invoke(state)
+            mlflow.set_tag("agent_selected", result.get("intent", "unknown"))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            log.error(f"Pipeline failed: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
-            latency = (time.time() - start) * 1000
+        latency = (time.time() - start) * 1000
+        mlflow.log_metrics({
+            "total_tokens":   result["total_tokens"],
+            "total_cost_usd": result["total_cost_usd"],
+            "latency_ms":     latency,
+        })
 
-            # Log outputs
-            mlflow.log_param(
-                "intent",
-                result.get("intent", "")
-            )
-
-            mlflow.log_param(
-                "response",
-                result.get("response", "")
-            )
-
-            # Metrics
-            mlflow.log_metrics({
-                "total_tokens": result.get("total_tokens", 0),
-                "total_cost_usd": result.get("total_cost_usd", 0),
-                "latency_ms": latency,
-            })
-
-    except Exception as e:
-        import traceback
-
-        traceback.print_exc()
-
-        log.error(f"Pipeline failed: {e}")
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-    # Step 6 — save assistant response
+    # ── Save assistant response ───────────────────────────────────
     save_message(
-        session_id=session_id,
-        role="assistant",
-        content=result.get("response", "")
+        session_id    = session_id,
+        role          = "assistant",
+        content       = result.get("response", ""),
+        agent_name    = result.get("intent"),
+        token_usage   = {
+            "total_tokens":   result["total_tokens"],
+            "total_cost_usd": result["total_cost_usd"],
+        },
+        mlflow_run_id = run_id,
     )
 
-    # Step 7 — update session agent
-    update_session_agent(
-        session_id,
-        result.get("intent")
-    )
+    # ── Update session ────────────────────────────────────────────
+    update_session_agent(session_id, result.get("intent"))
 
     log.info(
-        f"Response returned | "
-        f"intent={result.get('intent')} | "
-        f"tokens={result.get('total_tokens', 0)} | "
-        f"latency={latency:.0f}ms"
+        f"Response returned | intent={result.get('intent')} | "
+        f"tokens={result['total_tokens']} | latency={latency:.0f}ms"
     )
 
-    # Step 8 — return response
     return ChatResponse(
-        response=result.get(
-            "response",
-            "I could not process your request."
-        ),
-        session_id=session_id,
-        intent=result.get("intent"),
-        tokens_used=result.get("total_tokens", 0),
-        cost_usd=result.get("total_cost_usd", 0),
+        response    = result.get("response", "I could not process your request."),
+        session_id  = session_id,
+        intent      = result.get("intent"),
+        tokens_used = result["total_tokens"],
+        cost_usd    = result["total_cost_usd"],
     )

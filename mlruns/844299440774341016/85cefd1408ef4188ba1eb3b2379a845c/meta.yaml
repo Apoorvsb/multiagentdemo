@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/85cefd1408ef4188ba1eb3b2379a845c/artifacts
+end_time: 1779437840630
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: 85cefd1408ef4188ba1eb3b2379a845c
+run_name: abrasive-skunk-563
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779437839354
+status: 3
+tags: []
+user_id: sigmoid

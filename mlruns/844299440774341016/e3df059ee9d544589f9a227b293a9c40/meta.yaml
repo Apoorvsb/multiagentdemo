@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/844299440774341016/e3df059ee9d544589f9a227b293a9c40/artifacts
+end_time: 1779513749039
+entry_point_name: ''
+experiment_id: '844299440774341016'
+lifecycle_stage: active
+run_id: e3df059ee9d544589f9a227b293a9c40
+run_name: resilient-ox-10
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779513748546
+status: 3
+tags: []
+user_id: sigmoid

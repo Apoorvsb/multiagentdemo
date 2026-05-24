@@ -11,7 +11,10 @@ from mlflow_helpers import log_llm_span, log_tool_span
 from agents.shipment_subgraph import build_shipment_subgraph
 from langgraph.graph import StateGraph, END
 from database import save_message
-from mlflow_helpers import calculate_cost, log_tool_span
+
+from mlflow_helpers import calculate_cost, log_tool_span, log_llm_span
+
+import state
 
 llm = ChatGroq(
     model=config.LLM_MODEL,
@@ -25,22 +28,271 @@ print(" CONFIG MODEL =", config.LLM_MODEL)
 # NODE 1 — validate_input
 # ─────────────────────────────────────────────
 
+# def validate_input(state: AgentState) -> AgentState:
+#     print("DEBUG current_input:", state["current_input"])  # add this
+#     msg = state["current_input"].upper()
+#     match = re.search(r'(ORD\d+)', msg)
+#     if not match:
+#        match = re.search(r'#?(\d{3,6})', msg)
+#     order_id = match.group(1) if match else None
+#     print("DEBUG order_id:", order_id)  # add this
+#     return {**state, "order_id": order_id}
 def validate_input(state: AgentState) -> AgentState:
-    print("DEBUG current_input:", state["current_input"])  # add this
-    msg = state["current_input"].upper()
+    log = get_log(state["request_id"], "order_agent", "validate_input")
+    log.info("Node entered")
+
+    msg   = state["current_input"].upper()
     match = re.search(r'(ORD\d+)', msg)
     if not match:
-        match = re.search(r'#?(\d{4,6})', msg)
+        match = re.search(r'#?(\d{3,6})', msg)
+
     order_id = match.group(1) if match else None
-    print("DEBUG order_id:", order_id)  # add this
-    return {**state, "order_id": order_id}
+    log.info(f"Extracted order_id={order_id}")
 
+    # Has order ID — proceed normally
+    if order_id:
+        return {**state, "order_id": order_id}
 
+    # ── No order ID — smart listing ───────────────────────
+    user_id   = state.get("user_id")
+    msg_lower = state["current_input"].lower()
 
+    # ── Detect special queries ────────────────────────────
+    special_response = None
+
+    # Count query
+    if any(w in msg_lower for w in ["how many", "count", "total orders", "number of orders"]):
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM orders WHERE user_id = %s", [user_id])
+                total = cur.fetchone()[0]
+                cur.execute(
+                    """SELECT status, COUNT(*) FROM orders
+                       WHERE user_id = %s GROUP BY status ORDER BY COUNT(*) DESC""",
+                    [user_id]
+                )
+                breakdown = cur.fetchall()
+        breakdown_lines = "\n".join([f"  • {s}: {c}" for s, c in breakdown])
+        special_response = f"You have {total} orders in total.\n\nBreakdown:\n{breakdown_lines}"
+
+    elif any(w in msg_lower for w in ["cheapest", "lowest price", "least expensive"]):
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, status, carrier, items, sales_per_customer
+                       FROM orders WHERE user_id = %s
+                       ORDER BY sales_per_customer ASC LIMIT 5""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        lines = "\n".join([
+            f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}"
+            for o in orders
+        ])
+        special_response = f"Here are your cheapest orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
+
+    elif any(w in msg_lower for w in ["expensive", "highest price", "most expensive", "costliest"]):
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, status, carrier, items, sales_per_customer
+                       FROM orders WHERE user_id = %s
+                       ORDER BY sales_per_customer DESC LIMIT 5""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        lines = "\n".join([
+            f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}"
+            for o in orders
+        ])
+        special_response = f"Here are your most expensive orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
+
+    elif any(w in msg_lower for w in ["last week", "this week", "past week"]):
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
+                       FROM orders WHERE user_id = %s
+                       AND order_date::date >= CURRENT_DATE - INTERVAL '7 days'
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        if not orders:
+            special_response = "You have no orders from the last week."
+        else:
+            lines = "\n".join([
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
+                f"(Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ])
+            special_response = f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
+
+    elif any(w in msg_lower for w in ["last month", "this month", "past month"]):
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
+                       FROM orders WHERE user_id = %s
+                       AND order_date::date >= CURRENT_DATE - INTERVAL '30 days'
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        if not orders:
+            special_response = "You have no orders from the last month."
+        else:
+            lines = "\n".join([
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
+                f"(Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ])
+            special_response = f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
+
+    elif any(w in msg_lower for w in ["late risk", "delayed risk", "at risk", "risky", "might be late"]):
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, status, carrier, estimated_delivery, items
+                       FROM orders WHERE user_id = %s AND late_delivery_risk = 1
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        if not orders:
+            special_response = "None of your orders have a late delivery risk."
+        else:
+            lines = "\n".join([
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
+                f"(Delivery: {o['estimated_delivery']}) — Items: {o['items']}"
+                for o in orders
+            ])
+            special_response = f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details."
+
+    # Return special response if matched
+    if special_response:
+        return {**state, "order_id": None, "response": special_response}
+
+    # ── Detect status filter ──────────────────────────────
+    status_filter = None
+    if any(w in msg_lower for w in ["in transit", "transit"]):
+        status_filter = "IN_TRANSIT"
+    elif any(w in msg_lower for w in ["out for delivery"]):
+        status_filter = "OUT_FOR_DELIVERY"
+    elif any(w in msg_lower for w in ["delivered"]):
+        status_filter = "DELIVERED"
+    elif any(w in msg_lower for w in ["pending"]):
+        status_filter = "PENDING"
+    elif any(w in msg_lower for w in ["delayed", "delay"]):
+        status_filter = "DELAYED"
+    elif any(w in msg_lower for w in ["returned", "return"]):
+        status_filter = "RETURNED"
+
+    # ── Detect product filter ─────────────────────────────
+    stop_words = {
+        "where", "is", "my", "order", "orders", "show", "list",
+        "what", "are", "the", "all", "which", "have", "i", "me",
+        "track", "find", "get", "give", "tell", "about", "for",
+        "in", "transit", "delivered", "pending", "delayed", "status",
+        "under", "with", "a", "an", "of", "do", "did", "has",
+        "been", "that", "those", "these", "and", "or", "to",
+        "out", "return", "returned", "hey", "hi", "hello", "please",
+        "can", "you", "its", "it", "this", "any", "some", "latest",
+    }
+    words = [
+        w.strip("?.,!") for w in msg_lower.split()
+        if w.strip("?.,!") not in stop_words and len(w.strip("?.,!")) > 2
+    ]
+
+    # ── Query DB ──────────────────────────────────────────
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            if status_filter and words:
+                keyword_conditions = " OR ".join(["items::text ILIKE %s" for _ in words])
+                params = [user_id, status_filter] + [f"%{w}%" for w in words]
+                cur.execute(
+                    f"""SELECT order_id, status, carrier, estimated_delivery, items
+                        FROM orders WHERE user_id = %s AND status = %s
+                        AND ({keyword_conditions})
+                        ORDER BY order_date DESC LIMIT 10""",
+                    params
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+                if not orders:
+                    cur.execute(
+                        """SELECT order_id, status, carrier, estimated_delivery, items
+                           FROM orders WHERE user_id = %s AND status = %s
+                           ORDER BY order_date DESC LIMIT 10""",
+                        [user_id, status_filter]
+                    )
+                    orders = [dict(r) for r in cur.fetchall()]
+
+            elif status_filter:
+                cur.execute(
+                    """SELECT order_id, status, carrier, estimated_delivery, items
+                       FROM orders WHERE user_id = %s AND status = %s
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id, status_filter]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+
+            elif words:
+                keyword_conditions = " OR ".join(["items::text ILIKE %s" for _ in words])
+                params = [user_id] + [f"%{w}%" for w in words]
+                cur.execute(
+                    f"""SELECT order_id, status, carrier, estimated_delivery, items
+                        FROM orders WHERE user_id = %s
+                        AND ({keyword_conditions})
+                        ORDER BY order_date DESC LIMIT 10""",
+                    params
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+                if not orders:
+                    cur.execute(
+                        """SELECT order_id, status, carrier, estimated_delivery, items
+                           FROM orders WHERE user_id = %s
+                           ORDER BY order_date DESC LIMIT 10""",
+                        [user_id]
+                    )
+                    orders = [dict(r) for r in cur.fetchall()]
+
+            else:
+                cur.execute(
+                    """SELECT order_id, status, carrier, estimated_delivery, items
+                       FROM orders WHERE user_id = %s
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id]
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+
+    if not orders:
+        return {
+            **state,
+            "order_id": None,
+            "response": "You have no orders in our system yet."
+        }
+
+    lines = "\n".join([
+        f"• {o['order_id']} — {o['status']} via {o['carrier']} "
+        f"(Delivery: {o['estimated_delivery']}) — Items: {o['items']}"
+        for o in orders
+    ])
+
+    return {
+        **state,
+        "order_id": None,
+        "response": (
+            f"Here are your matching orders:\n\n{lines}\n\n"
+            f"Which order would you like to track? Reply with the Order ID (e.g. ORD2001)."
+        )
+    }
 def fetch_order_data(state: AgentState) -> AgentState:
+    print(f"DEBUG trace_id: {state.get('mlflow_trace_id')}")
+    print(f"DEBUG span_id:  {state.get('mlflow_span_id')}")
     log = get_log(state["request_id"], "order_agent", "fetch_order_data")
     log.info("Tool called: fetch_order_data")
     order_id = state.get("order_id")
+    user_id  = state.get("user_id")
 
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -48,18 +300,42 @@ def fetch_order_data(state: AgentState) -> AgentState:
                 "SELECT * FROM orders WHERE order_id = %s",
                 [order_id]
             )
-            row = cur.fetchone()
+            row   = cur.fetchone()
             order = dict(row) if row else None
 
-    log_tool_span(
-        "fetch_order_data",
-        "postgresql_orders_table",
-        {"order_id": order_id},
-        order,
-    )
-    log.info(f"Order found: {bool(order)}")
-    return {**state, "order_data": order}
+    # Order does not exist
+    if not order:
+        log.warning(f"Order not found: {order_id}")
+        log_tool_span(
+            "fetch_order_data",
+            "postgresql_orders_table",
+            {"order_id": order_id},
+            {"found": False, "reason": "not_found"},
+        )
+        return {**state, "order_data": None}
 
+    # Order belongs to a different user
+    if order.get("user_id") and order.get("user_id") != user_id:
+        log.warning(f"Order {order_id} does not belong to user {user_id}")
+        log_tool_span(
+            "fetch_order_data",
+            "postgresql_orders_table",
+            {"order_id": order_id},
+            {"found": False, "reason": "unauthorized"},
+        )
+        return {**state, "order_data": None}
+
+    # Order found and authorized
+    log.info(f"Order found and authorized: {order_id}")
+    log_tool_span(
+    "fetch_order_data",
+    "postgresql_orders_table",
+    {"order_id": order_id},
+    {"found": True, "order": str(order)},
+    trace_id  = state.get("mlflow_trace_id"),
+    parent_id = state.get("mlflow_span_id"),
+)
+    return {**state, "order_data": order}
 # ─────────────────────────────────────────────
 # CONDITIONAL EDGE — order found or not
 # ─────────────────────────────────────────────
@@ -104,34 +380,28 @@ def analyze_order_status(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "analyze_order_status")
     log.info("LLM called")
 
-    prompt = f"""You are an order status assistant.
-Order data: {state['order_data']}
-Conversation history: {state['messages']}
+    prompt_template = mlflow.genai.load_prompt(f"prompts:/order_analysis_prompt/{config.ORDER_ANALYSIS_PROMPT_VERSION}")
+    prompt = prompt_template.format(
+        order_data = str(state['order_data']),
+        history    = str(state['messages']),
+    )
 
-Analyze the order status and explain:
-1. Current status in plain English
-2. Expected delivery date
-3. Any delays or issues
-4. What the customer should expect next"""
-
-    with mlflow.start_span("analyze_order_status", span_type="LLM") as span:
-        span.set_attribute("input",          state["current_input"])
-        span.set_attribute("order_id",       state.get("order_id"))
-        span.set_attribute("order_status",   state["order_data"].get("status"))
-        span.set_attribute("prompt.name",    "order_analysis_prompt")
-        span.set_attribute("prompt.version", config.ORDER_ANALYSIS_PROMPT_VERSION)
-
-        response      = llm.invoke(prompt)
-        usage         = response.usage_metadata
-        input_tokens  = usage.get("input_tokens",  0)
-        output_tokens = usage.get("output_tokens", 0)
-        cost          = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
-
-        span.set_attribute("llm.prompt",            prompt)
-        span.set_attribute("llm.response",          response.content)
-        span.set_attribute("llm.prompt_tokens",     input_tokens)
-        span.set_attribute("llm.completion_tokens", output_tokens)
-        span.set_attribute("llm.cost_usd",          cost)
+    response      = llm.invoke(prompt)
+    usage         = response.usage_metadata
+    input_tokens  = usage.get("input_tokens",  0)
+    output_tokens = usage.get("output_tokens", 0)
+    cost          = log_llm_span(
+        span_name      = "analyze_order_status",
+        prompt_text    = prompt,
+        response_text  = response.content,
+        input_tokens   = input_tokens,
+        output_tokens  = output_tokens,
+        model          = config.LLM_MODEL,
+        prompt_name    = "order_analysis_prompt",
+        prompt_version = config.ORDER_ANALYSIS_PROMPT_VERSION,
+        trace_id       = state.get("mlflow_trace_id"),
+        parent_id      = state.get("mlflow_span_id"),
+    )
 
     log.info("LLM completed")
     return {
@@ -141,7 +411,6 @@ Analyze the order status and explain:
         "total_cost_usd": state["total_cost_usd"] + cost,
     }
 
-
 # ─────────────────────────────────────────────
 # NODE 5 — generate_response
 # ─────────────────────────────────────────────
@@ -149,30 +418,29 @@ def generate_response(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "generate_response")
     log.info("LLM called")
 
-    prompt = f"""You are a helpful customer service assistant.
-Order analysis: {state['order_analysis']}
-Tracking info: {state['tracking_info']}
-Customer asked: {state['current_input']}
+    prompt_template = mlflow.genai.load_prompt(f"prompts:/response_generation_prompt/{config.RESPONSE_GENERATION_PROMPT_VERSION}")
+    prompt = prompt_template.format(
+        order_analysis = str(state['order_analysis']),
+        tracking_info  = str(state['tracking_info']),
+        question       = state['current_input'],
+    )
 
-Write a clear friendly response in 3-4 sentences.
-Include current status, ETA, and tracking details."""
-
-    with mlflow.start_span("generate_response", span_type="LLM") as span:
-        span.set_attribute("input",          state["current_input"])
-        span.set_attribute("prompt.name",    "response_generation_prompt")
-        span.set_attribute("prompt.version", config.RESPONSE_GENERATION_PROMPT_VERSION)
-
-        response      = llm.invoke(prompt)
-        usage         = response.usage_metadata
-        input_tokens  = usage.get("input_tokens",  0)
-        output_tokens = usage.get("output_tokens", 0)
-        cost          = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
-
-        span.set_attribute("llm.prompt",            prompt)
-        span.set_attribute("llm.response",          response.content)
-        span.set_attribute("llm.prompt_tokens",     input_tokens)
-        span.set_attribute("llm.completion_tokens", output_tokens)
-        span.set_attribute("llm.cost_usd",          cost)
+    response      = llm.invoke(prompt)
+    usage         = response.usage_metadata
+    input_tokens  = usage.get("input_tokens",  0)
+    output_tokens = usage.get("output_tokens", 0)
+    cost          = log_llm_span(
+        span_name      = "generate_response",
+        prompt_text    = prompt,
+        response_text  = response.content,
+        input_tokens   = input_tokens,
+        output_tokens  = output_tokens,
+        model          = config.LLM_MODEL,
+        prompt_name    = "response_generation_prompt",
+        prompt_version = config.RESPONSE_GENERATION_PROMPT_VERSION,
+        trace_id       = state.get("mlflow_trace_id"),
+        parent_id      = state.get("mlflow_span_id"),
+    )
 
     log.info("Response generated")
     return {
@@ -181,8 +449,6 @@ Include current status, ETA, and tracking details."""
         "total_tokens":   state["total_tokens"]   + input_tokens + output_tokens,
         "total_cost_usd": state["total_cost_usd"] + cost,
     }
-
-
 # ─────────────────────────────────────────────
 # NODE 6 — save_to_db
 # ─────────────────────────────────────────────

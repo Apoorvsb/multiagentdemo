@@ -22,6 +22,7 @@ class Config:
 
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
     MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "multi-agent-app")
+    
 
     ORDER_ANALYSIS_PROMPT_VERSION = int(os.getenv("ORDER_ANALYSIS_PROMPT_VERSION", "1"))
     RESPONSE_GENERATION_PROMPT_VERSION = int(os.getenv("RESPONSE_GENERATION_PROMPT_VERSION", "1"))
