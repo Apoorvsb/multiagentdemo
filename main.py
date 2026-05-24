@@ -12,6 +12,8 @@ from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
 from config import config
 from state import empty_state
 from logger import get_log
@@ -25,6 +27,27 @@ from database import (
 )
 from mlflow_helpers import setup_mlflow
 from pipeline import pipeline
+# ── Prometheus metrics ─────────────────────────────────────
+REQUEST_COUNT = Counter(
+    "multiagent_requests_total",
+    "Total requests",
+    ["endpoint", "agent", "status"]
+)
+REQUEST_LATENCY = Histogram(
+    "multiagent_request_latency_seconds",
+    "Request latency in seconds",
+    ["agent"]
+)
+TOKEN_USAGE = Counter(
+    "multiagent_tokens_total",
+    "Total tokens used",
+    ["agent"]
+)
+ERROR_COUNT = Counter(
+    "multiagent_errors_total",
+    "Total errors",
+    ["agent"]
+)
 
 # ── Suppress only the span warning, not all tracing ───────
 logging.getLogger("mlflow.entities.span").setLevel(logging.CRITICAL)
@@ -138,6 +161,11 @@ class ChatResponse(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.post("/register")
@@ -267,13 +295,20 @@ async def chat(
         state["mlflow_run_id"] = run_id
 
         try:
-            
             result = pipeline.invoke(state)
-            mlflow.set_tag("agent_selected", result.get("intent", "unknown"))
+            agent  = result.get("intent", "unknown")
+            mlflow.set_tag("agent_selected", agent)
+
+            REQUEST_COUNT.labels(endpoint="/chat", agent=agent, status="success").inc()
+            REQUEST_LATENCY.labels(agent=agent).observe(time.time() - start)
+            TOKEN_USAGE.labels(agent=agent).inc(result["total_tokens"])
+
         except Exception as e:
             import traceback
             traceback.print_exc()
             log.error(f"Pipeline failed: {e}")
+            ERROR_COUNT.labels(agent="unknown").inc()
+            REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
             raise HTTPException(status_code=500, detail=str(e))
 
         latency = (time.time() - start) * 1000
