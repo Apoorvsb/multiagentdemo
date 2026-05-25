@@ -53,7 +53,7 @@ ERROR_COUNT = Counter(
 logging.getLogger("mlflow.entities.span").setLevel(logging.CRITICAL)
 
 # ── Traced pipeline wrapper ────────────────────────────────
-
+@mlflow.trace(name="multi_agent_pipeline", span_type="CHAIN")
 def run_pipeline(state):
     return pipeline.invoke(state)
 

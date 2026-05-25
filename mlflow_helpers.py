@@ -10,6 +10,7 @@ _client = MlflowClient()
 def setup_mlflow():
     mlflow.set_tracking_uri(config.MLFLOW_TRACKING_URI)
     mlflow.set_experiment(config.MLFLOW_EXPERIMENT_NAME)
+    
 
 
 
