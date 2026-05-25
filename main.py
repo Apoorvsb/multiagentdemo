@@ -27,6 +27,8 @@ from database import (
 )
 from mlflow_helpers import setup_mlflow
 from pipeline import pipeline
+from opentelemetry import context as otel_context
+from opentelemetry.propagate import inject
 # ── Prometheus metrics ─────────────────────────────────────
 REQUEST_COUNT = Counter(
     "multiagent_requests_total",
@@ -53,8 +55,18 @@ ERROR_COUNT = Counter(
 logging.getLogger("mlflow.entities.span").setLevel(logging.CRITICAL)
 
 # ── Traced pipeline wrapper ────────────────────────────────
-@mlflow.trace(name="multi_agent_pipeline", span_type="CHAIN")
-def run_pipeline(state):
+# @mlflow.trace(name="multi_agent_pipeline", span_type="CHAIN")
+# def run_pipeline(state):
+#     return pipeline.invoke(state)
+def run_pipeline(state, carrier=None):
+    from opentelemetry.propagate import extract
+    if carrier:
+        ctx = extract(carrier)
+        token = otel_context.attach(ctx)
+        try:
+            return pipeline.invoke(state)
+        finally:
+            otel_context.detach(token)
     return pipeline.invoke(state)
 
 import logging
@@ -295,20 +307,36 @@ async def chat(
         state["mlflow_run_id"] = run_id
 
         try:
-            result = pipeline.invoke(state)
-            agent  = result.get("intent", "unknown")
-            mlflow.set_tag("agent_selected", agent)
+            # Capture trace context and propagate to LangGraph nodes
+            from opentelemetry.propagate import inject, extract
+            from opentelemetry import context as otel_context
 
-            REQUEST_COUNT.labels(endpoint="/chat", agent=agent, status="success").inc()
-            REQUEST_LATENCY.labels(agent=agent).observe(time.time() - start)
-            TOKEN_USAGE.labels(agent=agent).inc(result["total_tokens"])
+            carrier = {}
+            inject(carrier)
+
+            with mlflow.start_span(name="multi_agent_pipeline", span_type="CHAIN") as root_span:
+                state["mlflow_trace_id"] = root_span.trace_id
+                state["mlflow_span_id"]  = root_span.span_id
+                root_span.set_inputs({"message": body.message, "user_id": user_id})
+
+                # Attach context so LangGraph nodes can find it
+                ctx   = extract(carrier)
+                token = otel_context.attach(ctx)
+                try:
+                    result = pipeline.invoke(state)
+                finally:
+                    otel_context.detach(token)
+                root_span.set_outputs({"response": result.get("response", "")[:200]})
+                root_span.set_attribute("intent",         result.get("intent", ""))
+                root_span.set_attribute("total_tokens",   result["total_tokens"])
+                root_span.set_attribute("total_cost_usd", result["total_cost_usd"])    
+
+            mlflow.set_tag("agent_selected", result.get("intent", "unknown"))
 
         except Exception as e:
             import traceback
             traceback.print_exc()
             log.error(f"Pipeline failed: {e}")
-            ERROR_COUNT.labels(agent="unknown").inc()
-            REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
             raise HTTPException(status_code=500, detail=str(e))
 
         latency = (time.time() - start) * 1000
@@ -317,6 +345,15 @@ async def chat(
             "total_cost_usd": result["total_cost_usd"],
             "latency_ms":     latency,
         })
+        mlflow.log_table(
+        data={
+            "role":    ["user",        "assistant"],
+            "content": [body.message,  result.get("response", "")],
+            "agent":   ["",            result.get("intent", "")],
+            "tokens":  [0,             result["total_tokens"]],
+        },
+        artifact_file="chat_history.json"
+    )
 
     # ── Save assistant response ───────────────────────────────────
     save_message(

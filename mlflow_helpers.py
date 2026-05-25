@@ -49,46 +49,109 @@ def get_active_span_id() -> str | None:
         return None
 
 
+
+# def log_llm_span(span_name, prompt_text, response_text,
+#                  input_tokens, output_tokens, model,
+#                  prompt_name, prompt_version,
+#                  trace_id=None, parent_id=None):
+#     cost = calculate_cost(model, input_tokens, output_tokens)
+
+#     try:
+#         with mlflow.start_span(
+#             name      = span_name,
+#             span_type = "LLM",
+#         ) as span:
+#             # Standard MLflow LLM attributes
+#             span.set_inputs({"prompt": prompt_text[:500]})
+#             span.set_outputs({"response": response_text[:500]})
+            
+#             # MLflow standard token attributes
+#             span.set_attribute("llm.token_count.prompt",     input_tokens)
+#             span.set_attribute("llm.token_count.completion", output_tokens)
+#             span.set_attribute("llm.token_count.total",      input_tokens + output_tokens)
+            
+#             # MLflow standard model attributes
+#             span.set_attribute("llm.model_name",  model)
+#             span.set_attribute("llm.provider",    "groq")
+            
+#             # MLflow standard cost attributes
+#             span.set_attribute("llm.usage.total_tokens",      input_tokens + output_tokens)
+#             span.set_attribute("llm.usage.prompt_tokens",     input_tokens)
+#             span.set_attribute("llm.usage.completion_tokens", output_tokens)
+            
+#             # Custom attributes
+#             span.set_attribute("prompt_name",    prompt_name)
+#             span.set_attribute("prompt_version", str(prompt_version))
+#             span.set_attribute("cost_usd",       cost)
+#             span.set_attribute("model",          model)
+            
+#     except Exception as e:
+#         print(f"  [mlflow] log_llm_span error ({span_name}): {e}")
+
+#     return cost
+
+
+# def log_tool_span(span_name, tool_name, tool_input, tool_output,
+#                   trace_id=None, parent_id=None):
+#     print(f"[DEBUG] log_tool_span called: {span_name}")
+#     try:
+#         with mlflow.start_span(
+#             name      = span_name,
+#             span_type = "TOOL",
+#         ) as span:
+#             span.set_inputs({"tool_input": str(tool_input)[:500]})
+#             span.set_outputs({"tool_output": str(tool_output)[:500]})
+#             span.set_attribute("tool_name", tool_name)
+#         print(f"[DEBUG] span created: {span_name}")
+#     except Exception as e:
+#         print(f"  [mlflow] log_tool_span error ({span_name}): {e}")
 def log_llm_span(span_name, prompt_text, response_text,
                  input_tokens, output_tokens, model,
                  prompt_name, prompt_version,
                  trace_id=None, parent_id=None):
     cost = calculate_cost(model, input_tokens, output_tokens)
-    print(f"[DEBUG] log_llm_span called: {span_name}")
-
     try:
+        from mlflow.tracing.utils import set_span_chat_messages
+        from opentelemetry import trace as otel_trace
+
+        if trace_id and parent_id:
+            from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
+            span_ctx = SpanContext(
+                trace_id    = int(trace_id, 16) if isinstance(trace_id, str) else trace_id,
+                span_id     = int(parent_id, 16) if isinstance(parent_id, str) else parent_id,
+                is_remote   = False,
+                trace_flags = TraceFlags(TraceFlags.SAMPLED),
+            )
+            ctx = otel_trace.set_span_in_context(NonRecordingSpan(span_ctx))
+        else:
+            ctx = None
+
         with mlflow.start_span(
             name      = span_name,
             span_type = "LLM",
+            **({"context": ctx} if ctx else {})
         ) as span:
-            span.set_inputs({"prompt": prompt_text[:500]})
-            span.set_outputs({"response": response_text[:500]})
-            span.set_attribute("model",          model)
-            span.set_attribute("prompt_name",    prompt_name)
-            span.set_attribute("prompt_version", str(prompt_version))
-            span.set_attribute("input_tokens",   input_tokens)
-            span.set_attribute("output_tokens",  output_tokens)
-            span.set_attribute("total_tokens",   input_tokens + output_tokens)
-            span.set_attribute("cost_usd",       cost)
-        print(f"[DEBUG] span created: {span_name}")
+            span.set_inputs({"prompt": prompt_text[:2000]})
+            span.set_outputs({"response": response_text[:2000]})
+            span.set_attribute("llm.token_count.prompt",     input_tokens)
+            span.set_attribute("llm.token_count.completion", output_tokens)
+            span.set_attribute("llm.token_count.total",      input_tokens + output_tokens)
+            span.set_attribute("llm.model_name",  model)
+            span.set_attribute("prompt_name",     prompt_name)
+            span.set_attribute("prompt_version",  str(prompt_version))
+            span.set_attribute("cost_usd",        cost)
     except Exception as e:
         print(f"  [mlflow] log_llm_span error ({span_name}): {e}")
-
     return cost
 
 
 def log_tool_span(span_name, tool_name, tool_input, tool_output,
                   trace_id=None, parent_id=None):
-    print(f"[DEBUG] log_tool_span called: {span_name}")
     try:
-        with mlflow.start_span(
-            name      = span_name,
-            span_type = "TOOL",
-        ) as span:
+        with mlflow.start_span(name=span_name, span_type="TOOL") as span:
             span.set_inputs({"tool_input": str(tool_input)[:500]})
             span.set_outputs({"tool_output": str(tool_output)[:500]})
             span.set_attribute("tool_name", tool_name)
-        print(f"[DEBUG] span created: {span_name}")
     except Exception as e:
         print(f"  [mlflow] log_tool_span error ({span_name}): {e}")
 
@@ -192,20 +255,23 @@ Return only the issue type label. Nothing else.""",
         print(f"classify_issue_prompt: {e}")
 
     try:
+        
         mlflow.genai.register_prompt(
-            name     = "draft_resolution_prompt",
-            template = """You are a helpful customer support agent.
+        name     = "draft_resolution_prompt",
+        template = """You are a helpful customer support agent.
 
 Customer complaint: {{customer_message}}
 Issue type: {{issue_type}}
 Severity: {{severity}}
 Company policy: {{policy_text}}
 Ticket ID: {{ticket_id}}
+Current date: {{current_date}}
 
 Write a clear empathetic resolution message.
-Include acknowledgement, action based on policy, expected timeline, and ticket ID if created.
+Include acknowledgement, action based on policy, and expected timeline using actual dates not placeholders.
+Never use [insert date] or similar placeholders — always calculate the actual date.
 Keep it under 5 sentences.""",
-        )
+    )
         print("Registered: draft_resolution_prompt")
     except Exception as e:
         print(f"draft_resolution_prompt: {e}")

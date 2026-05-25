@@ -205,6 +205,7 @@ def validate_input(state: AgentState) -> AgentState:
     ]
 
     # ── Query DB ──────────────────────────────────────────
+    # ── Query DB ──────────────────────────────────────────
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             if status_filter and words:
@@ -219,13 +220,11 @@ def validate_input(state: AgentState) -> AgentState:
                 )
                 orders = [dict(r) for r in cur.fetchall()]
                 if not orders:
-                    cur.execute(
-                        """SELECT order_id, status, carrier, estimated_delivery, items
-                           FROM orders WHERE user_id = %s AND status = %s
-                           ORDER BY order_date DESC LIMIT 10""",
-                        [user_id, status_filter]
-                    )
-                    orders = [dict(r) for r in cur.fetchall()]
+                    return {
+                        **state,
+                        "order_id": None,
+                        "response": f"I could not find any {status_filter.replace('_',' ').lower()} orders containing '{' '.join(words)}' in your account."
+                    }
 
             elif status_filter:
                 cur.execute(
@@ -248,13 +247,11 @@ def validate_input(state: AgentState) -> AgentState:
                 )
                 orders = [dict(r) for r in cur.fetchall()]
                 if not orders:
-                    cur.execute(
-                        """SELECT order_id, status, carrier, estimated_delivery, items
-                           FROM orders WHERE user_id = %s
-                           ORDER BY order_date DESC LIMIT 10""",
-                        [user_id]
-                    )
-                    orders = [dict(r) for r in cur.fetchall()]
+                    return {
+                        **state,
+                        "order_id": None,
+                        "response": f"I could not find any orders containing '{' '.join(words)}' in your account. Would you like to see all your recent orders instead?"
+                    }
 
             else:
                 cur.execute(

@@ -270,13 +270,16 @@ def draft_resolution(state: AgentState) -> AgentState:
     policy      = state.get("policy", {})
     ticket_id   = state.get("ticket_id")
     prompt_template = mlflow.genai.load_prompt("prompts:/draft_resolution_prompt/1")
+    from datetime import datetime, timezone, timedelta
+
     prompt = prompt_template.format(
-        customer_message = state['current_input'],
-        issue_type       = state.get('issue_type', ''),
-        severity         = state.get('severity', 'LOW'),
-        policy_text      = policy.get('policy_text', '') if policy else '',
-        ticket_id        = str(ticket_id or 'N/A'),
-    )
+    customer_message = state['current_input'],
+    issue_type       = state.get('issue_type', ''),
+    severity         = state.get('severity', 'LOW'),
+    policy_text      = policy.get('policy_text', '') if policy else '',
+    ticket_id        = str(ticket_id or 'N/A'),
+    current_date     = datetime.now().strftime('%B %d, %Y'),
+)
 
     try:
         response      = llm.invoke(prompt)

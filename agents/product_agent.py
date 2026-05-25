@@ -14,70 +14,16 @@ from database import get_conn, save_message
 
 llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
-
-def extract_preferences(state: AgentState) -> AgentState:
-    log = get_log(state["request_id"], "product_agent", "extract_preferences")
-    log.info("Node entered")
-
-    msg   = state["current_input"].lower()
-    prefs = {
-        "category":  None,
-        "max_price": None,
-        "min_price": None,
-        "brand":     None,
-        "keywords":  [],
-    }
-
-    price_match = re.search(r'under\s+(?:rs\.?|₹|inr)?\s*(\d+)', msg)
-    if price_match:
-        prefs["max_price"] = float(price_match.group(1))
-
-    price_match2 = re.search(r'(?:rs\.?|₹|inr)?\s*(\d+)\s*(?:to|-)\s*(?:rs\.?|₹|inr)?\s*(\d+)', msg)
-    if price_match2:
-        prefs["min_price"] = float(price_match2.group(1))
-        prefs["max_price"] = float(price_match2.group(2))
-
-    categories = {
-        "laptop":    "Computers&Accessories",
-        "phone":     "Electronics",
-        "mobile":    "Electronics",
-        "headphone": "Electronics",
-        "earphone":  "Electronics",
-        "tablet":    "Computers&Accessories",
-        "camera":    "Electronics",
-        "keyboard":  "Computers&Accessories",
-        "mouse":     "Computers&Accessories",
-        "cable":     "Computers&Accessories",
-        "charger":   "Computers&Accessories",
-        "speaker":   "Electronics",
-        "watch":     "Electronics",
-        "printer":   "Computers&Accessories",
-    }
-    for keyword, category in categories.items():
-        if keyword in msg:
-            prefs["category"] = category
-            prefs["keywords"].append(keyword)
-
-    log_tool_span(
-        span_name   = "extract_preferences",
-        tool_name   = "preference_extractor",
-        tool_input  = {"message": state["current_input"]},
-        tool_output = {"prefs": str(prefs)},
-        trace_id    = state.get("mlflow_trace_id"),
-        parent_id   = state.get("mlflow_span_id"),
-    )
-
-    log.info(f"Preferences extracted: {prefs}")
-    return {**state, "search_preferences": prefs, "search_retry": 0}
-
-
-def search_products(state: AgentState) -> AgentState:
-    log = get_log(state["request_id"], "product_agent", "search_products")
-    log.info("Tool called: search_products")
-
-    prefs   = state.get("search_preferences", {})
-    retry   = state.get("search_retry", 0)
-    results = []
+# ── Mock Product Search API ────────────────────────────────
+def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
+    """
+    Simulates hitting a real product search API endpoint.
+    In production replace with a real httpx.get() call.
+    For now queries the products table in PostgreSQL.
+    """
+    print(f"[MOCK API] GET https://api.productcatalog.com/v1/search")
+    print(f"[MOCK API] Params: category={prefs.get('category')} max_price={prefs.get('max_price')} keywords={prefs.get('keywords')}")
+    print(f"[MOCK API] Authorization: Bearer fake-product-api-key")
 
     max_price = prefs.get("max_price")
     if max_price and retry > 0:
@@ -107,15 +53,108 @@ def search_products(state: AgentState) -> AgentState:
                     params.extend([f"%{k}%" for k in prefs["keywords"]])
 
                 where = " AND ".join(conditions)
-                query = f"SELECT * FROM products WHERE {where} ORDER BY rating DESC NULLS LAST LIMIT 20"
+                limit = prefs.get("limit", 20)
+                query = f"SELECT * FROM products WHERE {where} ORDER BY rating DESC NULLS LAST LIMIT {limit}"
                 cur.execute(query, params)
                 results = [dict(r) for r in cur.fetchall()]
+
+        print(f"[MOCK API] Response 200 OK — {len(results)} products found")
+        return results
+
     except Exception as e:
-        log.error(f"Product search error: {e}")
+        print(f"[MOCK API] Response 500 Error — {e}")
+        return []
+
+
+def extract_preferences(state: AgentState) -> AgentState:
+    log = get_log(state["request_id"], "product_agent", "extract_preferences")
+    log.info("Node entered")
+
+    msg   = state["current_input"].lower()
+    prefs = {
+        "category":  None,
+        "max_price": None,
+        "min_price": None,
+        "brand":     None,
+        "keywords":  [],
+        "limit":     5,
+    }
+
+    # ── Price filters ─────────────────────────────────────────────
+    price_match = re.search(r'under\s+(?:rs\.?|₹|inr)?\s*(\d+)', msg)
+    if price_match:
+        prefs["max_price"] = float(price_match.group(1))
+
+    price_match2 = re.search(r'(?:rs\.?|₹|inr)?\s*(\d+)\s*(?:to|-)\s*(?:rs\.?|₹|inr)?\s*(\d+)', msg)
+    if price_match2:
+        prefs["min_price"] = float(price_match2.group(1))
+        prefs["max_price"] = float(price_match2.group(2))
+
+    # ── Count limit ───────────────────────────────────────────────
+    count_match = re.search(r'\b(?:top|best|show|give)\s+(\d+)\b', msg)
+    if count_match:
+        prefs["limit"] = int(count_match.group(1))
+
+    # ── Category from DB ──────────────────────────────────────────
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL")
+                db_categories = [row[0] for row in cur.fetchall()]
+
+        for category in db_categories:
+            category_words = category.lower().replace("&", " ").replace(",", " ").split()
+            for word in category_words:
+                if len(word) > 3 and word in msg:
+                    prefs["category"] = category
+                    prefs["keywords"].append(word)
+                    break
+            if prefs["category"]:
+                break
+    except Exception as e:
+        log.error(f"Category lookup error: {e}")
+
+    # ── Keyword extraction ────────────────────────────────────────
+    stop_words = {
+        "find", "show", "get", "give", "best", "good", "top", "rated",
+        "recommend", "suggest", "want", "need", "looking", "for", "me",
+        "a", "an", "the", "and", "or", "with", "under", "above", "only",
+        "cheap", "expensive", "affordable", "quality", "only", "just",
+    }
+    words = [
+        w.strip("?.,!") for w in msg.split()
+        if w.strip("?.,!") not in stop_words and len(w.strip("?.,!")) > 2
+    ]
+    if words:
+        prefs["keywords"].extend(words)
+        prefs["keywords"] = list(set(prefs["keywords"]))
+
+    log_tool_span(
+        span_name   = "extract_preferences",
+        tool_name   = "preference_extractor",
+        tool_input  = {"message": state["current_input"]},
+        tool_output = {"prefs": str(prefs)},
+        trace_id    = state.get("mlflow_trace_id"),
+        parent_id   = state.get("mlflow_span_id"),
+    )
+
+    log.info(f"Preferences extracted: {prefs}")
+    return {**state, "search_preferences": prefs, "search_retry": 0}
+
+
+def search_products(state: AgentState) -> AgentState:
+    log = get_log(state["request_id"], "product_agent", "search_products")
+    log.info("Tool called: search_products")
+
+    prefs = state.get("search_preferences", {})
+    retry = state.get("search_retry", 0)
+
+    # Call mock API
+    results = mock_product_api_call(prefs, retry)
 
     log_tool_span(
         span_name   = "search_products",
-        tool_name   = "postgresql_products_table",
+        tool_name   = "mock_product_catalog_api",
         tool_input  = {"prefs": str(prefs), "retry": retry},
         tool_output = {"results_count": len(results)},
         trace_id    = state.get("mlflow_trace_id"),
@@ -323,7 +362,8 @@ def format_recommendations(state: AgentState) -> AgentState:
     log      = get_log(state["request_id"], "product_agent", "format_recommendations")
     log.info("LLM called")
 
-    products = state.get("enriched_products", [])[:3]
+    limit    = state.get("search_preferences", {}).get("limit", 3)
+    products = state.get("enriched_products", [])[:limit]
     if not products:
         return {**state, "response": "No products found matching your criteria."}
 
