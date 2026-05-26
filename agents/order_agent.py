@@ -53,22 +53,32 @@ def validate_input(state: AgentState) -> AgentState:
     if order_id:
         return {**state, "order_id": order_id}
 
-    # ── No order ID — smart listing ───────────────────────
+    # ── No order ID — check if follow-up about previous order ──
     user_id   = state.get("user_id")
     msg_lower = state["current_input"].lower()
+
+    followup_keywords = ["when will", "when does", "where is it", "will it arrive",
+                         "eta", "status", "how long", "update", "track it"]
+    is_followup = any(kw in msg_lower for kw in followup_keywords)
+    if is_followup and state.get("messages"):
+        for msg_item in reversed(state["messages"][-6:]):
+            content = msg_item.get("content", "").upper()
+            prev_match = re.search(r'(ORD\d+)', content)
+            if prev_match:
+                order_id = prev_match.group(1)
+                log.info(f"Follow-up detected — reusing order_id={order_id}")
+                return {**state, "order_id": order_id}
 
     # ── Detect special queries ────────────────────────────
     special_response = None
 
-    # Count query
     if any(w in msg_lower for w in ["how many", "count", "total orders", "number of orders"]):
         with get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT COUNT(*) FROM orders WHERE user_id = %s", [user_id])
                 total = cur.fetchone()[0]
                 cur.execute(
-                    """SELECT status, COUNT(*) FROM orders
-                       WHERE user_id = %s GROUP BY status ORDER BY COUNT(*) DESC""",
+                    "SELECT status, COUNT(*) FROM orders WHERE user_id = %s GROUP BY status ORDER BY COUNT(*) DESC",
                     [user_id]
                 )
                 breakdown = cur.fetchall()
@@ -79,152 +89,169 @@ def validate_input(state: AgentState) -> AgentState:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT order_id, status, carrier, items, sales_per_customer
-                       FROM orders WHERE user_id = %s
-                       ORDER BY sales_per_customer ASC LIMIT 5""",
+                    "SELECT order_id, status, carrier, items, sales_per_customer FROM orders WHERE user_id = %s ORDER BY sales_per_customer ASC LIMIT 5",
                     [user_id]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
-        lines = "\n".join([
-            f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}"
-            for o in orders
-        ])
+        lines = "\n".join([f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders])
         special_response = f"Here are your cheapest orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
 
     elif any(w in msg_lower for w in ["expensive", "highest price", "most expensive", "costliest"]):
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT order_id, status, carrier, items, sales_per_customer
-                       FROM orders WHERE user_id = %s
-                       ORDER BY sales_per_customer DESC LIMIT 5""",
+                    "SELECT order_id, status, carrier, items, sales_per_customer FROM orders WHERE user_id = %s ORDER BY sales_per_customer DESC LIMIT 5",
                     [user_id]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
-        lines = "\n".join([
-            f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}"
-            for o in orders
-        ])
+        lines = "\n".join([f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders])
         special_response = f"Here are your most expensive orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
 
     elif any(w in msg_lower for w in ["last week", "this week", "past week"]):
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
-                       FROM orders WHERE user_id = %s
-                       AND order_date::date >= CURRENT_DATE - INTERVAL '7 days'
-                       ORDER BY order_date DESC LIMIT 10""",
+                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s AND order_date::date >= CURRENT_DATE - INTERVAL '7 days' ORDER BY order_date DESC LIMIT 10",
                     [user_id]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
         if not orders:
             special_response = "You have no orders from the last week."
         else:
-            lines = "\n".join([
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
-                f"(Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ])
+            lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
             special_response = f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
 
     elif any(w in msg_lower for w in ["last month", "this month", "past month"]):
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
-                       FROM orders WHERE user_id = %s
-                       AND order_date::date >= CURRENT_DATE - INTERVAL '30 days'
-                       ORDER BY order_date DESC LIMIT 10""",
+                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s AND order_date::date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY order_date DESC LIMIT 10",
                     [user_id]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
         if not orders:
             special_response = "You have no orders from the last month."
         else:
-            lines = "\n".join([
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
-                f"(Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ])
+            lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
             special_response = f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details."
 
     elif any(w in msg_lower for w in ["late risk", "delayed risk", "at risk", "risky", "might be late"]):
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT order_id, status, carrier, estimated_delivery, items
-                       FROM orders WHERE user_id = %s AND late_delivery_risk = 1
-                       ORDER BY order_date DESC LIMIT 10""",
+                    "SELECT order_id, status, carrier, estimated_delivery, items FROM orders WHERE user_id = %s AND late_delivery_risk = 1 ORDER BY order_date DESC LIMIT 10",
                     [user_id]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
         if not orders:
             special_response = "None of your orders have a late delivery risk."
         else:
-            lines = "\n".join([
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} "
-                f"(Delivery: {o['estimated_delivery']}) — Items: {o['items']}"
-                for o in orders
-            ])
+            lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Delivery: {o['estimated_delivery']}) — Items: {o['items']}" for o in orders])
             special_response = f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details."
 
-    # Return special response if matched
     if special_response:
         return {**state, "order_id": None, "response": special_response}
 
-    # ── Detect status filter ──────────────────────────────
-    status_filter = None
-    if any(w in msg_lower for w in ["in transit", "transit"]):
-        status_filter = "IN_TRANSIT"
-    elif any(w in msg_lower for w in ["out for delivery"]):
-        status_filter = "OUT_FOR_DELIVERY"
-    elif any(w in msg_lower for w in ["delivered"]):
-        status_filter = "DELIVERED"
-    elif any(w in msg_lower for w in ["pending"]):
-        status_filter = "PENDING"
-    elif any(w in msg_lower for w in ["delayed", "delay"]):
-        status_filter = "DELAYED"
-    elif any(w in msg_lower for w in ["returned", "return"]):
-        status_filter = "RETURNED"
-
-    # ── Detect product filter ─────────────────────────────
-    stop_words = {
-        "where", "is", "my", "order", "orders", "show", "list",
-        "what", "are", "the", "all", "which", "have", "i", "me",
-        "track", "find", "get", "give", "tell", "about", "for",
-        "in", "transit", "delivered", "pending", "delayed", "status",
-        "under", "with", "a", "an", "of", "do", "did", "has",
-        "been", "that", "those", "these", "and", "or", "to",
-        "out", "return", "returned", "hey", "hi", "hello", "please",
-        "can", "you", "its", "it", "this", "any", "some", "latest",
+    # ── Semantic status detection ─────────────────────────
+    status_map = {
+        "in transit":       "IN_TRANSIT",
+        "transit":          "IN_TRANSIT",
+        "on the way":       "IN_TRANSIT",
+        "shipped":          "IN_TRANSIT",
+        "on its way":       "IN_TRANSIT",
+        "out for delivery": "OUT_FOR_DELIVERY",
+        "out":              "OUT_FOR_DELIVERY",
+        "delivering":       "OUT_FOR_DELIVERY",
+        "with delivery":    "OUT_FOR_DELIVERY",
+        "delivered":        "DELIVERED",
+        "received":         "DELIVERED",
+        "arrived":          "DELIVERED",
+        "completed":        "DELIVERED",
+        "got it":           "DELIVERED",
+        "pending":          "PENDING",
+        "not shipped":      "PENDING",
+        "processing":       "PENDING",
+        "waiting":          "PENDING",
+        "delayed":          "DELAYED",
+        "late":             "DELAYED",
+        "stuck":            "DELAYED",
+        "slow":             "DELAYED",
+        "not moving":       "DELAYED",
+        "returned":         "RETURNED",
+        "sent back":        "RETURNED",
+        "refunded":         "RETURNED",
+        "rejected":         "RETURNED",
     }
-    words = [
-        w.strip("?.,!") for w in msg_lower.split()
-        if w.strip("?.,!") not in stop_words and len(w.strip("?.,!")) > 2
-    ]
 
-    # ── Query DB ──────────────────────────────────────────
+    status_filter = None
+    for phrase, status in status_map.items():
+        if phrase in msg_lower:
+            status_filter = status
+            break
+
+    # ── Semantic product detection from DB ────────────────
+    from difflib import get_close_matches
+    import json as _json
+
+    product_keyword = None
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT DISTINCT items::text FROM orders WHERE user_id = %s",
+                    [user_id]
+                )
+                all_items = [row[0] for row in cur.fetchall()]
+
+        product_names = set()
+        for item_str in all_items:
+            try:
+                items = _json.loads(item_str)
+                if isinstance(items, list):
+                    for item in items:
+                        for word in item.lower().split():
+                            if len(word) > 2:
+                                product_names.add(word)
+                        product_names.add(item.lower())
+            except:
+                pass
+
+        msg_words = [w.strip("?.,!") for w in msg_lower.split() if len(w.strip("?.,!")) > 2]
+        for word in msg_words:
+            for product in product_names:
+                if word in product or product in word:
+                    product_keyword = product
+                    break
+            if product_keyword:
+                break
+            matches = get_close_matches(word, product_names, n=1, cutoff=0.75)
+            if matches:
+                product_keyword = matches[0]
+                break
+
+    except Exception as e:
+        log.error(f"Semantic product detection error: {e}")
+
     # ── Query DB ──────────────────────────────────────────
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            if status_filter and words:
-                keyword_conditions = " OR ".join(["items::text ILIKE %s" for _ in words])
-                params = [user_id, status_filter] + [f"%{w}%" for w in words]
+            if status_filter and product_keyword:
                 cur.execute(
-                    f"""SELECT order_id, status, carrier, estimated_delivery, items
-                        FROM orders WHERE user_id = %s AND status = %s
-                        AND ({keyword_conditions})
-                        ORDER BY order_date DESC LIMIT 10""",
-                    params
+                    """SELECT order_id, status, carrier, estimated_delivery, items
+                       FROM orders WHERE user_id = %s AND status = %s
+                       AND items::text ILIKE %s
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id, status_filter, f"%{product_keyword}%"]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
                 if not orders:
-                    return {
-                        **state,
-                        "order_id": None,
-                        "response": f"I could not find any {status_filter.replace('_',' ').lower()} orders containing '{' '.join(words)}' in your account."
-                    }
+                    cur.execute(
+                        """SELECT order_id, status, carrier, estimated_delivery, items
+                           FROM orders WHERE user_id = %s AND status = %s
+                           ORDER BY order_date DESC LIMIT 10""",
+                        [user_id, status_filter]
+                    )
+                    orders = [dict(r) for r in cur.fetchall()]
 
             elif status_filter:
                 cur.execute(
@@ -235,22 +262,20 @@ def validate_input(state: AgentState) -> AgentState:
                 )
                 orders = [dict(r) for r in cur.fetchall()]
 
-            elif words:
-                keyword_conditions = " OR ".join(["items::text ILIKE %s" for _ in words])
-                params = [user_id] + [f"%{w}%" for w in words]
+            elif product_keyword:
                 cur.execute(
-                    f"""SELECT order_id, status, carrier, estimated_delivery, items
-                        FROM orders WHERE user_id = %s
-                        AND ({keyword_conditions})
-                        ORDER BY order_date DESC LIMIT 10""",
-                    params
+                    """SELECT order_id, status, carrier, estimated_delivery, items
+                       FROM orders WHERE user_id = %s
+                       AND items::text ILIKE %s
+                       ORDER BY order_date DESC LIMIT 10""",
+                    [user_id, f"%{product_keyword}%"]
                 )
                 orders = [dict(r) for r in cur.fetchall()]
                 if not orders:
                     return {
                         **state,
                         "order_id": None,
-                        "response": f"I could not find any orders containing '{' '.join(words)}' in your account. Would you like to see all your recent orders instead?"
+                        "response": f"I could not find any orders containing '{product_keyword}' in your account. Would you like to see all your recent orders instead?"
                     }
 
             else:

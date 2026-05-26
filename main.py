@@ -333,10 +333,20 @@ async def chat(
 
             mlflow.set_tag("agent_selected", result.get("intent", "unknown"))
 
+            agent = result.get("intent", "unknown")
+            mlflow.set_tag("agent_selected", agent)
+
+            # ── Prometheus metrics ────────────────────────────
+            REQUEST_COUNT.labels(endpoint="/chat", agent=agent, status="success").inc()
+            REQUEST_LATENCY.labels(agent=agent).observe(time.time() - start)
+            TOKEN_USAGE.labels(agent=agent).inc(result["total_tokens"])
+
         except Exception as e:
             import traceback
             traceback.print_exc()
             log.error(f"Pipeline failed: {e}")
+            ERROR_COUNT.labels(agent="unknown").inc()
+            REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
             raise HTTPException(status_code=500, detail=str(e))
 
         latency = (time.time() - start) * 1000
