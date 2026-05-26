@@ -220,11 +220,25 @@ async def login(body: LoginRequest):
         )
 
     session_id = get_or_create_session(None, body.user_id)
+
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """SELECT role, content, agent_name
+                FROM messages
+                WHERE session_id = %s
+                ORDER BY created_at ASC
+                LIMIT 20""",
+                [session_id]
+            )
+            messages = [dict(r) for r in cur.fetchall()] # ← must be inside with block
+
     return {
         "user_id":    body.user_id,
         "session_id": session_id,
         "message":    "Login successful.",
-        "next_step":  "Use session_id in X-Session-ID header for /chat."
+        "next_step":  "Use session_id in X-Session-ID header for /chat.",
+        "messages":   messages,
     }
 
 

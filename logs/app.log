@@ -6155,3 +6155,316 @@ list my orders
 2026-05-26T05:26:31 | INFO     | request_id=c0be3186-1487-4b41-898f-b6ad70c33885 | agent=support_agent | node=save_to_db | Response saved
 2026-05-26T05:26:31 | INFO     | request_id=c0be3186-1487-4b41-898f-b6ad70c33885 | agent=support_agent | node=entry | Support agent completed
 2026-05-26T05:26:31 | INFO     | request_id=c0be3186-1487-4b41-898f-b6ad70c33885 | agent=- | node=- | Response returned | intent=support_query | tokens=370 | latency=2253ms
+2026-05-26T05:36:36 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='hello'
+2026-05-26T05:36:36 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=3 messages
+2026-05-26T05:36:37 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=router | node=intent_router | Node entered
+2026-05-26T05:36:37 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=router | node=intent_router | Intent classified: support_query
+2026-05-26T05:36:37 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=entry | Support agent started
+2026-05-26T05:36:37 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=classify_issue | LLM called
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=classify_issue | Issue classified: general_complaint
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=assess_severity | Node entered
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=assess_severity | Severity assessed: LOW
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=lookup_policy | Tool called: lookup_policy
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=lookup_policy | Policy found: True
+2026-05-26T05:36:38 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=draft_resolution | LLM called
+2026-05-26T05:36:39 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=draft_resolution | Resolution drafted
+2026-05-26T05:36:39 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=save_to_db | Saving response to DB
+2026-05-26T05:36:39 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=save_to_db | Response saved
+2026-05-26T05:36:39 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=support_agent | node=entry | Support agent completed
+2026-05-26T05:36:40 | INFO     | request_id=0b702628-80a1-4e19-a6cb-bc46b270eecc | agent=- | node=- | Response returned | intent=support_query | tokens=638 | latency=3218ms
+2026-05-26T05:37:14 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is laptop order'
+2026-05-26T05:37:14 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=6 messages
+2026-05-26T05:37:14 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=router | node=intent_router | Node entered
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:37:15 | WARNING  | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:37:15 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:37:16 | INFO     | request_id=016ecbe7-250d-4e8c-a566-dd50a80defe7 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1041ms
+2026-05-26T05:37:42 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='when will it arrive'
+2026-05-26T05:37:42 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=8 messages
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=router | node=intent_router | Node entered
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=validate_input | Follow-up detected — reusing order_id=ORD1419
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=fetch_order_data | Order found and authorized: ORD1419
+2026-05-26T05:37:43 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-26T05:37:44 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-26T05:37:44 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX101419
+2026-05-26T05:37:44 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-26T05:37:44 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=generate_response | LLM called
+2026-05-26T05:37:45 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=generate_response | Response generated
+2026-05-26T05:37:45 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-26T05:37:45 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=save_to_db | Response saved
+2026-05-26T05:37:45 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:37:46 | INFO     | request_id=e00e5e49-a62e-41d5-b629-99c5722ef0b8 | agent=- | node=- | Response returned | intent=order_query | tokens=1665 | latency=3367ms
+2026-05-26T05:42:36 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='show me all my orders'
+2026-05-26T05:42:36 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:42:36 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=router | node=intent_router | Node entered
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:42:37 | WARNING  | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:42:37 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:42:38 | INFO     | request_id=acf022ad-8550-48fb-aacb-9d094368a888 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1844ms
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my smart phone'
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=router | node=intent_router | Node entered
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=entry | Product agent started
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['smart', 'where', 'phone'], 'limit': 5}
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=search_products | Found 5 products
+2026-05-26T05:42:48 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T05:42:49 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=rank_and_filter | Products ranked: 5 results
+2026-05-26T05:42:49 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=fetch_reviews | Fetched reviews for 5 products
+2026-05-26T05:42:49 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=fetch_specs | Fetched specs for 5 products
+2026-05-26T05:42:49 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=compute_score | Scored 5 products
+2026-05-26T05:42:49 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T05:42:51 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T05:42:51 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T05:42:51 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T05:42:51 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=product_agent | node=entry | Product agent completed
+2026-05-26T05:42:51 | INFO     | request_id=54402767-e50f-4bd7-b76f-562d4435d105 | agent=- | node=- | Response returned | intent=product_query | tokens=1397 | latency=3106ms
+2026-05-26T05:43:08 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where my order smart phone'
+2026-05-26T05:43:08 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=router | node=intent_router | Node entered
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:43:09 | WARNING  | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:43:09 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:43:10 | INFO     | request_id=05e313cd-2d88-4b3c-8a05-ebcd651922c6 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=922ms
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='when it delivered'
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=router | node=intent_router | Node entered
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:43:25 | WARNING  | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:43:25 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:43:26 | INFO     | request_id=efcf5405-84f1-411f-84bf-113440b6879a | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=994ms
+2026-05-26T05:43:39 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='when it was delivered'
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=router | node=intent_router | Node entered
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:43:40 | WARNING  | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:43:40 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:43:41 | INFO     | request_id=2aac592d-cc63-4aed-88d4-3f239e1b4cd7 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=890ms
+2026-05-26T05:46:18 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my smartphone order'
+2026-05-26T05:46:18 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:46:18 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=router | node=intent_router | Node entered
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:46:19 | WARNING  | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:46:19 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:46:20 | INFO     | request_id=d2366207-c045-4009-a013-14272b5b3168 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1736ms
+2026-05-26T05:46:32 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='what is the delivery date'
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=router | node=intent_router | Node entered
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:46:33 | WARNING  | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:46:33 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:46:34 | INFO     | request_id=cb38589d-e841-4d13-8cf2-4a8213841d3b | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=898ms
+2026-05-26T05:50:12 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my motherboard order'
+2026-05-26T05:50:12 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:50:12 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=router | node=intent_router | Node entered
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:50:13 | WARNING  | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:50:13 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:50:14 | INFO     | request_id=27cffe88-b211-4c3e-8b8c-1093d5b069e6 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1361ms
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='what is the delivery date'
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=router | node=intent_router | Node entered
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:50:27 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:50:28 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:50:28 | WARNING  | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T05:50:28 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:50:28 | INFO     | request_id=acd9a40d-e4df-4de6-b0c0-0b1a828228e6 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1204ms
+2026-05-26T05:51:02 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='what is the status'
+2026-05-26T05:51:02 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=- | node=- | Session loaded | session_id=ac45434d-8f8c-415f-9e3e-cd8ecc23b7e3 | history=10 messages
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=router | node=intent_router | Node entered
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=entry | Order agent started
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=validate_input | Follow-up detected — reusing order_id=ORD1491
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=fetch_order_data | Order found and authorized: ORD1491
+2026-05-26T05:51:03 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-26T05:51:04 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-26T05:51:04 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=Delhivery | tracking=DL101491
+2026-05-26T05:51:04 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-26T05:51:04 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=generate_response | LLM called
+2026-05-26T05:51:05 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=generate_response | Response generated
+2026-05-26T05:51:05 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-26T05:51:05 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=save_to_db | Response saved
+2026-05-26T05:51:05 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T05:51:05 | INFO     | request_id=190687aa-5e4f-40cb-92b8-c95c0ffb9f44 | agent=- | node=- | Response returned | intent=order_query | tokens=1398 | latency=2275ms
+2026-05-26T06:34:45 | INFO     | request_id=6eba0917-6199-46da-8186-e8fe7c729e08 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my laptop order'
+2026-05-26T06:34:45 | WARNING  | request_id=6eba0917-6199-46da-8186-e8fe7c729e08 | agent=- | node=- | Session expired: Session expired. Please start a new conversation.
+2026-05-26T06:34:53 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my laptop order'
+2026-05-26T06:34:53 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=0 messages
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=router | node=intent_router | Node entered
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=entry | Order agent started
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T06:34:54 | WARNING  | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T06:34:54 | INFO     | request_id=7f4a60a5-1889-4f40-8984-fbf859544f17 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=696ms
+2026-05-26T06:35:03 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='when will it arrive'
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=2 messages
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=router | node=intent_router | Node entered
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=entry | Order agent started
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=validate_input | Node entered
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=validate_input | Follow-up detected — reusing order_id=ORD1419
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=fetch_order_data | Order found and authorized: ORD1419
+2026-05-26T06:35:04 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-26T06:35:05 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-26T06:35:05 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX101419
+2026-05-26T06:35:05 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-26T06:35:05 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=generate_response | LLM called
+2026-05-26T06:35:06 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=generate_response | Response generated
+2026-05-26T06:35:06 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-26T06:35:06 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=save_to_db | Response saved
+2026-05-26T06:35:06 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=order_agent | node=entry | Order agent completed
+2026-05-26T06:35:07 | INFO     | request_id=d41f836a-a071-418a-a747-a7ce30d7705d | agent=- | node=- | Response returned | intent=order_query | tokens=1149 | latency=2912ms
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='when will it arrive'
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=5 messages
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=router | node=intent_router | Node entered
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=entry | Order agent started
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=validate_input | Follow-up detected — reusing order_id=ORD1419
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=fetch_order_data | Order found and authorized: ORD1419
+2026-05-26T06:35:22 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-26T06:35:24 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-26T06:35:24 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=FedEx | tracking=FX101419
+2026-05-26T06:35:24 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-26T06:35:24 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=generate_response | LLM called
+2026-05-26T06:35:25 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=generate_response | Response generated
+2026-05-26T06:35:25 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-26T06:35:25 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=save_to_db | Response saved
+2026-05-26T06:35:25 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T06:35:26 | INFO     | request_id=0a5f1ba0-b34a-4120-a36d-69aa16cd7787 | agent=- | node=- | Response returned | intent=order_query | tokens=1340 | latency=3225ms
+2026-05-26T06:53:24 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='hello'
+2026-05-26T06:53:24 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=8 messages
+2026-05-26T06:53:26 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=router | node=intent_router | Node entered
+2026-05-26T06:53:26 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=router | node=intent_router | Intent classified: support_query
+2026-05-26T06:53:26 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=entry | Support agent started
+2026-05-26T06:53:26 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=classify_issue | LLM called
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=classify_issue | Issue classified: delayed_delivery
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=assess_severity | Node entered
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=assess_severity | Severity assessed: MEDIUM
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=lookup_policy | Tool called: lookup_policy
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=lookup_policy | Policy found: True
+2026-05-26T06:53:27 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=draft_resolution | LLM called
+2026-05-26T06:53:28 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=draft_resolution | Resolution drafted
+2026-05-26T06:53:28 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=save_to_db | Saving response to DB
+2026-05-26T06:53:28 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=save_to_db | Response saved
+2026-05-26T06:53:28 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=support_agent | node=entry | Support agent completed
+2026-05-26T06:53:29 | INFO     | request_id=088ced2a-5b53-4609-9f47-9e0395d36a08 | agent=- | node=- | Response returned | intent=support_query | tokens=920 | latency=4895ms
+2026-05-26T06:53:43 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my laptop order'
+2026-05-26T06:53:43 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=10 messages
+2026-05-26T06:53:43 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=router | node=intent_router | Node entered
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=entry | Order agent started
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T06:53:49 | WARNING  | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T06:53:49 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T06:53:50 | INFO     | request_id=e19ac405-6841-4ade-88fa-624f1f903f65 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=6338ms
+2026-05-26T06:59:53 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=- | node=- | Request received | user_id=apoorvasb613@gmail.com | input='where is my laptop order'
+2026-05-26T06:59:53 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=- | node=- | Session loaded | session_id=143689cc-2079-45c3-81be-913b23cfae76 | history=10 messages
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=router | node=intent_router | Node entered
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=entry | Order agent started
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T06:59:54 | WARNING  | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T06:59:54 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T06:59:56 | INFO     | request_id=a33396e6-03da-4159-94e0-823753abc8f4 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1495ms
+2026-05-26T07:07:32 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='hello'
+2026-05-26T07:07:32 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=- | node=- | Session loaded | session_id=415c32ab-ac88-4490-87c4-3cdb5d50f0f2 | history=0 messages
+2026-05-26T07:07:32 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=router | node=intent_router | Node entered
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=router | node=intent_router | Intent classified: support_query
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=entry | Support agent started
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=classify_issue | LLM called
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=classify_issue | Issue classified: general_complaint
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=assess_severity | Node entered
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=assess_severity | Severity assessed: LOW
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=lookup_policy | Tool called: lookup_policy
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=lookup_policy | Policy found: True
+2026-05-26T07:07:33 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=draft_resolution | LLM called
+2026-05-26T07:07:34 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=draft_resolution | Resolution drafted
+2026-05-26T07:07:34 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=save_to_db | Saving response to DB
+2026-05-26T07:07:34 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=save_to_db | Response saved
+2026-05-26T07:07:34 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=support_agent | node=entry | Support agent completed
+2026-05-26T07:07:34 | INFO     | request_id=cede8eb0-f6da-4623-96c5-a731cb58e34c | agent=- | node=- | Response returned | intent=support_query | tokens=361 | latency=2600ms
+2026-05-26T07:19:38 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='hello'
+2026-05-26T07:19:38 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=- | node=- | Session loaded | session_id=30cbd4a5-017b-440b-8e92-0e499af6832a | history=0 messages
+2026-05-26T07:19:39 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=router | node=intent_router | Node entered
+2026-05-26T07:19:40 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=router | node=intent_router | Intent classified: support_query
+2026-05-26T07:19:40 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=entry | Support agent started
+2026-05-26T07:19:40 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=classify_issue | LLM called
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=classify_issue | Issue classified: general_complaint
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=assess_severity | Node entered
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=assess_severity | Severity assessed: LOW
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=lookup_policy | Tool called: lookup_policy
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=lookup_policy | Policy found: True
+2026-05-26T07:19:42 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=draft_resolution | LLM called
+2026-05-26T07:19:43 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=draft_resolution | Resolution drafted
+2026-05-26T07:19:43 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=save_to_db | Saving response to DB
+2026-05-26T07:19:43 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=save_to_db | Response saved
+2026-05-26T07:19:43 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=support_agent | node=entry | Support agent completed
+2026-05-26T07:19:43 | INFO     | request_id=c447f6e4-b424-408c-97f4-a1bb7ad8419b | agent=- | node=- | Response returned | intent=support_query | tokens=370 | latency=4601ms
+2026-05-26T07:21:04 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='where is my order'
+2026-05-26T07:21:04 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=- | node=- | Session loaded | session_id=30cbd4a5-017b-440b-8e92-0e499af6832a | history=3 messages
+2026-05-26T07:21:04 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=router | node=intent_router | Node entered
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=entry | Order agent started
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T07:21:10 | WARNING  | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T07:21:10 | INFO     | request_id=74c26482-6826-41b7-af8b-8f2f01d91075 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=5819ms

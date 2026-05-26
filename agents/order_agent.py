@@ -57,8 +57,16 @@ def validate_input(state: AgentState) -> AgentState:
     user_id   = state.get("user_id")
     msg_lower = state["current_input"].lower()
 
-    followup_keywords = ["when will", "when does", "where is it", "will it arrive",
-                         "eta", "status", "how long", "update", "track it"]
+    followup_keywords = [
+    "when will", "when does", "when it", "when was", "when did",
+    "where is it", "will it arrive", "eta", "status", "how long",
+    "update", "track it", "was it", "has it", "did it", "is it",
+    "what time", "what day", "which day", "tell me more", "more details",
+    "more info", "give me details", "show details",
+    "delivery date", "delivered on", "arrival date", "expected date",
+    "tracking number", "tracking info", "carrier", "which carrier",
+    "what happened", "latest update", "current status",
+]
     is_followup = any(kw in msg_lower for kw in followup_keywords)
     if is_followup and state.get("messages"):
         for msg_item in reversed(state["messages"][-6:]):
@@ -401,6 +409,9 @@ def error_response(state: AgentState) -> AgentState:
 def analyze_order_status(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "analyze_order_status")
     log.info("LLM called")
+
+    print(f"[DEBUG] Messages in state: {len(state.get('messages', []))}")
+    print(f"[DEBUG] Last 3 messages: {state.get('messages', [])[-3:]}")
 
     prompt_template = mlflow.genai.load_prompt(f"prompts:/order_analysis_prompt/{config.ORDER_ANALYSIS_PROMPT_VERSION}")
     prompt = prompt_template.format(
