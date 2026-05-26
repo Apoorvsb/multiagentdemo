@@ -47,6 +47,10 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     conditions.append("price >= %s")
                     params.append(prefs["min_price"])
 
+                if prefs.get("min_rating"):
+                    conditions.append("rating >= %s")
+                    params.append(prefs["min_rating"])    
+
                 if prefs.get("keywords"):
                     keyword_conditions = " OR ".join(["name ILIKE %s" for _ in prefs["keywords"]])
                     conditions.append(f"({keyword_conditions})")
@@ -78,6 +82,7 @@ def extract_preferences(state: AgentState) -> AgentState:
         "brand":     None,
         "keywords":  [],
         "limit":     5,
+        "min_rating": None,
     }
 
     # ── Price filters ─────────────────────────────────────────────
@@ -89,6 +94,15 @@ def extract_preferences(state: AgentState) -> AgentState:
     if price_match2:
         prefs["min_price"] = float(price_match2.group(1))
         prefs["max_price"] = float(price_match2.group(2))
+    # ── Rating filter ─────────────────────────────────────────
+    rating_match = re.search(r'(?:above|over|more than|atleast|at least|minimum|min)?\s*(\d+\.?\d*)\s*(?:rating|stars?|rated)', msg)
+    if rating_match:
+        prefs["min_rating"] = float(rating_match.group(1))
+
+    if not prefs["min_rating"]:
+        rating_match2 = re.search(r'(?:above|over|more than)\s*(\d+\.?\d*)', msg)
+        if rating_match2:
+            prefs["min_rating"] = float(rating_match2.group(1))    
 
     # ── Count limit ───────────────────────────────────────────────
     count_match = re.search(r'\b(?:top|best|show|give)\s+(\d+)\b', msg)

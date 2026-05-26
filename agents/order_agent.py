@@ -40,6 +40,13 @@ print(" CONFIG MODEL =", config.LLM_MODEL)
 def validate_input(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "validate_input")
     log.info("Node entered")
+    user_id = state.get("user_id", "")
+    if user_id.endswith("@guest.com"):
+        return {
+            **state,
+            "order_id": None,
+            "response": "Guest users cannot access order information. Please sign up or log in to track your orders."
+        }
 
     msg   = state["current_input"].upper()
     match = re.search(r'(ORD\d+)', msg)

@@ -36,13 +36,23 @@ def intent_router(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "router", "intent_router")
     log.info("Node entered")
 
-    prompt = f"""Classify the user message into exactly one of these three intents:
-- order_query   (tracking, delivery, shipment, order status)
-- product_query (find products, recommendations, specs, price)
-- support_query (complaints, refunds, damaged items, policy, cancellation)
+    prompt = prompt = f"""Classify the user message into exactly one of these three intents:
+
+- order_query: User is asking about THEIR OWN order, delivery, shipment, tracking, or purchase history. 
+  Examples: "where is my order", "when will it arrive", "track my package", "where is my RAM order", 
+  "where is my laptop", "my order is delayed", "show my orders", "did my phone arrive"
+  KEY SIGNAL: words like "my order", "my package", "my delivery", "where is my [product]"
+
+- product_query: User wants to FIND or BUY a product, get recommendations, or compare products.
+  Examples: "find me a laptop", "best RAM under 2000", "recommend headphones", "show me keyboards"
+  KEY SIGNAL: words like "find", "recommend", "best", "show me", "suggest", no ownership implied
+
+- support_query: User has a complaint, issue, refund request, or needs help with a problem.
+  Examples: "my item arrived damaged", "I want a refund", "wrong item delivered", "file a complaint"
 
 User message: {state['current_input']}
 
+IMPORTANT: If the user says "where is my [product]" or "my [product] order" — classify as order_query.
 Return only the intent label. Nothing else."""
 
     try:
