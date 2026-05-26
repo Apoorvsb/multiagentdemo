@@ -7235,3 +7235,267 @@ list my orders
 2026-05-26T14:18:51 | INFO     | request_id=f7da2dfd-029d-4ff2-a3e7-50df754b9903 | agent=support_agent | node=save_to_db | Response saved
 2026-05-26T14:18:51 | INFO     | request_id=f7da2dfd-029d-4ff2-a3e7-50df754b9903 | agent=support_agent | node=entry | Support agent completed
 2026-05-26T14:18:51 | INFO     | request_id=f7da2dfd-029d-4ff2-a3e7-50df754b9903 | agent=- | node=- | Response returned | intent=support_query | tokens=1245 | latency=2201ms
+2026-05-26T15:00:00 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='When will ORD0050 arrive?'
+2026-05-26T15:00:00 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=- | node=- | Session loaded | session_id=d9498dd6-2d2a-4e18-8201-c725f382369b | history=0 messages
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=router | node=intent_router | Node entered
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=entry | Order agent started
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=validate_input | Extracted order_id=ORD0050
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T15:00:01 | WARNING  | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=fetch_order_data | Order ORD0050 does not belong to user apoorva.sb@sigmoidanalytics.com
+2026-05-26T15:00:01 | WARNING  | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=error_response | Order not found: ORD0050
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T15:00:01 | INFO     | request_id=b4c89a88-3f67-47b7-b1fd-0520361fcf58 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=773ms
+2026-05-26T16:13:21 | INFO     | request_id=bfbf2f9b-c18d-4fd1-8cac-c7237956669c | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are my orders'
+2026-05-26T16:13:21 | WARNING  | request_id=bfbf2f9b-c18d-4fd1-8cac-c7237956669c | agent=- | node=- | Session expired: Session expired. Please start a new conversation.
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are my orders'
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=0 messages
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=router | node=intent_router | Node entered
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:13:32 | WARNING  | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:13:32 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:13:33 | INFO     | request_id=92a204b5-dfe2-400a-bb44-eabe05c450b9 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1040ms
+2026-05-26T16:13:48 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='where is my airpods'
+2026-05-26T16:13:48 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=2 messages
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=router | node=intent_router | Node entered
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:13:49 | WARNING  | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:13:49 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:13:50 | INFO     | request_id=f610ad5b-24c3-4032-962d-61aebe7770a4 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=987ms
+2026-05-26T16:14:06 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='when will it arrive'
+2026-05-26T16:14:06 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=4 messages
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=router | node=intent_router | Node entered
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=validate_input | Follow-up detected — reusing order_id=ORD2003
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=fetch_order_data | Order found and authorized: ORD2003
+2026-05-26T16:14:07 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=analyze_order_status | LLM called
+2026-05-26T16:14:08 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=analyze_order_status | LLM completed
+2026-05-26T16:14:08 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=fetch_tracking | Calling mock carrier API | carrier=Bluedart | tracking=BD102003
+2026-05-26T16:14:08 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=fetch_tracking | Mock API returned 200 OK
+2026-05-26T16:14:08 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=generate_response | LLM called
+2026-05-26T16:14:09 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=generate_response | Response generated
+2026-05-26T16:14:09 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:14:09 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=save_to_db | Response saved
+2026-05-26T16:14:09 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:14:10 | INFO     | request_id=d6043f1b-b95e-47f0-9575-333b3da434a6 | agent=- | node=- | Response returned | intent=order_query | tokens=1373 | latency=3106ms
+2026-05-26T16:14:28 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the count of my orders'
+2026-05-26T16:14:28 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=7 messages
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=router | node=intent_router | Node entered
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:14:29 | WARNING  | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:14:29 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:14:30 | INFO     | request_id=76878c87-c993-4c6e-a6f3-2e946dfd7074 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=871ms
+2026-05-26T16:14:49 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the orders in yet to deliver'
+2026-05-26T16:14:49 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=9 messages
+2026-05-26T16:14:49 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=router | node=intent_router | Node entered
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:14:50 | WARNING  | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:14:50 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:14:51 | INFO     | request_id=6c92e392-be15-4761-9cfa-bdc7ebb163f6 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1053ms
+2026-05-26T16:15:06 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the oders not delivered'
+2026-05-26T16:15:06 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:15:06 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=router | node=intent_router | Node entered
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:15:07 | WARNING  | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:15:07 | INFO     | request_id=57daa2c4-3254-4dcd-84eb-e9713ccd1bff | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=1046ms
+2026-05-26T16:15:40 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the orders that are late'
+2026-05-26T16:15:40 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:15:40 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=router | node=intent_router | Node entered
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:15:41 | WARNING  | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:15:41 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:15:42 | INFO     | request_id=6a615154-1711-4c8a-990a-9f35dd068037 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=895ms
+2026-05-26T16:17:33 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='give me the information about mugs'
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=router | node=intent_router | Node entered
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['about', 'information', 'mugs'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=search_products | Found 1 products
+2026-05-26T16:17:34 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:17:35 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=rank_and_filter | Products ranked: 1 results
+2026-05-26T16:17:35 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=fetch_reviews | Fetched reviews for 1 products
+2026-05-26T16:17:35 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=fetch_specs | Fetched specs for 1 products
+2026-05-26T16:17:35 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=compute_score | Scored 1 products
+2026-05-26T16:17:35 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:17:36 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:17:36 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:17:36 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:17:36 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:17:37 | INFO     | request_id=86b8def0-3920-4b93-a03c-0f22c64d6965 | agent=- | node=- | Response returned | intent=product_query | tokens=667 | latency=2712ms
+2026-05-26T16:17:53 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the best mugs'
+2026-05-26T16:17:53 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=router | node=intent_router | Node entered
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['are', 'mugs', 'what'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=search_products | Found 5 products
+2026-05-26T16:17:54 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:17:55 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=rank_and_filter | Products ranked: 5 results
+2026-05-26T16:17:55 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=fetch_reviews | Fetched reviews for 5 products
+2026-05-26T16:17:55 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=fetch_specs | Fetched specs for 5 products
+2026-05-26T16:17:55 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=compute_score | Scored 5 products
+2026-05-26T16:17:55 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:17:56 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:17:56 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:17:56 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:17:56 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:17:57 | INFO     | request_id=e59d1524-30a9-4797-9803-af901a05305e | agent=- | node=- | Response returned | intent=product_query | tokens=1121 | latency=3107ms
+2026-05-26T16:18:30 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='top rated usb cables'
+2026-05-26T16:18:30 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:18:30 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=router | node=intent_router | Node entered
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['cables', 'usb'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=search_products | Found 5 products
+2026-05-26T16:18:31 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:18:32 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=rank_and_filter | Products ranked: 5 results
+2026-05-26T16:18:32 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=fetch_reviews | Fetched reviews for 5 products
+2026-05-26T16:18:32 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=fetch_specs | Fetched specs for 5 products
+2026-05-26T16:18:32 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=compute_score | Scored 5 products
+2026-05-26T16:18:32 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:18:33 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:18:33 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:18:33 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:18:33 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:18:33 | INFO     | request_id=309b93a7-eb42-45bd-9c09-34aafaaf216b | agent=- | node=- | Response returned | intent=product_query | tokens=1123 | latency=2748ms
+2026-05-26T16:21:51 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='where is my kettle order'
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=router | node=intent_router | Node entered
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:21:52 | WARNING  | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:21:52 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:21:53 | INFO     | request_id=de6c3f8d-127f-4abf-badc-43fa71a45c3d | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=870ms
+2026-05-26T16:22:12 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='give me the best coffee maker'
+2026-05-26T16:22:12 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:22:12 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=router | node=intent_router | Node entered
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['maker', 'coffee'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=search_products | Found 5 products
+2026-05-26T16:22:13 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:22:14 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=rank_and_filter | Products ranked: 5 results
+2026-05-26T16:22:14 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=fetch_reviews | Fetched reviews for 5 products
+2026-05-26T16:22:14 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=fetch_specs | Fetched specs for 5 products
+2026-05-26T16:22:14 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=compute_score | Scored 5 products
+2026-05-26T16:22:14 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:22:15 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:22:15 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:22:15 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:22:15 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:22:16 | INFO     | request_id=641fa8e1-4d6f-4927-8202-6662b2d6ad1f | agent=- | node=- | Response returned | intent=product_query | tokens=1356 | latency=3275ms
+2026-05-26T16:32:53 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are oders'
+2026-05-26T16:32:53 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:32:53 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=router | node=intent_router | Node entered
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['are', 'oders', 'what'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=search_products | Found 5 products
+2026-05-26T16:32:54 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:32:55 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=rank_and_filter | Products ranked: 5 results
+2026-05-26T16:32:55 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=fetch_reviews | Fetched reviews for 5 products
+2026-05-26T16:32:55 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=fetch_specs | Fetched specs for 5 products
+2026-05-26T16:32:55 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=compute_score | Scored 5 products
+2026-05-26T16:32:55 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:32:57 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:32:57 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:32:57 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:32:57 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:32:58 | INFO     | request_id=c513f7e7-e13f-460d-8f37-08330472556f | agent=- | node=- | Response returned | intent=product_query | tokens=1406 | latency=4343ms
+2026-05-26T16:33:07 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are my orders'
+2026-05-26T16:33:07 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:33:07 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=router | node=intent_router | Node entered
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:33:08 | WARNING  | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:33:08 | INFO     | request_id=ab9cd391-359e-44c3-a2e1-906e60d4e117 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=915ms
+2026-05-26T16:34:28 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what is my order count'
+2026-05-26T16:34:28 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:34:28 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=router | node=intent_router | Node entered
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:34:29 | WARNING  | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:34:29 | INFO     | request_id=aec338c6-b1d2-4bab-9dbe-de505ffc89b5 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=803ms
+2026-05-26T16:37:26 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='what are the orders that are late'
+2026-05-26T16:37:26 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:37:26 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=router | node=intent_router | Node entered
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=router | node=intent_router | Intent classified: order_query
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=entry | Order agent started
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=validate_input | Node entered
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=validate_input | Extracted order_id=None
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=fetch_order_data | Tool called: fetch_order_data
+2026-05-26T16:37:27 | WARNING  | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=fetch_order_data | Order not found: None
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=order_agent | node=entry | Order agent completed
+2026-05-26T16:37:27 | INFO     | request_id=4c343da4-393a-4570-a826-6a5428805725 | agent=- | node=- | Response returned | intent=order_query | tokens=0 | latency=920ms
+2026-05-26T16:48:03 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=- | node=- | Request received | user_id=apoorva.sb@sigmoidanalytics.com | input='give best mugs'
+2026-05-26T16:48:03 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=- | node=- | Session loaded | session_id=a8af6556-d3f6-4bf0-9ae3-b015d0917748 | history=10 messages
+2026-05-26T16:48:03 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=router | node=intent_router | Node entered
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=router | node=intent_router | Intent classified: product_query
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=entry | Product agent started
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=extract_preferences | Node entered
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=extract_preferences | Preferences extracted: {'category': None, 'max_price': None, 'min_price': None, 'brand': None, 'keywords': ['mugs'], 'limit': 5, 'min_rating': None}
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=search_products | Tool called: search_products
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=search_products | Found 1 products
+2026-05-26T16:48:04 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=rank_and_filter | LLM called
+2026-05-26T16:48:05 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=rank_and_filter | Products ranked: 1 results
+2026-05-26T16:48:05 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=fetch_reviews | Fetched reviews for 1 products
+2026-05-26T16:48:05 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=fetch_specs | Fetched specs for 1 products
+2026-05-26T16:48:05 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=compute_score | Scored 1 products
+2026-05-26T16:48:05 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=format_recommendations | LLM called
+2026-05-26T16:48:06 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=format_recommendations | Recommendations formatted
+2026-05-26T16:48:06 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=save_to_db | Saving response to DB
+2026-05-26T16:48:06 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=save_to_db | Response saved
+2026-05-26T16:48:06 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=product_agent | node=entry | Product agent completed
+2026-05-26T16:48:07 | INFO     | request_id=d198a811-1508-4153-b488-3b3e376fa876 | agent=- | node=- | Response returned | intent=product_query | tokens=775 | latency=3152ms
