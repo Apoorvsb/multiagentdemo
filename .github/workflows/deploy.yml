@@ -177,20 +177,21 @@ jobs:
           chmod 600 $HOME/.kube/config
 
       - name: Helm upgrade / install
-        run: >-
-          helm upgrade --install multiagent ./helm/multiagentdemo
-          --namespace multiagent
-          --create-namespace
-          --values helm/multiagentdemo/values.yaml
-          --set app.image.tag=${{ github.sha }}
-          --set frontend.image.tag=${{ github.sha }}
-          --set app.image.repository=${{ env.IMAGE_APP }}
-          --set frontend.image.repository=${{ env.IMAGE_FRONTEND }}
-          --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }}
-          --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }}
-          --set mlflow.trackingUri=${{ secrets.MLFLOW_TRACKING_URI }}
-          --wait
-          --timeout 5m
+        env:
+          MLFLOW_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+        run: |
+          helm upgrade --install multiagent ./helm/multiagentdemo \
+            --namespace multiagent \
+            --create-namespace \
+            --values helm/multiagentdemo/values.yaml \
+            --set app.image.tag=${{ github.sha }} \
+            --set frontend.image.tag=${{ github.sha }} \
+            --set app.image.repository=${{ env.IMAGE_APP }} \
+            --set frontend.image.repository=${{ env.IMAGE_FRONTEND }} \
+            --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }} \
+            --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
+            --set "mlflow.trackingUri=${MLFLOW_URI}" \
+            --wait --timeout 5m
 
       - name: Smoke test — GET /health
         id: smoke
