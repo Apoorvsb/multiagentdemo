@@ -177,26 +177,26 @@ jobs:
           chmod 600 $HOME/.kube/config
 
       - name: Helm upgrade / install
-        run: |
-          helm upgrade --install multiagent ./helm/multiagentdemo \
-            --namespace multiagent \
-            --create-namespace \
-            --values helm/multiagentdemo/values.yaml \
-            --set app.image.tag=${{ github.sha }} \
-            --set frontend.image.tag=${{ github.sha }} \
-            --set app.image.repository=${{ env.IMAGE_APP }} \
-            --set frontend.image.repository=${{ env.IMAGE_FRONTEND }} \
-            --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }} \
-            --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
-            --set mlflow.trackingUri=${{ secrets.MLFLOW_TRACKING_URI }} \
-            --wait \
-            --timeout 5m
+        run: >-
+          helm upgrade --install multiagent ./helm/multiagentdemo
+          --namespace multiagent
+          --create-namespace
+          --values helm/multiagentdemo/values.yaml
+          --set app.image.tag=${{ github.sha }}
+          --set frontend.image.tag=${{ github.sha }}
+          --set app.image.repository=${{ env.IMAGE_APP }}
+          --set frontend.image.repository=${{ env.IMAGE_FRONTEND }}
+          --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }}
+          --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }}
+          --set mlflow.trackingUri=${{ secrets.MLFLOW_TRACKING_URI }}
+          --wait
+          --timeout 5m
 
       - name: Smoke test — GET /health
         id: smoke
         run: |
           for i in $(seq 1 10); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health)
             if [ "$STATUS" = "200" ]; then
               echo "Health check passed (HTTP 200)"
               exit 0
