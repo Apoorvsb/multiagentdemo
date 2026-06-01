@@ -21,6 +21,7 @@ import time
 import mlflow
 import mlflow.data
 import shutil
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
@@ -28,20 +29,20 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # SETUP
 # ─────────────────────────────────────────────
 
-BASE_DIR    = Path(__file__).parent.parent
-EVAL_DIR    = BASE_DIR / "eval"
+BASE_DIR = Path(__file__).parent.parent
+EVAL_DIR = BASE_DIR / "eval"
 REPORTS_DIR = EVAL_DIR / "reports"
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-CONFIG_PATH   = EVAL_DIR / "config.yaml"
-DATASET_PATH  = EVAL_DIR / "dataset.json"
-MOCK_PATH     = EVAL_DIR / "mock_responses.json"
+CONFIG_PATH = EVAL_DIR / "config.yaml"
+DATASET_PATH = EVAL_DIR / "dataset.json"
+MOCK_PATH = EVAL_DIR / "mock_responses.json"
 
 with open(CONFIG_PATH) as f:
     CONFIG = yaml.safe_load(f)
 
-THRESHOLDS            = CONFIG["thresholds"]
-RUN_LIVE              = os.getenv("RUN_LIVE_EVAL", "false").lower() == "true"
+THRESHOLDS = CONFIG["thresholds"]
+RUN_LIVE = os.getenv("RUN_LIVE_EVAL", "false").lower() == "true"
 SAMPLE_PASS_THRESHOLD = min(THRESHOLDS.values())
 
 DIMENSIONS = ["relevance", "correctness", "completeness", "hallucination"]
@@ -51,9 +52,11 @@ DIMENSIONS = ["relevance", "correctness", "completeness", "hallucination"]
 # LOAD DATA
 # ─────────────────────────────────────────────
 
+
 def load_dataset():
     with open(DATASET_PATH) as f:
         return json.load(f)
+
 
 def load_mock_responses():
     with open(MOCK_PATH) as f:
@@ -64,6 +67,7 @@ def load_mock_responses():
 # LIVE EVAL
 # ─────────────────────────────────────────────
 
+
 def get_live_response(sample: dict) -> str:
     try:
         from config import config
@@ -71,16 +75,16 @@ def get_live_response(sample: dict) -> str:
         from state import empty_state
         from pipeline import pipeline
 
-        user_id    = "eval_user"
+        user_id = "eval_user"
         get_or_create_user(user_id)
         session_id = get_or_create_session(None, user_id)
 
         state = empty_state(
-            session_id    = session_id,
-            user_id       = user_id,
-            request_id    = f"eval_{sample['id']}",
-            messages      = [],
-            current_input = sample["input"],
+            session_id=session_id,
+            user_id=user_id,
+            request_id=f"eval_{sample['id']}",
+            messages=[],
+            current_input=sample["input"],
         )
         result = pipeline.invoke(state)
         return result.get("response", "")
@@ -93,6 +97,7 @@ def get_live_response(sample: dict) -> str:
 # HALLUCINATION CHECK
 # ─────────────────────────────────────────────
 
+
 def check_hallucination(response: str, context: str, agent: str = "order_agent") -> float:
     """
     Checks whether the response contains facts not grounded in context.
@@ -103,36 +108,70 @@ def check_hallucination(response: str, context: str, agent: str = "order_agent")
     import re
 
     def extract_orders(text):
-        return set(re.findall(r'ORD\d+', text.upper()))
+        return set(re.findall(r"ORD\d+", text.upper()))
 
     def extract_dates(text):
-        return set(re.findall(r'\d{4}-\d{2}-\d{2}', text))
+        return set(re.findall(r"\d{4}-\d{2}-\d{2}", text))
 
     CARRIERS = {"fedex", "delhivery", "bluedart", "ekart", "dtdc", "ups", "dhl"}
+
     def extract_carriers(text):
         return {c for c in CARRIERS if c in text.lower()}
 
-    COMMON = {"order", "your", "the", "is", "in", "with", "and", "for",
-              "has", "been", "via", "by", "on", "no", "items", "item",
-              "status", "delivery", "estimated", "date", "carrier", "currently",
-              "out", "great", "news", "successfully", "summary", "all", "one",
-              "two", "here", "are", "pending", "transit", "delivered"}
+    COMMON = {
+        "order",
+        "your",
+        "the",
+        "is",
+        "in",
+        "with",
+        "and",
+        "for",
+        "has",
+        "been",
+        "via",
+        "by",
+        "on",
+        "no",
+        "items",
+        "item",
+        "status",
+        "delivery",
+        "estimated",
+        "date",
+        "carrier",
+        "currently",
+        "out",
+        "great",
+        "news",
+        "successfully",
+        "summary",
+        "all",
+        "one",
+        "two",
+        "here",
+        "are",
+        "pending",
+        "transit",
+        "delivered",
+    }
+
     def extract_items(text):
-        tokens = re.findall(r'\b[A-Z][a-zA-Z0-9]{2,}\b', text)
+        tokens = re.findall(r"\b[A-Z][a-zA-Z0-9]{2,}\b", text)
         return {t.lower() for t in tokens if t.lower() not in COMMON}
 
     violations = 0
-    checks     = 0
+    checks = 0
 
     if agent == "order_agent":
-        resp_orders   = extract_orders(response)
-        ctx_orders    = extract_orders(context)
-        resp_dates    = extract_dates(response)
-        ctx_dates     = extract_dates(context)
+        resp_orders = extract_orders(response)
+        ctx_orders = extract_orders(context)
+        resp_dates = extract_dates(response)
+        ctx_dates = extract_dates(context)
         resp_carriers = extract_carriers(response)
-        ctx_carriers  = extract_carriers(context)
-        resp_items    = extract_items(response)
-        ctx_items     = extract_items(context)
+        ctx_carriers = extract_carriers(context)
+        resp_items = extract_items(response)
+        ctx_items = extract_items(context)
 
         if resp_orders:
             checks += 1
@@ -165,8 +204,8 @@ def check_hallucination(response: str, context: str, agent: str = "order_agent")
 
     elif agent == "product_agent":
         # For product agent: check ratings are in valid range and prices are positive numbers
-        ratings = [float(m) for m in re.findall(r'(\d+\.?\d*)/5', response)]
-        prices  = [float(m.replace(",", "")) for m in re.findall(r'₹([\d,]+)', response)]
+        ratings = [float(m) for m in re.findall(r"(\d+\.?\d*)/5", response)]
+        prices = [float(m.replace(",", "")) for m in re.findall(r"₹([\d,]+)", response)]
 
         if ratings:
             checks += 1
@@ -184,16 +223,16 @@ def check_hallucination(response: str, context: str, agent: str = "order_agent")
 
     elif agent == "support_agent":
         # Check ticket IDs have valid format (TKT prefix)
-        ticket_ids = re.findall(r'\bTKT[-\w]{4,}\b', response)
+        ticket_ids = re.findall(r"\bTKT[-\w]{4,}\b", response)
         if ticket_ids:
             checks += 1
-            invalid_tickets = [t for t in ticket_ids if not re.match(r'^TKT[-A-Z0-9]{4,}$', t)]
+            invalid_tickets = [t for t in ticket_ids if not re.match(r"^TKT[-A-Z0-9]{4,}$", t)]
             if invalid_tickets:
                 print(f"  ⚠ Malformed ticket IDs: {invalid_tickets}")
                 violations += 1
 
         # Check SLA times are realistic (not invented extreme values)
-        sla_hours = [int(m) for m in re.findall(r'(\d+)\s*hours?', response.lower())]
+        sla_hours = [int(m) for m in re.findall(r"(\d+)\s*hours?", response.lower())]
         if sla_hours:
             checks += 1
             invalid_sla = [h for h in sla_hours if h <= 0 or h > 168]
@@ -202,8 +241,8 @@ def check_hallucination(response: str, context: str, agent: str = "order_agent")
                 violations += 1
 
         # Check order IDs mentioned exist in context
-        resp_orders = set(re.findall(r'ORD\d+', response.upper()))
-        ctx_orders  = set(re.findall(r'ORD\d+', context.upper()))
+        resp_orders = set(re.findall(r"ORD\d+", response.upper()))
+        ctx_orders = set(re.findall(r"ORD\d+", context.upper()))
         if resp_orders:
             checks += 1
             hallucinated = resp_orders - ctx_orders
@@ -221,34 +260,81 @@ def check_hallucination(response: str, context: str, agent: str = "order_agent")
 # RULE-BASED FALLBACK SCORER
 # ─────────────────────────────────────────────
 
+
 def _extract_key_tokens(text: str) -> set:
     import re
+
     tokens = re.sub(r"[^\w\s]", " ", text.lower()).split()
-    stop = {"the","a","an","is","are","was","were","be","been","being",
-            "have","has","had","do","does","did","will","would","could",
-            "should","may","might","shall","can","to","of","in","on",
-            "at","by","for","with","and","or","but","not","your","my",
-            "it","its","this","that","i","you","we","they","he","she"}
+    stop = {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "to",
+        "of",
+        "in",
+        "on",
+        "at",
+        "by",
+        "for",
+        "with",
+        "and",
+        "or",
+        "but",
+        "not",
+        "your",
+        "my",
+        "it",
+        "its",
+        "this",
+        "that",
+        "i",
+        "you",
+        "we",
+        "they",
+        "he",
+        "she",
+    }
     return {t for t in tokens if t not in stop and len(t) > 1}
 
 
 def rule_based_score(response: str, expected: str, context: str, agent: str = "order_agent") -> dict:
-    resp_tokens     = _extract_key_tokens(response)
+    resp_tokens = _extract_key_tokens(response)
     expected_tokens = _extract_key_tokens(expected)
-    context_tokens  = _extract_key_tokens(context)
+    context_tokens = _extract_key_tokens(context)
 
     if not resp_tokens:
         return {d: 0.0 for d in DIMENSIONS}
 
-    ctx_overlap  = len(resp_tokens & context_tokens) / max(len(context_tokens), 1)
-    relevance    = min(1.0, ctx_overlap * 1.6)
-    correctness  = min(1.0, len(resp_tokens & context_tokens) / max(len(resp_tokens), 1) * 1.4)
+    ctx_overlap = len(resp_tokens & context_tokens) / max(len(context_tokens), 1)
+    relevance = min(1.0, ctx_overlap * 1.6)
+    correctness = min(1.0, len(resp_tokens & context_tokens) / max(len(resp_tokens), 1) * 1.4)
     completeness = min(1.0, len(resp_tokens & expected_tokens) / max(len(expected_tokens), 1) * 1.5)
 
     return {
-        "relevance":     round(max(relevance,    0.70), 3),
-        "correctness":   round(max(correctness,  0.70), 3),
-        "completeness":  round(max(completeness, 0.70), 3),
+        "relevance": round(max(relevance, 0.70), 3),
+        "correctness": round(max(correctness, 0.70), 3),
+        "completeness": round(max(completeness, 0.70), 3),
         "hallucination": check_hallucination(response, context, agent),
     }
 
@@ -260,8 +346,7 @@ def rule_based_score(response: str, expected: str, context: str, agent: str = "o
 AGENT_JUDGE_HINTS = {
     "order_agent": (
         "order tracking assistant",
-        "the correct key facts (order status, carrier, ETA, items). "
-        "Minor wording differences are fine.",
+        "the correct key facts (order status, carrier, ETA, items). " "Minor wording differences are fine.",
         "Are the key facts (status, carrier, ETA, items) correct per context? (0.8+ if main facts match)",
         "Does the response avoid inventing order IDs, dates, carriers, or items not in the context?",
     ),
@@ -288,8 +373,8 @@ def score_with_llm(
     question: str,
     response: str,
     expected: str,
-    context:  str,
-    agent:    str = "order_agent",
+    context: str,
+    agent: str = "order_agent",
 ) -> dict:
     time.sleep(10)
     llm_scores = None
@@ -302,9 +387,9 @@ def score_with_llm(
         from config import config
 
         llm = ChatGroq(
-            model       = config.LLM_MODEL,
-            temperature = 0,
-            api_key     = config.GROQ_API_KEY,
+            model=config.LLM_MODEL,
+            temperature=0,
+            api_key=config.GROQ_API_KEY,
         )
 
         prompt = f"""You are a lenient evaluation judge for an e-commerce {agent_label}.
@@ -327,16 +412,16 @@ Return ONLY valid JSON, nothing else:
 {{"relevance": 0.0, "correctness": 0.0, "completeness": 0.0, "hallucination": 0.0}}"""
 
         result = llm.invoke(prompt)
-        text   = result.content.strip()
+        text = result.content.strip()
 
         if "```" in text:
             text = text.split("```")[1].replace("json", "").strip()
 
         parsed = json.loads(text)
         llm_scores = {
-            "relevance":     float(parsed.get("relevance",     0.0)),
-            "correctness":   float(parsed.get("correctness",   0.0)),
-            "completeness":  float(parsed.get("completeness",  0.0)),
+            "relevance": float(parsed.get("relevance", 0.0)),
+            "correctness": float(parsed.get("correctness", 0.0)),
+            "completeness": float(parsed.get("completeness", 0.0)),
             "hallucination": float(parsed.get("hallucination", 1.0)),
         }
 
@@ -350,13 +435,10 @@ Return ONLY valid JSON, nothing else:
     avg_llm = sum(llm_scores.values()) / len(llm_scores)
     if avg_llm < 0.40:
         rb_scores = rule_based_score(response, expected, context, agent)
-        avg_rb    = sum(rb_scores.values()) / len(rb_scores)
+        avg_rb = sum(rb_scores.values()) / len(rb_scores)
         if avg_rb >= 0.65:
             print(f"  LLM judge too strict (avg {avg_llm:.2f}); rule-based gives {avg_rb:.2f} — blending")
-            return {
-                dim: round(max(llm_scores[dim], rb_scores[dim]), 3)
-                for dim in DIMENSIONS
-            }
+            return {dim: round(max(llm_scores[dim], rb_scores[dim]), 3) for dim in DIMENSIONS}
 
     # Always use rule-based hallucination check for reliability
     llm_scores["hallucination"] = check_hallucination(response, context, agent)
@@ -367,6 +449,7 @@ Return ONLY valid JSON, nothing else:
 # MAIN EVALUATION
 # ─────────────────────────────────────────────
 
+
 def run_evaluation():
     print("=" * 60)
     print("Multi-Agent Evaluation Pipeline")
@@ -376,26 +459,28 @@ def run_evaluation():
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
     mlflow.set_experiment(CONFIG["reporting"]["mlflow_experiment"])
 
-    dataset        = load_dataset()
+    dataset = load_dataset()
     mock_responses = load_mock_responses() if not RUN_LIVE else {}
 
     try:
-        commit_sha  = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        commit_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
         branch_name = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
     except Exception:
-        commit_sha  = "unknown"
+        commit_sha = "unknown"
         branch_name = "unknown"
 
-    results    = []
+    results = []
     all_scores = {d: [] for d in DIMENSIONS}
 
     with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}") as run:
-        mlflow.set_tags({
-            "eval_mode":  "live" if RUN_LIVE else "mocked",
-            "dataset":    "eval/dataset.json",
-            "commit_sha": commit_sha,
-            "branch":     branch_name,
-        })
+        mlflow.set_tags(
+            {
+                "eval_mode": "live" if RUN_LIVE else "mocked",
+                "dataset": "eval/dataset.json",
+                "commit_sha": commit_sha,
+                "branch": branch_name,
+            }
+        )
 
         for sample in dataset:
             print(f"\n[{sample['id']}] {sample['input'][:60]}...")
@@ -408,11 +493,11 @@ def run_evaluation():
                 print(f"  Mock response: {response[:80]}...")
 
             scores = score_with_llm(
-                question = sample["input"],
-                response = response,
-                expected = sample["expected"],
-                context  = sample.get("context", ""),
-                agent    = sample.get("agent", "order_agent"),
+                question=sample["input"],
+                response=response,
+                expected=sample["expected"],
+                context=sample.get("context", ""),
+                agent=sample.get("agent", "order_agent"),
             )
             print(
                 f"  Scores: relevance={scores['relevance']:.2f}  "
@@ -425,25 +510,29 @@ def run_evaluation():
                 all_scores[dim].append(scores[dim])
 
             avg_score = sum(scores.values()) / len(scores)
-            results.append({
-                "id":            sample["id"],
-                "agent":         sample.get("agent", "unknown"),
-                "input":         sample["input"],
-                "expected":      sample["expected"],
-                "response":      response,
-                "relevance":     scores["relevance"],
-                "correctness":   scores["correctness"],
-                "completeness":  scores["completeness"],
-                "hallucination": scores["hallucination"],
-                "avg_score":     avg_score,
-            })
+            results.append(
+                {
+                    "id": sample["id"],
+                    "agent": sample.get("agent", "unknown"),
+                    "input": sample["input"],
+                    "expected": sample["expected"],
+                    "response": response,
+                    "relevance": scores["relevance"],
+                    "correctness": scores["correctness"],
+                    "completeness": scores["completeness"],
+                    "hallucination": scores["hallucination"],
+                    "avg_score": avg_score,
+                }
+            )
 
-            mlflow.log_metrics({
-                f"{sample['id']}_relevance":     scores["relevance"],
-                f"{sample['id']}_correctness":   scores["correctness"],
-                f"{sample['id']}_completeness":  scores["completeness"],
-                f"{sample['id']}_hallucination": scores["hallucination"],
-            })
+            mlflow.log_metrics(
+                {
+                    f"{sample['id']}_relevance": scores["relevance"],
+                    f"{sample['id']}_correctness": scores["correctness"],
+                    f"{sample['id']}_completeness": scores["completeness"],
+                    f"{sample['id']}_hallucination": scores["hallucination"],
+                }
+            )
 
         # Aggregates
         avgs = {dim: sum(all_scores[dim]) / len(all_scores[dim]) for dim in DIMENSIONS}
@@ -454,14 +543,16 @@ def run_evaluation():
         for r in results:
             agent_results.setdefault(r["agent"], []).append(r)
 
-        mlflow.log_metrics({
-            "avg_relevance":     avgs["relevance"],
-            "avg_correctness":   avgs["correctness"],
-            "avg_completeness":  avgs["completeness"],
-            "avg_hallucination": avgs["hallucination"],
-            "overall_avg":       overall_avg,
-            "total_samples":     len(dataset),
-        })
+        mlflow.log_metrics(
+            {
+                "avg_relevance": avgs["relevance"],
+                "avg_correctness": avgs["correctness"],
+                "avg_completeness": avgs["completeness"],
+                "avg_hallucination": avgs["hallucination"],
+                "overall_avg": overall_avg,
+                "total_samples": len(dataset),
+            }
+        )
         for ag, ag_results in agent_results.items():
             for dim in DIMENSIONS:
                 ag_avg = sum(r[dim] for r in ag_results) / len(ag_results)
@@ -472,7 +563,7 @@ def run_evaluation():
             print(f"Average {dim.capitalize():<14}: {avgs[dim]:.3f}  (threshold: {THRESHOLDS.get(dim, 0.70)})")
         print(f"Overall Average       : {overall_avg:.3f}")
 
-        passed   = True
+        passed = True
         failures = []
         for dim in DIMENSIONS:
             threshold = THRESHOLDS.get(dim, 0.70)
@@ -480,17 +571,15 @@ def run_evaluation():
                 failures.append(f"{dim} {avgs[dim]:.3f} < {threshold}")
                 passed = False
 
-        mlflow.set_tag("eval_passed",   str(passed))
+        mlflow.set_tag("eval_passed", str(passed))
         mlflow.set_tag("eval_failures", "; ".join(failures) if failures else "none")
 
-        json_report = generate_json_report(
-            results, avgs, overall_avg, passed, failures, commit_sha, branch_name
-        )
+        json_report = generate_json_report(results, avgs, overall_avg, passed, failures, commit_sha, branch_name)
         generate_html_report(results, json_report)
 
         import shutil
 
-# Manually copy to artifact store
+        # Manually copy to artifact store
         # Get artifact path dynamically from MLflow run
         # Get artifact path dynamically from MLflow run
         artifact_uri = run.info.artifact_uri
@@ -508,9 +597,7 @@ def run_evaluation():
         print(f"Artifacts saved to: {artifact_dir}")
 
         df = pd.DataFrame(results)
-        mlflow_dataset = mlflow.data.from_pandas(
-            df, name="multiagent_eval_dataset", targets="expected"
-        )
+        mlflow_dataset = mlflow.data.from_pandas(df, name="multiagent_eval_dataset", targets="expected")
         mlflow.log_input(mlflow_dataset, context="evaluation")
 
         run_id = run.info.run_id
@@ -530,6 +617,7 @@ def run_evaluation():
 # JSON REPORT
 # ─────────────────────────────────────────────
 
+
 def generate_json_report(results, avgs, overall_avg, passed, failures, commit_sha, branch_name):
     failed_samples = [r for r in results if r["avg_score"] < SAMPLE_PASS_THRESHOLD]
 
@@ -538,52 +626,45 @@ def generate_json_report(results, avgs, overall_avg, passed, failures, commit_sh
         agent_breakdown.setdefault(r["agent"], []).append(r)
     per_agent_avgs = {}
     for ag, ag_results in agent_breakdown.items():
-        per_agent_avgs[ag] = {
-            dim: round(sum(r[dim] for r in ag_results) / len(ag_results), 3)
-            for dim in DIMENSIONS
-        }
-        per_agent_avgs[ag]["overall"] = round(
-            sum(per_agent_avgs[ag][d] for d in DIMENSIONS) / len(DIMENSIONS), 3
-        )
+        per_agent_avgs[ag] = {dim: round(sum(r[dim] for r in ag_results) / len(ag_results), 3) for dim in DIMENSIONS}
+        per_agent_avgs[ag]["overall"] = round(sum(per_agent_avgs[ag][d] for d in DIMENSIONS) / len(DIMENSIONS), 3)
         per_agent_avgs[ag]["sample_count"] = len(ag_results)
 
     report = {
-        "run_timestamp":  datetime.now(timezone.utc).isoformat(),
+        "run_timestamp": datetime.now(timezone.utc).isoformat(),
         "git_commit_sha": commit_sha,
-        "branch_name":    branch_name,
-        "eval_mode":      "live" if RUN_LIVE else "mocked",
-        "total_samples":  len(results),
-        "overall_pass":   passed,
-        "failures":       failures,
-        "per_metric_averages": {
-            dim: round(avgs[dim], 3) for dim in DIMENSIONS
-        } | {"overall": round(overall_avg, 3)},
+        "branch_name": branch_name,
+        "eval_mode": "live" if RUN_LIVE else "mocked",
+        "total_samples": len(results),
+        "overall_pass": passed,
+        "failures": failures,
+        "per_metric_averages": {dim: round(avgs[dim], 3) for dim in DIMENSIONS} | {"overall": round(overall_avg, 3)},
         "per_agent_averages": per_agent_avgs,
         "thresholds": THRESHOLDS,
         "per_sample_scores": [
             {
-                "id":            r["id"],
-                "agent":         r["agent"],
-                "input":         r["input"],
-                "relevance":     round(r["relevance"],     3),
-                "correctness":   round(r["correctness"],   3),
-                "completeness":  round(r["completeness"],  3),
+                "id": r["id"],
+                "agent": r["agent"],
+                "input": r["input"],
+                "relevance": round(r["relevance"], 3),
+                "correctness": round(r["correctness"], 3),
+                "completeness": round(r["completeness"], 3),
                 "hallucination": round(r["hallucination"], 3),
-                "avg_score":     round(r["avg_score"],     3),
-                "passed":        r["avg_score"] >= SAMPLE_PASS_THRESHOLD,
+                "avg_score": round(r["avg_score"], 3),
+                "passed": r["avg_score"] >= SAMPLE_PASS_THRESHOLD,
             }
             for r in results
         ],
         "failed_samples": [
             {
-                "id":       r["id"],
-                "input":    r["input"],
+                "id": r["id"],
+                "input": r["input"],
                 "response": r["response"],
                 "expected": r["expected"],
                 "scores": {
-                    "relevance":     round(r["relevance"],     3),
-                    "correctness":   round(r["correctness"],   3),
-                    "completeness":  round(r["completeness"],  3),
+                    "relevance": round(r["relevance"], 3),
+                    "correctness": round(r["correctness"], 3),
+                    "completeness": round(r["completeness"], 3),
                     "hallucination": round(r["hallucination"], 3),
                 },
             }
@@ -602,17 +683,18 @@ def generate_json_report(results, avgs, overall_avg, passed, failures, commit_sh
 # HTML REPORT
 # ─────────────────────────────────────────────
 
+
 def generate_html_report(results, json_report):
-    passed       = json_report["overall_pass"]
-    avgs         = json_report["per_metric_averages"]
-    failed       = json_report["failed_samples"]
-    per_agent    = json_report.get("per_agent_averages", {})
+    passed = json_report["overall_pass"]
+    avgs = json_report["per_metric_averages"]
+    failed = json_report["failed_samples"]
+    per_agent = json_report.get("per_agent_averages", {})
     status_color = "#22c55e" if passed else "#ef4444"
-    status_text  = "PASSED" if passed else "FAILED"
+    status_text = "PASSED" if passed else "FAILED"
 
     rows = ""
     for r in results:
-        bg    = "#fff" if r["avg_score"] >= SAMPLE_PASS_THRESHOLD else "#fff5f5"
+        bg = "#fff" if r["avg_score"] >= SAMPLE_PASS_THRESHOLD else "#fff5f5"
         badge = "✅" if r["avg_score"] >= SAMPLE_PASS_THRESHOLD else "❌"
         hall_color = "#22c55e" if r["hallucination"] >= 0.70 else "#ef4444"
         rows += f"""

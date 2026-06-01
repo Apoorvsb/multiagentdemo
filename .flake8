@@ -1,0 +1,25 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    .github,
+    mlruns,
+    mlflow_artifacts,
+    actions-runner,
+    tools/
+per-file-ignores =
+    pipeline.py: E402,F401
+    main.py: E402,E401,F401
+    mlflow_helpers.py: F401
+    eval/run_eval.py: E501,E231,F401,F811
+    tests/conftest.py: E402
+    tests/test_database.py: F401,F841
+    tests/test_order_agent.py: F841
+    tests/test_support_agent.py: F401
+    agents/shipment_subgraph.py: E402,F541
+    agents/order_agent.py: F541,E501
+    agents/product_agent.py: F541,E501
+    agents/support_agent.py: E501
+    database.py: E501

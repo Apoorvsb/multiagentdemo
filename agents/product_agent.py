@@ -14,177 +14,352 @@ from database import get_conn, save_message
 
 _log = logging.getLogger(__name__)
 
-llm = __import__("langchain_groq").ChatGroq(
-    model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY
-)
+llm = __import__("langchain_groq").ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
 # ── Module-level constants ─────────────────────────────────────────────────────
 
 _CATEGORY_NORM = {
-    "electronics":              "Electronics",
-    "computers&accessories":    "Computers&Accessories",
-    "computers & accessories":  "Computers&Accessories",
-    "computers and accessories":"Computers&Accessories",
-    "computers":                "Computers&Accessories",
-    "home&kitchen":             "Home&Kitchen",
-    "home & kitchen":           "Home&Kitchen",
-    "home and kitchen":         "Home&Kitchen",
-    "kitchen":                  "Home&Kitchen",
-    "home":                     "Home&Kitchen",
+    "electronics": "Electronics",
+    "computers&accessories": "Computers&Accessories",
+    "computers & accessories": "Computers&Accessories",
+    "computers and accessories": "Computers&Accessories",
+    "computers": "Computers&Accessories",
+    "home&kitchen": "Home&Kitchen",
+    "home & kitchen": "Home&Kitchen",
+    "home and kitchen": "Home&Kitchen",
+    "kitchen": "Home&Kitchen",
+    "home": "Home&Kitchen",
 }
 
 BRAND_MAP = {
-    "hp": "HP", "dell": "Dell", "apple": "Apple", "samsung": "Samsung",
-    "sony": "Sony", "lenovo": "Lenovo", "oneplus": "OnePlus", "boat": "boAt",
-    "asus": "ASUS", "acer": "Acer", "mi": "Mi", "realme": "Realme",
-    "redmi": "Redmi", "motorola": "Motorola", "nokia": "Nokia",
-    "oppo": "OPPO", "vivo": "Vivo", "google": "Google", "lg": "LG",
-    "panasonic": "Panasonic", "philips": "Philips", "bajaj": "Bajaj",
-    "prestige": "Prestige", "daikin": "Daikin", "voltas": "Voltas",
-    "whirlpool": "Whirlpool", "bosch": "Bosch", "kent": "Kent",
-    "aquaguard": "Aquaguard", "havells": "Havells", "instant": "Instant",
-    "tefal": "Tefal", "milton": "Milton", "pigeon": "Pigeon",
-    "hawkins": "Hawkins", "cello": "Cello", "borosil": "Borosil",
-    "butterfly": "Butterfly", "vinod": "Vinod", "ifb": "IFB",
-    "tcl": "TCL", "hisense": "Hisense",
+    "hp": "HP",
+    "dell": "Dell",
+    "apple": "Apple",
+    "samsung": "Samsung",
+    "sony": "Sony",
+    "lenovo": "Lenovo",
+    "oneplus": "OnePlus",
+    "boat": "boAt",
+    "asus": "ASUS",
+    "acer": "Acer",
+    "mi": "Mi",
+    "realme": "Realme",
+    "redmi": "Redmi",
+    "motorola": "Motorola",
+    "nokia": "Nokia",
+    "oppo": "OPPO",
+    "vivo": "Vivo",
+    "google": "Google",
+    "lg": "LG",
+    "panasonic": "Panasonic",
+    "philips": "Philips",
+    "bajaj": "Bajaj",
+    "prestige": "Prestige",
+    "daikin": "Daikin",
+    "voltas": "Voltas",
+    "whirlpool": "Whirlpool",
+    "bosch": "Bosch",
+    "kent": "Kent",
+    "aquaguard": "Aquaguard",
+    "havells": "Havells",
+    "instant": "Instant",
+    "tefal": "Tefal",
+    "milton": "Milton",
+    "pigeon": "Pigeon",
+    "hawkins": "Hawkins",
+    "cello": "Cello",
+    "borosil": "Borosil",
+    "butterfly": "Butterfly",
+    "vinod": "Vinod",
+    "ifb": "IFB",
+    "tcl": "TCL",
+    "hisense": "Hisense",
 }
 
 _GENERIC_WORDS = {
-    "product", "products", "item", "items", "thing", "things",
-    "anything", "something", "goods", "appliance", "appliances",
+    "product",
+    "products",
+    "item",
+    "items",
+    "thing",
+    "things",
+    "anything",
+    "something",
+    "goods",
+    "appliance",
+    "appliances",
 }
 
 _CARRY_PRODUCT_TYPES = [
-    "laptop", "phone", "smartphone", "tablet", "tv", "television",
-    "camera", "watch", "smartwatch", "desktop", "computer",
-    "earphone", "headphone", "earbuds", "earbud", "speaker",
-    "neckband", "headset", "keyboard", "mouse", "monitor", "charger",
-    "mixer grinder", "air conditioner", "washing machine", "water purifier",
-    "microwave", "air fryer", "electric kettle", "rice cooker",
-    "refrigerator", "pressure cooker", "water bottle",
+    "laptop",
+    "phone",
+    "smartphone",
+    "tablet",
+    "tv",
+    "television",
+    "camera",
+    "watch",
+    "smartwatch",
+    "desktop",
+    "computer",
+    "earphone",
+    "headphone",
+    "earbuds",
+    "earbud",
+    "speaker",
+    "neckband",
+    "headset",
+    "keyboard",
+    "mouse",
+    "monitor",
+    "charger",
+    "mixer grinder",
+    "air conditioner",
+    "washing machine",
+    "water purifier",
+    "microwave",
+    "air fryer",
+    "electric kettle",
+    "rice cooker",
+    "refrigerator",
+    "pressure cooker",
+    "water bottle",
 ]
 
 # Keyword → SQL ILIKE pattern expansions
 _PHONE_SQL_PATTERNS = [
-    "%galaxy%", "%iphone%", "%5g%", "%pixel%", "%nord%",
-    "%redmi%", "%realme%", "%narzo%", "%moto%", "%oneplus%",
-    "%xperia%", "%nothing phone%",
+    "%galaxy%",
+    "%iphone%",
+    "%5g%",
+    "%pixel%",
+    "%nord%",
+    "%redmi%",
+    "%realme%",
+    "%narzo%",
+    "%moto%",
+    "%oneplus%",
+    "%xperia%",
+    "%nothing phone%",
 ]
 _KITCHEN_SQL_PATTERNS = [
-    "%mixer grinder%", "%electric kettle%", "%air fryer%",
-    "%pressure cooker%", "%microwave%", "%induction cooktop%",
-    "%induction stove%", "%rice cooker%", "%blender%",
-    "%juicer%", "%toaster%", "%coffee maker%",
-    "%coffee machine%", "%sandwich maker%",
-    "%water bottle%", "%flask%",
+    "%mixer grinder%",
+    "%electric kettle%",
+    "%air fryer%",
+    "%pressure cooker%",
+    "%microwave%",
+    "%induction cooktop%",
+    "%induction stove%",
+    "%rice cooker%",
+    "%blender%",
+    "%juicer%",
+    "%toaster%",
+    "%coffee maker%",
+    "%coffee machine%",
+    "%sandwich maker%",
+    "%water bottle%",
+    "%flask%",
 ]
 _HOME_APPLIANCE_SQL_PATTERNS = [
-    "%refrigerator%", "%fridge%", "%washing machine%",
-    "%air conditioner%", "%water purifier%",
-    "%microwave%", "%geyser%", "%water heater%",
-    "%television%", "%smart tv%",
+    "%refrigerator%",
+    "%fridge%",
+    "%washing machine%",
+    "%air conditioner%",
+    "%water purifier%",
+    "%microwave%",
+    "%geyser%",
+    "%water heater%",
+    "%television%",
+    "%smart tv%",
 ]
 _ENERGY_SQL_PATTERNS = [
-    "%inverter%", "%5 star%", "%5-star%",
-    "%energy efficient%", "%energy saver%", "%energy saving%",
+    "%inverter%",
+    "%5 star%",
+    "%5-star%",
+    "%energy efficient%",
+    "%energy saver%",
+    "%energy saving%",
 ]
 _SMARTWATCH_SQL_PATTERNS = ["%watch%", "%smartwatch%"]
-_TABLET_SQL_PATTERNS    = ["%ipad%", "%galaxy tab%"]
-_EARBUDS_SQL_PATTERNS   = ["%earbuds%", "%airpods%", "%airdopes%"]
-_TV_SQL_PATTERNS        = ["%smart tv%", "%television%", "% tv %", "% tv"]
+_TABLET_SQL_PATTERNS = ["%ipad%", "%galaxy tab%"]
+_EARBUDS_SQL_PATTERNS = ["%earbuds%", "%airpods%", "%airdopes%"]
+_TV_SQL_PATTERNS = ["%smart tv%", "%television%", "% tv %", "% tv"]
 
-_PHONE_KEYWORDS         = {"phone", "smartphone", "mobile"}
-_KITCHEN_KEYWORDS       = {
-    "kitchen appliance", "kitchen appliances", "cooking appliance",
-    "cooking appliances", "kitchen", "cooking", "kitchen items",
-    "kitchen products", "kitchen tools", "kitchen gadget", "kitchen gadgets",
-    "kitchen gift", "gift for kitchen",
+_PHONE_KEYWORDS = {"phone", "smartphone", "mobile"}
+_KITCHEN_KEYWORDS = {
+    "kitchen appliance",
+    "kitchen appliances",
+    "cooking appliance",
+    "cooking appliances",
+    "kitchen",
+    "cooking",
+    "kitchen items",
+    "kitchen products",
+    "kitchen tools",
+    "kitchen gadget",
+    "kitchen gadgets",
+    "kitchen gift",
+    "gift for kitchen",
 }
 _HOME_APPLIANCE_KEYWORDS = {"home appliance", "home appliances", "home essential", "home essentials"}
-_ENERGY_KEYWORDS         = {
-    "energy saving", "energy efficient", "power saving",
-    "energy saving appliance", "energy saving appliances",
-    "energy-saving", "eco-friendly", "eco friendly",
+_ENERGY_KEYWORDS = {
+    "energy saving",
+    "energy efficient",
+    "power saving",
+    "energy saving appliance",
+    "energy saving appliances",
+    "energy-saving",
+    "eco-friendly",
+    "eco friendly",
 }
 _SMARTWATCH_KEYWORDS = {"smartwatch", "smartwatches", "watch", "watches", "smart watch"}
-_TABLET_KEYWORDS     = {"tablet", "tablets", "ipad"}
-_EARBUDS_KEYWORDS    = {"earbud", "earbuds", "airpods", "air pods"}
-_TV_KEYWORDS         = {"tv", "television", "smart tv", "oled tv", "qled tv", "4k tv"}
+_TABLET_KEYWORDS = {"tablet", "tablets", "ipad"}
+_EARBUDS_KEYWORDS = {"earbud", "earbuds", "airpods", "air pods"}
+_TV_KEYWORDS = {"tv", "television", "smart tv", "oled tv", "qled tv", "4k tv"}
 
 _KEYWORD_TO_SQL_PATTERNS = [
-    (_PHONE_KEYWORDS,          _PHONE_SQL_PATTERNS),
-    (_KITCHEN_KEYWORDS,        _KITCHEN_SQL_PATTERNS),
+    (_PHONE_KEYWORDS, _PHONE_SQL_PATTERNS),
+    (_KITCHEN_KEYWORDS, _KITCHEN_SQL_PATTERNS),
     (_HOME_APPLIANCE_KEYWORDS, _HOME_APPLIANCE_SQL_PATTERNS),
-    (_ENERGY_KEYWORDS,         _ENERGY_SQL_PATTERNS),
-    (_SMARTWATCH_KEYWORDS,     _SMARTWATCH_SQL_PATTERNS),
-    (_TABLET_KEYWORDS,         _TABLET_SQL_PATTERNS),
-    (_EARBUDS_KEYWORDS,        _EARBUDS_SQL_PATTERNS),
-    (_TV_KEYWORDS,             _TV_SQL_PATTERNS),
+    (_ENERGY_KEYWORDS, _ENERGY_SQL_PATTERNS),
+    (_SMARTWATCH_KEYWORDS, _SMARTWATCH_SQL_PATTERNS),
+    (_TABLET_KEYWORDS, _TABLET_SQL_PATTERNS),
+    (_EARBUDS_KEYWORDS, _EARBUDS_SQL_PATTERNS),
+    (_TV_KEYWORDS, _TV_SQL_PATTERNS),
 ]
 
 _MAIN_PRODUCT_TYPES = [
-    "laptop", "phone", "smartphone", "tablet", "tv", "television",
-    "camera", "watch", "smartwatch", "desktop", "computer",
-    "earphone", "headphone", "earbuds", "earbud", "speaker",
-    "neckband", "headset",
-    "mixer grinder", "air conditioner", "washing machine",
-    "water purifier", "microwave oven", "air fryer",
-    "induction cooktop", "electric kettle", "rice cooker",
-    "refrigerator", "pressure cooker", "water bottle",
-    "coffee maker", "blender", "juicer", "toaster",
-    "kitchen appliance", "home appliance", "energy saving",
+    "laptop",
+    "phone",
+    "smartphone",
+    "tablet",
+    "tv",
+    "television",
+    "camera",
+    "watch",
+    "smartwatch",
+    "desktop",
+    "computer",
+    "earphone",
+    "headphone",
+    "earbuds",
+    "earbud",
+    "speaker",
+    "neckband",
+    "headset",
+    "mixer grinder",
+    "air conditioner",
+    "washing machine",
+    "water purifier",
+    "microwave oven",
+    "air fryer",
+    "induction cooktop",
+    "electric kettle",
+    "rice cooker",
+    "refrigerator",
+    "pressure cooker",
+    "water bottle",
+    "coffee maker",
+    "blender",
+    "juicer",
+    "toaster",
+    "kitchen appliance",
+    "home appliance",
+    "energy saving",
 ]
 
 _ACCESSORY_KEYWORDS = [
-    "mouse", "cable", "adapter", "charger", "stand",
-    "bag", "case", "cover", "keyboard", "hub",
-    "dongle", "wire", "cord", "sleeve", "memory",
-    "mousepad", "mat", "cooling pad", "protector",
-    "organizer", "pouch", "winder", "remote",
-    "wall mount", "bracket", "antenna",
-    "cleaning kit", "cleaning cloth", "microfiber",
-    "screen cleaner", "cleaning spray", "dust blower",
-    "compressed air", "lens cleaner", "wipe",
+    "mouse",
+    "cable",
+    "adapter",
+    "charger",
+    "stand",
+    "bag",
+    "case",
+    "cover",
+    "keyboard",
+    "hub",
+    "dongle",
+    "wire",
+    "cord",
+    "sleeve",
+    "memory",
+    "mousepad",
+    "mat",
+    "cooling pad",
+    "protector",
+    "organizer",
+    "pouch",
+    "winder",
+    "remote",
+    "wall mount",
+    "bracket",
+    "antenna",
+    "cleaning kit",
+    "cleaning cloth",
+    "microfiber",
+    "screen cleaner",
+    "cleaning spray",
+    "dust blower",
+    "compressed air",
+    "lens cleaner",
+    "wipe",
 ]
 
-_PHONE_EXTRA_EXCLUSIONS  = ["earphone", "earphones", "headset", "handsfree",
-                             "neckband", "earbuds", "watch", "smartwatch",
-                             "tablet", "tab", "buds"]
-_LAPTOP_EXTRA_EXCLUSIONS = ["headphone", "earphone", "speaker", "webcam",
-                             "headset", "earbuds", "neckband"]
+_PHONE_EXTRA_EXCLUSIONS = [
+    "earphone",
+    "earphones",
+    "headset",
+    "handsfree",
+    "neckband",
+    "earbuds",
+    "watch",
+    "smartwatch",
+    "tablet",
+    "tab",
+    "buds",
+]
+_LAPTOP_EXTRA_EXCLUSIONS = ["headphone", "earphone", "speaker", "webcam", "headset", "earbuds", "neckband"]
 
 _CHARGER_EXCLUSIONS = [
-    "watch charger", "smartwatch charger", "smart watch charger",
-    "cable protector", "cord protector", "charger protector",
-    "charging stand", "charger included", "charger in box", "with charger",
+    "watch charger",
+    "smartwatch charger",
+    "smart watch charger",
+    "cable protector",
+    "cord protector",
+    "charger protector",
+    "charging stand",
+    "charger included",
+    "charger in box",
+    "with charger",
 ]
 
 _BROAD_INTENTS = {"kitchen appliance", "home appliance", "energy saving"}
 
 _TYPE_SIGNATURES = [
-    ("mixer",        "mixer grinder"),
-    ("kettle",       "electric kettle"),
-    ("fryer",        "air fryer"),
-    ("cooker",       "pressure cooker"),
-    ("microwave",    "microwave"),
-    ("induction",    "induction cooktop"),
-    ("rice",         "rice cooker"),
-    ("coffee",       "coffee maker"),
-    ("blender",      "blender"),
-    ("juicer",       "juicer"),
-    ("toaster",      "toaster"),
-    ("sandwich",     "sandwich maker"),
+    ("mixer", "mixer grinder"),
+    ("kettle", "electric kettle"),
+    ("fryer", "air fryer"),
+    ("cooker", "pressure cooker"),
+    ("microwave", "microwave"),
+    ("induction", "induction cooktop"),
+    ("rice", "rice cooker"),
+    ("coffee", "coffee maker"),
+    ("blender", "blender"),
+    ("juicer", "juicer"),
+    ("toaster", "toaster"),
+    ("sandwich", "sandwich maker"),
     ("refrigerator", "refrigerator"),
-    ("fridge",       "refrigerator"),
-    ("washing",      "washing machine"),
-    ("conditioner",  "air conditioner"),
-    ("purifier",     "water purifier"),
-    ("television",   "television"),
-    ("inverter",     "inverter appliance"),
+    ("fridge", "refrigerator"),
+    ("washing", "washing machine"),
+    ("conditioner", "air conditioner"),
+    ("purifier", "water purifier"),
+    ("television", "television"),
+    ("inverter", "inverter appliance"),
 ]
 
 
 # ── Database search ────────────────────────────────────────────────────────────
+
 
 def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
     """Simulates an external product catalog API. Replace with real HTTP call in production."""
@@ -194,7 +369,7 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 conditions = ["availability = TRUE"]
-                params     = []
+                params = []
 
                 if prefs.get("category"):
                     conditions.append("category ILIKE %s")
@@ -237,17 +412,17 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     conditions.append(f"({keyword_conditions})")
                     params.extend(all_name_patterns)
 
-                where       = " AND ".join(conditions)
-                user_limit  = prefs.get("limit", 5)
+                where = " AND ".join(conditions)
+                user_limit = prefs.get("limit", 5)
                 fetch_limit = max(user_limit * 5, 20)
-                query       = f"SELECT * FROM products WHERE {where} ORDER BY rating DESC NULLS LAST LIMIT {fetch_limit}"
+                query = f"SELECT * FROM products WHERE {where} ORDER BY rating DESC NULLS LAST LIMIT {fetch_limit}"
                 _log.debug("Product search SQL: %s | params: %s", query, params)
                 cur.execute(query, params)
                 results = [dict(r) for r in cur.fetchall()]
 
                 # Filter out accessories when searching for a specific product type
                 searched_type = None
-                keywords_str  = " ".join(prefs.get("keywords", []))
+                keywords_str = " ".join(prefs.get("keywords", []))
                 for pt in _MAIN_PRODUCT_TYPES:
                     if pt in keywords_str.lower():
                         searched_type = pt
@@ -260,10 +435,14 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     exclusions = exclusions + _LAPTOP_EXTRA_EXCLUSIONS
 
                 if searched_type:
-                    filtered = [r for r in results if not any(
-                        re.search(rf'\b{re.escape(acc)}(?:e?s)?(?:[^a-zA-Z]|$)', r["name"].lower())
-                        for acc in exclusions
-                    )]
+                    filtered = [
+                        r
+                        for r in results
+                        if not any(
+                            re.search(rf"\b{re.escape(acc)}(?:e?s)?(?:[^a-zA-Z]|$)", r["name"].lower())
+                            for acc in exclusions
+                        )
+                    ]
                     if filtered:
                         results = filtered
 
@@ -271,8 +450,7 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                 kw_joined = " ".join(prefs.get("keywords", [])).lower()
                 if "charger" in kw_joined:
                     no_irrelevant = [
-                        r for r in results
-                        if not any(kw in r["name"].lower() for kw in _CHARGER_EXCLUSIONS)
+                        r for r in results if not any(kw in r["name"].lower() for kw in _CHARGER_EXCLUSIONS)
                     ]
                     if no_irrelevant:
                         results = no_irrelevant
@@ -281,10 +459,10 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                 keywords_lower = " ".join(prefs.get("keywords", [])).lower()
                 if any(intent in keywords_lower for intent in _BROAD_INTENTS):
                     seen_types = set()
-                    diverse    = []
+                    diverse = []
                     for r in results:
                         name_lower = r["name"].lower()
-                        assigned   = None
+                        assigned = None
                         for sig, tp in _TYPE_SIGNATURES:
                             if sig in name_lower:
                                 assigned = tp
@@ -305,16 +483,17 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
 
 # ── Agent nodes ────────────────────────────────────────────────────────────────
 
+
 def extract_preferences(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "product_agent", "extract_preferences")
     log.info("Node entered")
 
     msg = state["current_input"]
 
-    recent_msgs    = state.get("messages", [])[-2:]
-    history_lines  = []
+    recent_msgs = state.get("messages", [])[-2:]
+    history_lines = []
     for m in recent_msgs:
-        role    = "User" if m.get("role") == "user" else "Assistant"
+        role = "User" if m.get("role") == "user" else "Assistant"
         content = (m.get("content") or "").replace("\n", " ").strip()[:80]
         history_lines.append(f"{role}: {content}")
     history_snippet = "\n".join(history_lines) if history_lines else "None"
@@ -347,8 +526,8 @@ Rules:
 Return ONLY valid JSON."""
 
     try:
-        response      = llm.invoke(extraction_prompt)
-        text          = response.content.strip()
+        response = llm.invoke(extraction_prompt)
+        text = response.content.strip()
         if "```" in text:
             for part in text.split("```"):
                 part = part.replace("json", "").strip()
@@ -358,37 +537,49 @@ Return ONLY valid JSON."""
         extracted = _json.loads(text)
         log.info(f"LLM extracted: {extracted}")
 
-        usage         = response.usage_metadata or {}
-        input_tokens  = usage.get("input_tokens",  0)
+        usage = response.usage_metadata or {}
+        input_tokens = usage.get("input_tokens", 0)
         output_tokens = usage.get("output_tokens", 0)
-        cost          = log_llm_span(
-            span_name="extract_preferences", prompt_text=extraction_prompt,
-            response_text=text, input_tokens=input_tokens,
-            output_tokens=output_tokens, model=config.LLM_MODEL,
-            prompt_name="extract_preferences", prompt_version=1,
-            trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        cost = log_llm_span(
+            span_name="extract_preferences",
+            prompt_text=extraction_prompt,
+            response_text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            model=config.LLM_MODEL,
+            prompt_name="extract_preferences",
+            prompt_version=1,
+            trace_id=state.get("mlflow_trace_id"),
+            parent_id=state.get("mlflow_span_id"),
         )
 
     except Exception as e:
         log.error(f"LLM extraction failed: {e}")
-        extracted     = {"keywords": [], "category": None, "max_price": None,
-                         "min_price": None, "min_rating": None, "brand": None, "limit": 5}
-        input_tokens  = 0
+        extracted = {
+            "keywords": [],
+            "category": None,
+            "max_price": None,
+            "min_price": None,
+            "min_rating": None,
+            "brand": None,
+            "limit": 5,
+        }
+        input_tokens = 0
         output_tokens = 0
-        cost          = 0.0
+        cost = 0.0
 
-    raw_cat  = extracted.get("category")
+    raw_cat = extracted.get("category")
     category = _CATEGORY_NORM.get(raw_cat.lower().strip(), None) if raw_cat else None
 
     prefs = {
-        "keywords":   extracted.get("keywords", []),
-        "category":   category,
-        "max_price":  extracted.get("max_price"),
-        "min_price":  extracted.get("min_price"),
+        "keywords": extracted.get("keywords", []),
+        "category": category,
+        "max_price": extracted.get("max_price"),
+        "min_price": extracted.get("min_price"),
         "min_rating": extracted.get("min_rating"),
         "max_rating": extracted.get("max_rating"),
-        "brand":      extracted.get("brand"),
-        "limit":      extracted.get("limit", 5),
+        "brand": extracted.get("brand"),
+        "limit": extracted.get("limit", 5),
     }
 
     # Fallback: second focused LLM call when no keywords were extracted
@@ -413,77 +604,82 @@ Rules:
 - If truly no specific product is implied, return empty string."""
 
         try:
-            fb       = llm.invoke(fallback_prompt)
+            fb = llm.invoke(fallback_prompt)
             fb_usage = fb.usage_metadata or {}
-            fb_in    = fb_usage.get("input_tokens",  0)
-            fb_out   = fb_usage.get("output_tokens", 0)
-            fb_cost  = calculate_cost(config.LLM_MODEL, fb_in, fb_out)
-            keyword  = fb.content.strip().lower().strip("\"'")
+            fb_in = fb_usage.get("input_tokens", 0)
+            fb_out = fb_usage.get("output_tokens", 0)
+            fb_cost = calculate_cost(config.LLM_MODEL, fb_in, fb_out)
+            keyword = fb.content.strip().lower().strip("\"'")
             if keyword and keyword not in _GENERIC_WORDS:
                 prefs["keywords"] = [keyword]
                 log.info(f"LLM fallback keyword: {keyword}")
-            input_tokens  += fb_in
+            input_tokens += fb_in
             output_tokens += fb_out
-            cost          += fb_cost
+            cost += fb_cost
         except Exception as e:
             log.error(f"LLM keyword fallback failed: {e}")
 
     # Rating filter fallback
     msg_lower = msg.lower()
     if not prefs.get("min_rating"):
-        m = re.search(r'(?:above|over|minimum|at least|rated?\s+)(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?', msg_lower)
+        m = re.search(r"(?:above|over|minimum|at least|rated?\s+)(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?", msg_lower)
         if not m:
-            m = re.search(r'(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:above|over|plus|\+)', msg_lower)
+            m = re.search(r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:above|over|plus|\+)", msg_lower)
         if m:
             prefs["min_rating"] = float(m.group(1))
 
     if not prefs.get("max_rating"):
-        m = re.search(r'(?:below|under|less than|max(?:imum)?)\s+(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?', msg_lower)
+        m = re.search(r"(?:below|under|less than|max(?:imum)?)\s+(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?", msg_lower)
         if not m:
-            m = re.search(r'(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:below|under)', msg_lower)
+            m = re.search(r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:below|under)", msg_lower)
         if m:
             prefs["max_rating"] = float(m.group(1))
 
     # Price filter fallback
     if not prefs.get("max_price"):
-        m = re.search(r'(?:below|under|less than|max(?:imum)?)\s+(?:rs\.?\s*|₹\s*|inr\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rs\.?|₹|rupees?|inr)\b', msg_lower)
+        m = re.search(
+            r"(?:below|under|less than|max(?:imum)?)\s+(?:rs\.?\s*|₹\s*|inr\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rs\.?|₹|rupees?|inr)\b",
+            msg_lower,
+        )
         if not m:
-            m = re.search(r'(?:below|under|less than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b', msg_lower)
+            m = re.search(r"(?:below|under|less than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower)
         if m:
-            prefs["max_price"] = float(m.group(1).replace(',', ''))
+            prefs["max_price"] = float(m.group(1).replace(",", ""))
 
     if not prefs.get("min_price"):
-        m = re.search(r'(?:above|over|minimum|at least|more than)\s+(?:rs\.?\s*|₹\s*|inr\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rs\.?|₹|rupees?|inr)\b', msg_lower)
+        m = re.search(
+            r"(?:above|over|minimum|at least|more than)\s+(?:rs\.?\s*|₹\s*|inr\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:rs\.?|₹|rupees?|inr)\b",
+            msg_lower,
+        )
         if not m:
-            m = re.search(r'(?:above|over|more than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b', msg_lower)
+            m = re.search(r"(?:above|over|more than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower)
         if m:
-            prefs["min_price"] = float(m.group(1).replace(',', ''))
+            prefs["min_price"] = float(m.group(1).replace(",", ""))
 
-    if re.search(r'\b(all|every|complete list)\b', msg_lower):
+    if re.search(r"\b(all|every|complete list)\b", msg_lower):
         prefs["limit"] = max(prefs.get("limit", 5), 10)
 
     # Brand fallback: scan message for known brands if LLM missed it
     if not prefs.get("brand"):
         for token, display in BRAND_MAP.items():
-            if re.search(rf'\b{re.escape(token)}\b', msg_lower):
+            if re.search(rf"\b{re.escape(token)}\b", msg_lower):
                 prefs["brand"] = display
                 break
 
     # Follow-up carry-forward: pull brand/keyword from recent history for filter refinements
-    _has_filter = (prefs.get("max_price") or prefs.get("min_price") or
-                   prefs.get("min_rating") or prefs.get("max_rating"))
+    _has_filter = prefs.get("max_price") or prefs.get("min_price") or prefs.get("min_rating") or prefs.get("max_rating")
     if _has_filter:
         for hist_m in reversed(recent_msgs):
             hist_content = (hist_m.get("content") or "").lower()
             if not prefs.get("brand"):
                 for token, display in BRAND_MAP.items():
-                    if re.search(rf'\b{re.escape(token)}\b', hist_content):
+                    if re.search(rf"\b{re.escape(token)}\b", hist_content):
                         prefs["brand"] = display
                         log.info(f"Carried forward brand from history: {display}")
                         break
             if not prefs.get("keywords"):
                 for pt in _CARRY_PRODUCT_TYPES:
-                    if re.search(rf'\b{re.escape(pt)}\b', hist_content):
+                    if re.search(rf"\b{re.escape(pt)}\b", hist_content):
                         prefs["keywords"] = [pt]
                         log.info(f"Carried forward keyword from history: {pt}")
                         break
@@ -492,26 +688,25 @@ Rules:
 
     # Strip brand tokens from keywords to prevent duplicate/cross-brand SQL filters
     if prefs.get("brand"):
-        brand_lower    = prefs["brand"].lower()
-        prefs["keywords"] = [
-            k for k in prefs["keywords"]
-            if k.lower() != brand_lower and k.lower() not in BRAND_MAP
-        ]
+        brand_lower = prefs["brand"].lower()
+        prefs["keywords"] = [k for k in prefs["keywords"] if k.lower() != brand_lower and k.lower() not in BRAND_MAP]
 
     log_tool_span(
-        span_name="extract_preferences", tool_name="preference_extractor",
+        span_name="extract_preferences",
+        tool_name="preference_extractor",
         tool_input={"message": state["current_input"]},
         tool_output={"prefs": str(prefs)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
 
     log.info(f"Preferences extracted: {prefs}")
     return {
         **state,
         "search_preferences": prefs,
-        "search_retry":       0,
-        "total_tokens":       state.get("total_tokens", 0) + input_tokens + output_tokens,
-        "total_cost_usd":     state.get("total_cost_usd", 0.0) + cost,
+        "search_retry": 0,
+        "total_tokens": state.get("total_tokens", 0) + input_tokens + output_tokens,
+        "total_cost_usd": state.get("total_cost_usd", 0.0) + cost,
     }
 
 
@@ -519,15 +714,17 @@ def search_products(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "product_agent", "search_products")
     log.info("Tool called: search_products")
 
-    prefs   = state.get("search_preferences", {})
-    retry   = state.get("search_retry", 0)
+    prefs = state.get("search_preferences", {})
+    retry = state.get("search_retry", 0)
     results = mock_product_api_call(prefs, retry)
 
     log_tool_span(
-        span_name="search_products", tool_name="product_catalog_db",
+        span_name="search_products",
+        tool_name="product_catalog_db",
         tool_input={"prefs": str(prefs), "retry": retry},
         tool_output={"results_count": len(results)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
 
     log.info(f"Found {len(results)} products")
@@ -536,7 +733,7 @@ def search_products(state: AgentState) -> AgentState:
 
 def results_found_edge(state: AgentState) -> str:
     results = state.get("search_results", [])
-    retry   = state.get("search_retry", 0)
+    retry = state.get("search_retry", 0)
     if results:
         return "rank_and_filter"
     if retry < 2:
@@ -545,7 +742,7 @@ def results_found_edge(state: AgentState) -> str:
 
 
 def broaden_search(state: AgentState) -> AgentState:
-    log   = get_log(state["request_id"], "product_agent", "broaden_search")
+    log = get_log(state["request_id"], "product_agent", "broaden_search")
     prefs = state.get("search_preferences", {})
     retry = state.get("search_retry", 0)
 
@@ -575,62 +772,66 @@ def rank_and_filter(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "product_agent", "rank_and_filter")
     log.info("LLM called")
 
-    results    = state.get("search_results", [])
+    results = state.get("search_results", [])
     user_limit = state.get("search_preferences", {}).get("limit", 5)
-    pool_size  = max(user_limit * 2, 6)
-    pool       = results[:pool_size]
+    pool_size = max(user_limit * 2, 6)
+    pool = results[:pool_size]
 
-    products_text = "\n".join([
-        f"{i+1}. {p['name']} | Price: ₹{p['price']} | Rating: {p['rating']}"
-        for i, p in enumerate(pool)
-    ])
+    products_text = "\n".join(
+        [f"{i+1}. {p['name']} | Price: ₹{p['price']} | Rating: {p['rating']}" for i, p in enumerate(pool)]
+    )
 
     prompt_template = mlflow.genai.load_prompt("prompts:/product_ranking_prompt/1")
     prompt = prompt_template.format(
-        user_request=state['current_input'],
+        user_request=state["current_input"],
         products_text=products_text,
     )
 
     try:
-        response      = llm.invoke(prompt)
-        usage         = response.usage_metadata
-        input_tokens  = usage.get("input_tokens",  0)
+        response = llm.invoke(prompt)
+        usage = response.usage_metadata
+        input_tokens = usage.get("input_tokens", 0)
         output_tokens = usage.get("output_tokens", 0)
-        cost          = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
+        cost = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
 
         try:
-            order  = [int(x.strip()) - 1 for x in response.content.strip().split(",")]
+            order = [int(x.strip()) - 1 for x in response.content.strip().split(",")]
             ranked = [pool[i] for i in order if i < len(pool)]
         except Exception:
             ranked = pool
 
     except Exception as e:
         log.warning(f"LLM ranking failed: {e}")
-        ranked        = pool
-        cost          = 0.0
-        input_tokens  = 0
+        ranked = pool
+        cost = 0.0
+        input_tokens = 0
         output_tokens = 0
-        response      = type("R", (), {"content": ""})()
+        response = type("R", (), {"content": ""})()
 
     log_llm_span(
-        span_name="rank_and_filter", prompt_text=prompt,
-        response_text=response.content, input_tokens=input_tokens,
-        output_tokens=output_tokens, model=config.LLM_MODEL,
-        prompt_name="product_ranking_prompt", prompt_version=1,
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        span_name="rank_and_filter",
+        prompt_text=prompt,
+        response_text=response.content,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        model=config.LLM_MODEL,
+        prompt_name="product_ranking_prompt",
+        prompt_version=1,
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
 
     log.info(f"Products ranked: {len(ranked)} results")
     return {
         **state,
-        "ranked_products":  ranked,
-        "total_tokens":     state["total_tokens"]   + input_tokens + output_tokens,
-        "total_cost_usd":   state["total_cost_usd"] + cost,
+        "ranked_products": ranked,
+        "total_tokens": state["total_tokens"] + input_tokens + output_tokens,
+        "total_cost_usd": state["total_cost_usd"] + cost,
     }
 
 
 def fetch_reviews(state: AgentState) -> AgentState:
-    log      = get_log(state["request_id"], "product_agent", "fetch_reviews")
+    log = get_log(state["request_id"], "product_agent", "fetch_reviews")
     products = state.get("ranked_products", [])
     enriched = []
 
@@ -642,7 +843,7 @@ def fetch_reviews(state: AgentState) -> AgentState:
                         """SELECT review_title, review_text, rating
                            FROM reviews WHERE product_id = %s
                            ORDER BY rating DESC LIMIT 3""",
-                        [p["product_id"]]
+                        [p["product_id"]],
                     )
                     enriched.append({**p, "reviews": [dict(r) for r in cur.fetchall()]})
     except Exception as e:
@@ -650,10 +851,12 @@ def fetch_reviews(state: AgentState) -> AgentState:
         enriched = products
 
     log_tool_span(
-        span_name="fetch_reviews", tool_name="reviews_table",
+        span_name="fetch_reviews",
+        tool_name="reviews_table",
         tool_input={"product_count": len(products)},
         tool_output={"enriched_count": len(enriched)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
 
     log.info(f"Fetched reviews for {len(enriched)} products")
@@ -661,7 +864,7 @@ def fetch_reviews(state: AgentState) -> AgentState:
 
 
 def fetch_specs(state: AgentState) -> AgentState:
-    log      = get_log(state["request_id"], "product_agent", "fetch_specs")
+    log = get_log(state["request_id"], "product_agent", "fetch_specs")
     products = state.get("enriched_products", [])
     enriched = []
 
@@ -673,7 +876,7 @@ def fetch_specs(state: AgentState) -> AgentState:
                         """SELECT description, rating, rating_count,
                                   discount_pct, original_price
                            FROM products WHERE product_id = %s""",
-                        [p["product_id"]]
+                        [p["product_id"]],
                     )
                     row = cur.fetchone()
                     enriched.append({**p, "specs": dict(row)} if row else p)
@@ -682,10 +885,12 @@ def fetch_specs(state: AgentState) -> AgentState:
         enriched = products
 
     log_tool_span(
-        span_name="fetch_specs", tool_name="products_specs",
+        span_name="fetch_specs",
+        tool_name="products_specs",
         tool_input={"product_count": len(products)},
         tool_output={"enriched_count": len(enriched)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
 
     log.info(f"Fetched specs for {len(enriched)} products")
@@ -693,17 +898,17 @@ def fetch_specs(state: AgentState) -> AgentState:
 
 
 def compute_score(state: AgentState) -> AgentState:
-    log      = get_log(state["request_id"], "product_agent", "compute_score")
+    log = get_log(state["request_id"], "product_agent", "compute_score")
     products = state.get("enriched_products", [])
-    scored   = []
+    scored = []
 
     for p in products:
-        rating       = float(p.get("rating") or 0)
+        rating = float(p.get("rating") or 0)
         review_count = len(p.get("reviews", []))
-        price        = float(p.get("price") or 9999)
-        orig_price   = float(p.get("original_price") or price)
-        discount     = ((orig_price - price) / orig_price * 100) if orig_price > 0 else 0
-        score        = (rating / 5 * 40) + (min(review_count, 3) / 3 * 30) + (min(discount, 50) / 50 * 30)
+        price = float(p.get("price") or 9999)
+        orig_price = float(p.get("original_price") or price)
+        discount = ((orig_price - price) / orig_price * 100) if orig_price > 0 else 0
+        score = (rating / 5 * 40) + (min(review_count, 3) / 3 * 30) + (min(discount, 50) / 50 * 30)
         scored.append({**p, "score": round(score, 2)})
 
     scored.sort(key=lambda x: x["score"], reverse=True)
@@ -714,17 +919,17 @@ def compute_score(state: AgentState) -> AgentState:
 def build_product_enrichment_subgraph():
     sub = StateGraph(AgentState)
     sub.add_node("fetch_reviews", fetch_reviews)
-    sub.add_node("fetch_specs",   fetch_specs)
+    sub.add_node("fetch_specs", fetch_specs)
     sub.add_node("compute_score", compute_score)
     sub.set_entry_point("fetch_reviews")
     sub.add_edge("fetch_reviews", "fetch_specs")
-    sub.add_edge("fetch_specs",   "compute_score")
+    sub.add_edge("fetch_specs", "compute_score")
     sub.add_edge("compute_score", END)
     return sub.compile()
 
 
 def _extract_why(desc: str) -> str:
-    first = re.split(r'(?<=[.!])\s+', desc.strip())[0].strip()
+    first = re.split(r"(?<=[.!])\s+", desc.strip())[0].strip()
     if len(first) >= 20:
         return first[:160] + ("…" if len(first) > 160 else "")
     return desc[:160] + ("…" if len(desc) > 160 else "")
@@ -734,21 +939,21 @@ def format_recommendations(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "product_agent", "format_recommendations")
     log.info("Node entered")
 
-    limit    = state.get("search_preferences", {}).get("limit", 3)
+    limit = state.get("search_preferences", {}).get("limit", 3)
     products = state.get("enriched_products", [])[:limit]
     if not products:
         return {**state, "response": "No products found matching your criteria."}
 
-    keywords     = state.get("search_preferences", {}).get("keywords", [])
+    keywords = state.get("search_preferences", {}).get("keywords", [])
     product_type = keywords[0] if keywords else "product"
-    lines        = [f"Here are the top **{product_type}** recommendations for you:\n"]
+    lines = [f"Here are the top **{product_type}** recommendations for you:\n"]
 
     for i, p in enumerate(products, 1):
-        price  = f"₹{p['price']}"   if p.get("price")  is not None else "Price unavailable"
+        price = f"₹{p['price']}" if p.get("price") is not None else "Price unavailable"
         rating = f"{p['rating']}/5" if p.get("rating") is not None else "No rating"
-        specs  = p.get("specs") or {}
-        desc   = (specs.get("description") or p.get("description") or "").strip()
-        why    = _extract_why(desc) if desc else "Highly rated option in its category."
+        specs = p.get("specs") or {}
+        desc = (specs.get("description") or p.get("description") or "").strip()
+        why = _extract_why(desc) if desc else "Highly rated option in its category."
 
         lines.append(f"### {i}. {p['name']}")
         lines.append(f"- **Price:** {price}")
@@ -757,7 +962,7 @@ def format_recommendations(state: AgentState) -> AgentState:
         lines.append("")
 
     if len(products) >= 2:
-        cheapest  = min(products, key=lambda x: x.get("price") or float("inf"))
+        cheapest = min(products, key=lambda x: x.get("price") or float("inf"))
         top_rated = max(products, key=lambda x: x.get("rating") or 0)
         if cheapest["product_id"] != top_rated["product_id"]:
             lines.append(
@@ -770,8 +975,8 @@ def format_recommendations(state: AgentState) -> AgentState:
     log.info("Recommendations formatted")
     return {
         **state,
-        "response":       "\n".join(lines),
-        "total_tokens":   state["total_tokens"],
+        "response": "\n".join(lines),
+        "total_tokens": state["total_tokens"],
         "total_cost_usd": state["total_cost_usd"],
     }
 
@@ -787,7 +992,7 @@ def save_to_db(state: AgentState) -> AgentState:
             content=state["response"],
             agent_name="product_agent",
             token_usage={
-                "total_tokens":   state["total_tokens"],
+                "total_tokens": state["total_tokens"],
                 "total_cost_usd": state["total_cost_usd"],
             },
             mlflow_run_id=state.get("mlflow_run_id"),
@@ -799,33 +1004,38 @@ def save_to_db(state: AgentState) -> AgentState:
 
 # ── Graph assembly ─────────────────────────────────────────────────────────────
 
+
 def build_product_agent():
     graph = StateGraph(AgentState)
 
-    graph.add_node("extract_preferences",    extract_preferences)
-    graph.add_node("search_products",        search_products)
-    graph.add_node("broaden_search",         broaden_search)
-    graph.add_node("rank_and_filter",        rank_and_filter)
-    graph.add_node("product_enrichment",     build_product_enrichment_subgraph())
+    graph.add_node("extract_preferences", extract_preferences)
+    graph.add_node("search_products", search_products)
+    graph.add_node("broaden_search", broaden_search)
+    graph.add_node("rank_and_filter", rank_and_filter)
+    graph.add_node("product_enrichment", build_product_enrichment_subgraph())
     graph.add_node("format_recommendations", format_recommendations)
-    graph.add_node("no_results_response",    no_results_response)
-    graph.add_node("save_to_db",             save_to_db)
+    graph.add_node("no_results_response", no_results_response)
+    graph.add_node("save_to_db", save_to_db)
 
     graph.set_entry_point("extract_preferences")
     graph.add_edge("extract_preferences", "search_products")
 
-    graph.add_conditional_edges("search_products", results_found_edge, {
-        "rank_and_filter":     "rank_and_filter",
-        "broaden_search":      "broaden_search",
-        "no_results_response": "no_results_response",
-    })
+    graph.add_conditional_edges(
+        "search_products",
+        results_found_edge,
+        {
+            "rank_and_filter": "rank_and_filter",
+            "broaden_search": "broaden_search",
+            "no_results_response": "no_results_response",
+        },
+    )
 
-    graph.add_edge("broaden_search",         "search_products")
-    graph.add_edge("rank_and_filter",        "product_enrichment")
-    graph.add_edge("product_enrichment",     "format_recommendations")
+    graph.add_edge("broaden_search", "search_products")
+    graph.add_edge("rank_and_filter", "product_enrichment")
+    graph.add_edge("product_enrichment", "format_recommendations")
     graph.add_edge("format_recommendations", "save_to_db")
-    graph.add_edge("save_to_db",             END)
-    graph.add_edge("no_results_response",    END)
+    graph.add_edge("save_to_db", END)
+    graph.add_edge("no_results_response", END)
 
     return graph.compile()
 
@@ -840,9 +1050,11 @@ if __name__ == "__main__":
     get_or_create_user("test-user")
     session_id = get_or_create_session(None, "test-user")
 
-    state  = empty_state(
-        session_id=session_id, user_id="test-user",
-        request_id="test-req-002", messages=[],
+    state = empty_state(
+        session_id=session_id,
+        user_id="test-user",
+        request_id="test-req-002",
+        messages=[],
         current_input="find me a good laptop under 60000",
     )
     result = product_agent.invoke(state)

@@ -66,7 +66,7 @@ def seed_orders():
     filepath = os.path.join(os.path.dirname(__file__), "orders.csv")
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
-        rows   = list(reader)
+        rows = list(reader)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -98,7 +98,7 @@ def seed_orders():
                         float(row["benefit_per_order"]),
                         float(row["sales_per_customer"]),
                         row["order_date"],
-                    ]
+                    ],
                 )
     print(f"Seeded {len(rows)} orders.")
 
@@ -107,7 +107,7 @@ def seed_tracking_events():
     filepath = os.path.join(os.path.dirname(__file__), "tracking_events.csv")
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
-        rows   = list(reader)
+        rows = list(reader)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -136,7 +136,7 @@ def seed_tracking_events():
                         row["shipping_date"],
                         float(row["latitude"]),
                         float(row["longitude"]),
-                    ]
+                    ],
                 )
     print(f"Seeded {len(rows)} tracking records.")
 

@@ -20,7 +20,7 @@ def _setup_logger():
             "node=%(node_name)s | "
             "%(message)s"
         ),
-        datefmt="%Y-%m-%dT%H:%M:%S"
+        datefmt="%Y-%m-%dT%H:%M:%S",
     )
 
     stdout_handler = logging.StreamHandler(sys.stdout)
@@ -39,8 +39,11 @@ _logger = _setup_logger()
 
 
 def get_log(request_id: str, agent_name: str = "-", node_name: str = "-"):
-    return logging.LoggerAdapter(_logger, {
-        "request_id": request_id,
-        "agent_name": agent_name,
-        "node_name": node_name,
-    })
+    return logging.LoggerAdapter(
+        _logger,
+        {
+            "request_id": request_id,
+            "agent_name": agent_name,
+            "node_name": node_name,
+        },
+    )

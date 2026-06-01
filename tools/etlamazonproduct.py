@@ -8,10 +8,10 @@ import psycopg2.extras
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 
-
 # ─────────────────────────────────────────────
 # CONNECTION
 # ─────────────────────────────────────────────
+
 
 def get_conn():
     return psycopg2.connect(
@@ -26,6 +26,7 @@ def get_conn():
 # ─────────────────────────────────────────────
 # CREATE TABLES
 # ─────────────────────────────────────────────
+
 
 def create_tables():
     sql = """
@@ -66,11 +67,12 @@ def create_tables():
 # TRANSFORM HELPERS
 # ─────────────────────────────────────────────
 
+
 def clean_price(price_str):
     """₹1,099 → 1099.0"""
     if not price_str:
         return None
-    cleaned = re.sub(r'[₹,\s]', '', str(price_str))
+    cleaned = re.sub(r"[₹,\s]", "", str(price_str))
     try:
         return float(cleaned)
     except:
@@ -112,9 +114,10 @@ def split_packed_field(field_str):
 # EXTRACT + TRANSFORM
 # ─────────────────────────────────────────────
 
+
 def extract_and_transform(filepath):
-    products = {}   # product_id → product dict
-    reviews  = []   # list of review dicts
+    products = {}  # product_id → product dict
+    reviews = []  # list of review dicts
 
     with open(filepath, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -127,41 +130,43 @@ def extract_and_transform(filepath):
             # ── STREAM 1: Products ────────────────────────────
             if product_id not in products:
                 products[product_id] = {
-                    "product_id":     product_id,
-                    "name":           row.get("product_name", "").strip(),
-                    "category":       clean_category(row.get("category", "")),
-                    "brand":          extract_brand(row.get("product_name", "")),
-                    "price":          clean_price(row.get("discounted_price", "")),
+                    "product_id": product_id,
+                    "name": row.get("product_name", "").strip(),
+                    "category": clean_category(row.get("category", "")),
+                    "brand": extract_brand(row.get("product_name", "")),
+                    "price": clean_price(row.get("discounted_price", "")),
                     "original_price": clean_price(row.get("actual_price", "")),
-                    "discount_pct":   row.get("discount_percentage", "").strip(),
-                    "rating":         clean_rating(row.get("rating", "")),
-                    "rating_count":   row.get("rating_count", "").strip(),
-                    "description":    row.get("about_product", "").strip()[:2000],
-                    "img_link":       row.get("img_link", "").strip(),
-                    "product_link":   row.get("product_link", "").strip(),
-                    "availability":   True,
+                    "discount_pct": row.get("discount_percentage", "").strip(),
+                    "rating": clean_rating(row.get("rating", "")),
+                    "rating_count": row.get("rating_count", "").strip(),
+                    "description": row.get("about_product", "").strip()[:2000],
+                    "img_link": row.get("img_link", "").strip(),
+                    "product_link": row.get("product_link", "").strip(),
+                    "availability": True,
                 }
 
             # ── STREAM 2: Reviews ─────────────────────────────
             # Each row has comma-packed review fields
-            review_ids    = split_packed_field(row.get("review_id",      ""))
-            user_names    = split_packed_field(row.get("user_name",      ""))
-            review_titles = split_packed_field(row.get("review_title",   ""))
-            review_texts  = split_packed_field(row.get("review_content", ""))
+            review_ids = split_packed_field(row.get("review_id", ""))
+            user_names = split_packed_field(row.get("user_name", ""))
+            review_titles = split_packed_field(row.get("review_title", ""))
+            review_texts = split_packed_field(row.get("review_content", ""))
             product_rating = clean_rating(row.get("rating", ""))
 
             # Zip them together — one review per index
             for idx, review_id in enumerate(review_ids):
                 if not review_id:
                     continue
-                reviews.append({
-                    "review_id":     review_id,
-                    "product_id":    product_id,
-                    "customer_name": user_names[idx]    if idx < len(user_names)    else "Anonymous",
-                    "rating":        product_rating,
-                    "review_title":  review_titles[idx] if idx < len(review_titles) else "",
-                    "review_text":   review_texts[idx]  if idx < len(review_texts)  else "",
-                })
+                reviews.append(
+                    {
+                        "review_id": review_id,
+                        "product_id": product_id,
+                        "customer_name": user_names[idx] if idx < len(user_names) else "Anonymous",
+                        "rating": product_rating,
+                        "review_title": review_titles[idx] if idx < len(review_titles) else "",
+                        "review_text": review_texts[idx] if idx < len(review_texts) else "",
+                    }
+                )
 
     return list(products.values()), reviews
 
@@ -169,6 +174,7 @@ def extract_and_transform(filepath):
 # ─────────────────────────────────────────────
 # LOAD
 # ─────────────────────────────────────────────
+
 
 def load_products(products):
     inserted = 0
@@ -200,7 +206,7 @@ def load_products(products):
                             p["img_link"],
                             p["product_link"],
                             p["availability"],
-                        ]
+                        ],
                     )
                     inserted += 1
                 except Exception as e:
@@ -210,9 +216,9 @@ def load_products(products):
 
 
 def load_reviews(reviews):
-    inserted  = 0
-    skipped   = 0
-    seen_ids  = set()
+    inserted = 0
+    skipped = 0
+    seen_ids = set()
 
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -237,7 +243,7 @@ def load_reviews(reviews):
                             r["rating"],
                             r["review_title"],
                             r["review_text"][:1000] if r["review_text"] else "",
-                        ]
+                        ],
                     )
                     inserted += 1
                 except Exception as e:
@@ -250,6 +256,7 @@ def load_reviews(reviews):
 # ─────────────────────────────────────────────
 # VERIFY
 # ─────────────────────────────────────────────
+
 
 def verify():
     with get_conn() as conn:

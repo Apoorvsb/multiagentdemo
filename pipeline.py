@@ -1,32 +1,29 @@
-
-import mlflow
+import mlflow  # noqa: F401
 from typing import Literal
 from pydantic import BaseModel
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
- # ← must be first
+
+# ← must be first
 
 ...
 from state import AgentState, empty_state
 from config import config
 from logger import get_log
 from mlflow_helpers import setup_mlflow
-from agents.order_agent   import order_agent
+from agents.order_agent import order_agent
 from agents.product_agent import product_agent
 from agents.support_agent import support_agent, _support_pending
 
 setup_mlflow()
 
-llm = ChatGroq(
-    model=config.LLM_MODEL,
-    temperature=0,
-    api_key=config.GROQ_API_KEY
-)
+llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
 
 # ═══════════════════════════════════════════════════════
 # INTENT ROUTER
 # ═══════════════════════════════════════════════════════
+
 
 class IntentOutput(BaseModel):
     intent: Literal["order_query", "product_query", "support_query"]
@@ -45,33 +42,87 @@ def intent_router(state: AgentState) -> AgentState:
     _msg = state["current_input"].lower()
     _SUPPORT_KEYWORDS = [
         # tickets
-        "my tickets", "all tickets", "raised tickets", "show tickets",
-        "list tickets", "ticket status", "my complaints",
-        "tickets i have", "tickets i raised", "i have raised", "i raised a ticket",
-        "show me the tickets", "show me tickets", "view tickets",
-        "tickets raised", "have raised", "ticket i",
+        "my tickets",
+        "all tickets",
+        "raised tickets",
+        "show tickets",
+        "list tickets",
+        "ticket status",
+        "my complaints",
+        "tickets i have",
+        "tickets i raised",
+        "i have raised",
+        "i raised a ticket",
+        "show me the tickets",
+        "show me tickets",
+        "view tickets",
+        "tickets raised",
+        "have raised",
+        "ticket i",
         # refund / payment
-        "refund", "payment failed", "charged twice", "amount was deducted",
-        "double charged", "wrong charge",
+        "refund",
+        "payment failed",
+        "charged twice",
+        "amount was deducted",
+        "double charged",
+        "wrong charge",
         # item issues
-        "damaged", "cracked", "wrong item", "wrong product", "missing item",
-        "item missing", "missing from my", "not as described", "not working as described",
+        "damaged",
+        "cracked",
+        "wrong item",
+        "wrong product",
+        "missing item",
+        "item missing",
+        "missing from my",
+        "not as described",
+        "not working as described",
         # warranty / technical
-        "warranty claim", "warranty", "stopped working", "not working",
-        "product stopped", "quality is poor", "poor quality",
+        "warranty claim",
+        "warranty",
+        "stopped working",
+        "not working",
+        "product stopped",
+        "quality is poor",
+        "poor quality",
         # account
-        "cannot access my account", "can't access my account", "account access",
-        "account blocked", "account locked", "login issue", "cant login",
+        "cannot access my account",
+        "can't access my account",
+        "account access",
+        "account blocked",
+        "account locked",
+        "login issue",
+        "cant login",
         # cancellation / return
-        "cancel my order", "cancel order", "want to cancel", "order cancellation",
-        "return my order", "want to return", "return request", "send it back",
-        "return the", "cancel the order", "i want to cancel", "i want to return",
+        "cancel my order",
+        "cancel order",
+        "want to cancel",
+        "order cancellation",
+        "return my order",
+        "want to return",
+        "return request",
+        "send it back",
+        "return the",
+        "cancel the order",
+        "i want to cancel",
+        "i want to return",
         # general complaints / feedback
-        "complaint", "not happy", "unhappy", "feedback", "packaging was bad",
-        "bad packaging", "delivery experience", "is delayed", "order is delayed",
-        "product quality", "poor service",
-        "order is missing", "order missing", "package is missing", "package missing",
-        "parcel missing", "shipment missing",
+        "complaint",
+        "not happy",
+        "unhappy",
+        "feedback",
+        "packaging was bad",
+        "bad packaging",
+        "delivery experience",
+        "is delayed",
+        "order is delayed",
+        "product quality",
+        "poor service",
+        "order is missing",
+        "order missing",
+        "package is missing",
+        "package missing",
+        "parcel missing",
+        "shipment missing",
     ]
     if any(kw in _msg for kw in _SUPPORT_KEYWORDS):
         log.info("Keyword shortcut — routing to support_agent")
@@ -101,7 +152,7 @@ IMPORTANT:
 - "find me [product]" → product_query (shopping)
 - "recommend [product]" → product_query (shopping)
 - "eta of [product]" → order_query
-- "arrival date of [product]" → order_query  
+- "arrival date of [product]" → order_query
 - "when does [product] arrive" → order_query
 - "find me [product]" → product_query
 - "recommend [product]" → product_query
@@ -113,8 +164,8 @@ Return only the intent label. Nothing else."""
 
     try:
         structured = llm.with_structured_output(IntentOutput)
-        result     = structured.invoke(prompt)
-        intent     = result.intent
+        result = structured.invoke(prompt)
+        intent = result.intent
     except Exception as e:
         log.error(f"Router failed: {e}")
         intent = "order_query"
@@ -130,6 +181,7 @@ def route_to_agent(state: AgentState) -> str:
 # ═══════════════════════════════════════════════════════
 # AGENT WRAPPERS
 # ═══════════════════════════════════════════════════════
+
 
 def run_order_agent(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "entry")
@@ -159,23 +211,28 @@ def run_support_agent(state: AgentState) -> AgentState:
 # BUILD PIPELINE GRAPH
 # ═══════════════════════════════════════════════════════
 
+
 def build_pipeline():
     graph = StateGraph(AgentState)
 
-    graph.add_node("intent_router",  intent_router)
-    graph.add_node("order_agent",    run_order_agent)
-    graph.add_node("product_agent",  run_product_agent)
-    graph.add_node("support_agent",  run_support_agent)
+    graph.add_node("intent_router", intent_router)
+    graph.add_node("order_agent", run_order_agent)
+    graph.add_node("product_agent", run_product_agent)
+    graph.add_node("support_agent", run_support_agent)
 
     graph.set_entry_point("intent_router")
 
-    graph.add_conditional_edges("intent_router", route_to_agent, {
-        "order_query":   "order_agent",
-        "product_query": "product_agent",
-        "support_query": "support_agent",
-    })
+    graph.add_conditional_edges(
+        "intent_router",
+        route_to_agent,
+        {
+            "order_query": "order_agent",
+            "product_query": "product_agent",
+            "support_query": "support_agent",
+        },
+    )
 
-    graph.add_edge("order_agent",   END)
+    graph.add_edge("order_agent", END)
     graph.add_edge("product_agent", END)
     graph.add_edge("support_agent", END)
 
@@ -205,11 +262,11 @@ if __name__ == "__main__":
     for msg in test_messages:
         print(f"\n--- Testing: '{msg}' ---")
         state = empty_state(
-            session_id    = session_id,
-            user_id       = "test-user",
-            request_id    = str(uuid.uuid4()),
-            messages      = [],
-            current_input = msg,
+            session_id=session_id,
+            user_id="test-user",
+            request_id=str(uuid.uuid4()),
+            messages=[],
+            current_input=msg,
         )
         result = pipeline.invoke(state)
         print(f"Intent:   {result['intent']}")

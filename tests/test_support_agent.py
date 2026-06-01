@@ -1,5 +1,6 @@
 """Unit tests for agents/support_agent.py"""
-import pytest
+
+import pytest  # noqa: F401
 from unittest.mock import MagicMock, patch
 
 from helpers import make_state, mock_db
@@ -21,8 +22,8 @@ from agents.support_agent import (
     _KEYWORD_OVERRIDES,
 )
 
-
 # ─── classify_issue ──────────────────────────────────────────────────────────
+
 
 class TestClassifyIssue:
     def test_keyword_override_damaged_goods(self):
@@ -56,8 +57,7 @@ class TestClassifyIssue:
         mock_resp.content = "account_issue"
         mock_resp.usage_metadata = {"input_tokens": 60, "output_tokens": 5}
 
-        with patch("agents.support_agent.llm") as mock_llm, \
-             patch("agents.support_agent.mlflow") as mock_mf:
+        with patch("agents.support_agent.llm") as mock_llm, patch("agents.support_agent.mlflow") as mock_mf:
             mock_mf.genai.load_prompt.return_value.format.return_value = "prompt"
             mock_llm.invoke.return_value = mock_resp
             result = classify_issue(state)
@@ -70,8 +70,7 @@ class TestClassifyIssue:
         mock_resp.content = "totally_unknown_type"
         mock_resp.usage_metadata = {"input_tokens": 40, "output_tokens": 5}
 
-        with patch("agents.support_agent.llm") as mock_llm, \
-             patch("agents.support_agent.mlflow") as mock_mf:
+        with patch("agents.support_agent.llm") as mock_llm, patch("agents.support_agent.mlflow") as mock_mf:
             mock_mf.genai.load_prompt.return_value.format.return_value = "prompt"
             mock_llm.invoke.return_value = mock_resp
             result = classify_issue(state)
@@ -81,8 +80,13 @@ class TestClassifyIssue:
     def test_pending_order_selection_by_number(self):
         session_id = "sel-session"
         orders = [
-            {"order_id": "ORD001", "items": "Laptop", "sales_per_customer": 50000,
-             "order_date": "2025-01-01", "status": "DELIVERED"},
+            {
+                "order_id": "ORD001",
+                "items": "Laptop",
+                "sales_per_customer": 50000,
+                "order_date": "2025-01-01",
+                "status": "DELIVERED",
+            },
         ]
         _support_pending[session_id] = {
             "original_message": "my laptop arrived damaged",
@@ -98,13 +102,14 @@ class TestClassifyIssue:
             _support_pending.pop(session_id, None)
 
     def test_valid_issue_types_set_is_complete(self):
-        assert "damaged_goods"    in _VALID_ISSUE_TYPES
-        assert "show_tickets"     in _VALID_ISSUE_TYPES
+        assert "damaged_goods" in _VALID_ISSUE_TYPES
+        assert "show_tickets" in _VALID_ISSUE_TYPES
         assert "general_complaint" in _VALID_ISSUE_TYPES
         assert len(_VALID_ISSUE_TYPES) >= 14
 
 
 # ─── assess_severity ─────────────────────────────────────────────────────────
+
 
 class TestAssessSeverity:
     def test_damaged_goods_is_high(self):
@@ -135,6 +140,7 @@ class TestAssessSeverity:
 
 # ─── severity_edge ───────────────────────────────────────────────────────────
 
+
 class TestSeverityEdge:
     def test_high_routes_to_escalation(self):
         state = make_state(severity="HIGH")
@@ -154,6 +160,7 @@ class TestSeverityEdge:
 
 
 # ─── lookup_policy ───────────────────────────────────────────────────────────
+
 
 class TestLookupPolicy:
     def test_policy_found_for_issue_type(self):
@@ -193,11 +200,17 @@ class TestLookupPolicy:
 
 # ─── DB helper functions ─────────────────────────────────────────────────────
 
+
 class TestFetchHelpers:
     def test_fetch_delivered_orders_returns_list(self):
         rows = [
-            {"order_id": "ORD001", "items": "Laptop",
-             "sales_per_customer": 50000, "order_date": "2025-01-01", "status": "DELIVERED"},
+            {
+                "order_id": "ORD001",
+                "items": "Laptop",
+                "sales_per_customer": 50000,
+                "order_date": "2025-01-01",
+                "status": "DELIVERED",
+            },
         ]
         with patch("agents.support_agent.get_conn") as mock_gc:
             mock_db(mock_gc, fetchall=rows)
@@ -215,9 +228,14 @@ class TestFetchHelpers:
 
     def test_fetch_user_tickets_returns_list(self):
         rows = [
-            {"ticket_id": "TKT001", "issue_type": "damaged_goods",
-             "priority": "HIGH", "status": "Open",
-             "created_at": "2025-01-10T10:00:00", "description": "Cracked screen [Order: ORD001]"},
+            {
+                "ticket_id": "TKT001",
+                "issue_type": "damaged_goods",
+                "priority": "HIGH",
+                "status": "Open",
+                "created_at": "2025-01-10T10:00:00",
+                "description": "Cracked screen [Order: ORD001]",
+            },
         ]
         with patch("agents.support_agent.get_conn") as mock_gc:
             mock_db(mock_gc, fetchall=rows)
@@ -236,6 +254,7 @@ class TestFetchHelpers:
 
 # ─── classify_issue_edge ─────────────────────────────────────────────────────
 
+
 class TestClassifyIssueEdge:
     def test_show_tickets_routes_to_list(self):
         state = make_state(issue_type="show_tickets")
@@ -251,6 +270,7 @@ class TestClassifyIssueEdge:
 
 
 # ─── assign_priority ─────────────────────────────────────────────────────────
+
 
 class TestAssignPriority:
     def test_high_severity_no_history_gives_priority_2(self):
@@ -281,6 +301,7 @@ class TestAssignPriority:
 
 
 # ─── create_ticket ───────────────────────────────────────────────────────────
+
 
 class TestCreateTicket:
     def test_ticket_created_and_id_returned(self):
@@ -315,6 +336,7 @@ class TestCreateTicket:
 
 # ─── draft_resolution ────────────────────────────────────────────────────────
 
+
 class TestDraftResolution:
     def test_llm_response_stored(self):
         state = make_state(
@@ -326,8 +348,7 @@ class TestDraftResolution:
         mock_resp.content = "We apologize and will resolve within 48 hours."
         mock_resp.usage_metadata = {"input_tokens": 100, "output_tokens": 30}
 
-        with patch("agents.support_agent.llm") as mock_llm, \
-             patch("agents.support_agent.mlflow") as mock_mf:
+        with patch("agents.support_agent.llm") as mock_llm, patch("agents.support_agent.mlflow") as mock_mf:
             mock_mf.genai.load_prompt.return_value.format.return_value = "prompt"
             mock_llm.invoke.return_value = mock_resp
             result = draft_resolution(state)
@@ -341,8 +362,7 @@ class TestDraftResolution:
             severity="LOW",
             ticket_id="TKT001",
         )
-        with patch("agents.support_agent.llm") as mock_llm, \
-             patch("agents.support_agent.mlflow") as mock_mf:
+        with patch("agents.support_agent.llm") as mock_llm, patch("agents.support_agent.mlflow") as mock_mf:
             mock_mf.genai.load_prompt.return_value.format.return_value = "prompt"
             mock_llm.invoke.side_effect = Exception("LLM timeout")
             result = draft_resolution(state)
@@ -353,12 +373,12 @@ class TestDraftResolution:
 
 # ─── generate_escalation_response ────────────────────────────────────────────
 
+
 class TestGenerateEscalationResponse:
     def test_pending_order_shows_order_list(self):
         session_id = "esc-session"
         orders = [
-            {"order_id": "ORD001", "items": '["Laptop"]',
-             "sales_per_customer": 50000, "status": "DELIVERED"},
+            {"order_id": "ORD001", "items": '["Laptop"]', "sales_per_customer": 50000, "status": "DELIVERED"},
         ]
         _support_pending[session_id] = {"delivered_orders": orders, "issue_type": "damaged_goods"}
         state = make_state(session_id=session_id, order_id="__PENDING__")
@@ -382,8 +402,7 @@ class TestGenerateEscalationResponse:
         mock_resp.content = "Your complaint has been escalated with ticket TKT999."
         mock_resp.usage_metadata = {"input_tokens": 80, "output_tokens": 25}
 
-        with patch("agents.support_agent.llm") as mock_llm, \
-             patch("agents.support_agent.mlflow") as mock_mf:
+        with patch("agents.support_agent.llm") as mock_llm, patch("agents.support_agent.mlflow") as mock_mf:
             mock_mf.genai.load_prompt.return_value.format.return_value = "prompt"
             mock_llm.invoke.return_value = mock_resp
             result = generate_escalation_response(state)
@@ -392,6 +411,7 @@ class TestGenerateEscalationResponse:
 
 
 # ─── list_tickets_response ───────────────────────────────────────────────────
+
 
 class TestListTicketsResponse:
     def test_no_tickets_message(self):
@@ -403,10 +423,16 @@ class TestListTicketsResponse:
 
     def test_lists_tickets_with_order_ids(self):
         from datetime import datetime
+
         rows = [
-            {"ticket_id": "TKT001", "issue_type": "damaged_goods", "priority": "HIGH",
-             "status": "Open", "created_at": datetime(2025, 1, 10),
-             "description": "Screen cracked [Order: ORD001]"},
+            {
+                "ticket_id": "TKT001",
+                "issue_type": "damaged_goods",
+                "priority": "HIGH",
+                "status": "Open",
+                "created_at": datetime(2025, 1, 10),
+                "description": "Screen cracked [Order: ORD001]",
+            },
         ]
         state = make_state(user_id="test@example.com")
         with patch("agents.support_agent.get_conn") as mock_gc:

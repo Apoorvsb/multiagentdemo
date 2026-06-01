@@ -1,5 +1,6 @@
 """Unit tests for agents/order_agent.py"""
-import pytest
+
+import pytest  # noqa: F401
 from unittest.mock import MagicMock, patch
 
 from helpers import make_state, mock_db
@@ -14,15 +15,18 @@ from agents.order_agent import (
     save_to_db,
 )
 
-
 # ─── group_orders_by_status ──────────────────────────────────────────────────
+
 
 class TestGroupOrdersByStatus:
     def _order(self, oid, status):
         return {
-            "order_id": oid, "status": status,
-            "carrier": "FedEx", "estimated_delivery": "2025-01-01",
-            "sales_per_customer": 999, "items": "Laptop",
+            "order_id": oid,
+            "status": status,
+            "carrier": "FedEx",
+            "estimated_delivery": "2025-01-01",
+            "sales_per_customer": 999,
+            "items": "Laptop",
         }
 
     def test_empty_list(self):
@@ -45,6 +49,7 @@ class TestGroupOrdersByStatus:
 
 # ─── validate_input ──────────────────────────────────────────────────────────
 
+
 class TestValidateInput:
     def test_guest_user_blocked(self):
         state = make_state(user_id="anon@guest.com", current_input="where is my order")
@@ -65,7 +70,7 @@ class TestValidateInput:
         state = make_state(
             current_input="when will it arrive?",
             messages=[
-                {"role": "user",      "content": "where is my order"},
+                {"role": "user", "content": "where is my order"},
                 {"role": "assistant", "content": "Your order ORD99999 is in transit."},
             ],
         )
@@ -77,13 +82,14 @@ class TestValidateInput:
     def test_llm_extraction_for_general_query(self):
         state = make_state(current_input="show my pending orders")
         mock_resp = MagicMock()
-        mock_resp.content = '{"order_id": null, "status_filter": "PENDING", "product_keyword": null, ' \
-                            '"shipping_mode": null, "carrier_filter": null, "special_query": null, ' \
-                            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}'
+        mock_resp.content = (
+            '{"order_id": null, "status_filter": "PENDING", "product_keyword": null, '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": null, '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}'
+        )
         mock_resp.usage_metadata = {"input_tokens": 100, "output_tokens": 10}
 
-        with patch("agents.order_agent.get_conn") as mock_gc, \
-             patch("agents.order_agent.llm") as mock_llm:
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
             mock_db(mock_gc, fetchall=[])
             mock_llm.invoke.return_value = mock_resp
             result = validate_input(state)
@@ -92,8 +98,7 @@ class TestValidateInput:
 
     def test_llm_failure_falls_back_gracefully(self):
         state = make_state(current_input="how many orders do i have")
-        with patch("agents.order_agent.get_conn") as mock_gc, \
-             patch("agents.order_agent.llm") as mock_llm:
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
             mock_db(mock_gc, fetchall=[])
             mock_llm.invoke.side_effect = Exception("network error")
             result = validate_input(state)
@@ -102,6 +107,7 @@ class TestValidateInput:
 
 
 # ─── validate_input_edge ─────────────────────────────────────────────────────
+
 
 class TestValidateInputEdge:
     def test_response_set_routes_to_error(self):
@@ -117,6 +123,7 @@ class TestValidateInputEdge:
 
 
 # ─── order_found_edge ────────────────────────────────────────────────────────
+
 
 class TestOrderFoundEdge:
     def test_order_data_routes_to_shipment(self):
@@ -134,6 +141,7 @@ class TestOrderFoundEdge:
 
 # ─── error_response ──────────────────────────────────────────────────────────
 
+
 class TestErrorResponse:
     def test_passthrough_when_response_already_set(self):
         state = make_state(response="Already set", order_id="ORD001")
@@ -149,6 +157,7 @@ class TestErrorResponse:
 
 # ─── _fetch_order_data_impl ──────────────────────────────────────────────────
 
+
 class TestFetchOrderDataImpl:
     def _log(self):
         return MagicMock()
@@ -156,8 +165,10 @@ class TestFetchOrderDataImpl:
     def test_single_order_found(self):
         state = make_state(order_id="ORD001", user_id="test@example.com")
         row = {
-            "order_id": "ORD001", "user_id": "test@example.com",
-            "status": "DELIVERED", "carrier": "FedEx",
+            "order_id": "ORD001",
+            "user_id": "test@example.com",
+            "status": "DELIVERED",
+            "carrier": "FedEx",
             "estimated_delivery": "2025-01-01",
         }
         with patch("agents.order_agent.get_conn") as mock_gc:
@@ -184,8 +195,7 @@ class TestFetchOrderDataImpl:
 
     def test_count_special_query(self):
         state = make_state(special_query="count", order_id=None)
-        with patch("agents.order_agent.get_conn") as mock_gc, \
-             patch("agents.order_agent.log_tool_span"):
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.log_tool_span"):
             cur = mock_db(mock_gc, fetchone=(5,))
             result = _fetch_order_data_impl(state, self._log())
         # Should return a response message with the count
@@ -194,15 +204,22 @@ class TestFetchOrderDataImpl:
 
 # ─── _fetch_order_data_impl — special queries ────────────────────────────────
 
+
 class TestFetchOrderDataSpecialQueries:
     def _log(self):
         return MagicMock()
 
     def _order_rows(self):
         return [
-            {"order_id": "ORD001", "status": "DELIVERED", "carrier": "FedEx",
-             "estimated_delivery": "2025-01-01", "sales_per_customer": 999,
-             "items": '["Laptop"]', "order_date": "2024-12-01"},
+            {
+                "order_id": "ORD001",
+                "status": "DELIVERED",
+                "carrier": "FedEx",
+                "estimated_delivery": "2025-01-01",
+                "sales_per_customer": 999,
+                "items": '["Laptop"]',
+                "order_date": "2024-12-01",
+            },
         ]
 
     def test_cheapest_query(self):
@@ -249,9 +266,17 @@ class TestFetchOrderDataSpecialQueries:
         assert "no orders" in result["response"].lower()
 
     def test_upcoming_query(self):
-        rows = [{"order_id": "ORD002", "status": "IN_TRANSIT", "carrier": "FedEx",
-                 "estimated_delivery": "2025-02-01", "sales_per_customer": 1500,
-                 "items": '["Mouse"]', "order_date": "2024-12-20"}]
+        rows = [
+            {
+                "order_id": "ORD002",
+                "status": "IN_TRANSIT",
+                "carrier": "FedEx",
+                "estimated_delivery": "2025-02-01",
+                "sales_per_customer": 1500,
+                "items": '["Mouse"]',
+                "order_date": "2024-12-20",
+            }
+        ]
         state = make_state(special_query="upcoming", order_id=None)
         with patch("agents.order_agent.get_conn") as mock_gc:
             mock_db(mock_gc, fetchall=rows)
@@ -292,9 +317,16 @@ class TestFetchOrderDataFilters:
         assert "FedEx" in result["response"]
 
     def test_filter_with_results_groups_by_status(self):
-        rows = [{"order_id": "ORD003", "status": "DELIVERED", "carrier": "Ekart",
-                 "estimated_delivery": "2025-01-10", "sales_per_customer": 2000,
-                 "items": '["Keyboard"]'}]
+        rows = [
+            {
+                "order_id": "ORD003",
+                "status": "DELIVERED",
+                "carrier": "Ekart",
+                "estimated_delivery": "2025-01-10",
+                "sales_per_customer": 2000,
+                "items": '["Keyboard"]',
+            }
+        ]
         state = make_state(status_filter="DELIVERED", order_id=None)
         with patch("agents.order_agent.get_conn") as mock_gc:
             mock_db(mock_gc, fetchall=rows)
@@ -310,6 +342,7 @@ class TestFetchOrderDataFilters:
 
 
 # ─── generate_response ───────────────────────────────────────────────────────
+
 
 class TestGenerateResponse:
     def test_llm_invoked_and_content_stored(self):
@@ -332,6 +365,7 @@ class TestGenerateResponse:
 
 # ─── save_to_db ──────────────────────────────────────────────────────────────
 
+
 class TestSaveToDb:
     def test_save_message_is_called(self):
         state = make_state(
@@ -343,5 +377,4 @@ class TestSaveToDb:
             result = save_to_db(state)
         mock_save.assert_called_once()
         call_kwargs = mock_save.call_args
-        assert call_kwargs.kwargs.get("role") == "assistant" or \
-               (call_kwargs.args and "assistant" in call_kwargs.args)
+        assert call_kwargs.kwargs.get("role") == "assistant" or (call_kwargs.args and "assistant" in call_kwargs.args)

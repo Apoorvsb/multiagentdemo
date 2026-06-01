@@ -1,8 +1,7 @@
 import mlflow
 from mlflow.tracking import MlflowClient
-from mlflow.entities import SpanType
+from mlflow.entities import SpanType  # noqa: F401
 from config import config
-
 
 _client = MlflowClient()
 
@@ -10,11 +9,13 @@ _client = MlflowClient()
 def setup_mlflow():
     mlflow.set_tracking_uri(config.MLFLOW_TRACKING_URI)
     import threading
+
     threading.Thread(target=_setup_mlflow_bg, daemon=True).start()
 
 
 def _setup_mlflow_bg():
     import time
+
     time.sleep(5)
     try:
         mlflow.set_experiment(config.MLFLOW_EXPERIMENT_NAME)
@@ -24,23 +25,17 @@ def _setup_mlflow_bg():
         register_prompts()
     except Exception as e:
         print(f"[mlflow] register_prompts failed: {e}")
-    
-
 
 
 MODEL_PRICING = {
     "llama-3.1-8b-instant": {"input": 0.00015, "output": 0.0006},
-    "gemini-2.0-flash":     {"input": 0.00015, "output": 0.0006},
+    "gemini-2.0-flash": {"input": 0.00015, "output": 0.0006},
 }
 
 
 def calculate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
     pricing = MODEL_PRICING.get(model, {"input": 0.001, "output": 0.002})
-    return round(
-        (input_tokens  / 1000 * pricing["input"]) +
-        (output_tokens / 1000 * pricing["output"]),
-        6
-    )
+    return round((input_tokens / 1000 * pricing["input"]) + (output_tokens / 1000 * pricing["output"]), 6)
 
 
 def get_active_trace_id() -> str | None:
@@ -63,7 +58,6 @@ def get_active_span_id() -> str | None:
         return None
 
 
-
 # def log_llm_span(span_name, prompt_text, response_text,
 #                  input_tokens, output_tokens, model,
 #                  prompt_name, prompt_version,
@@ -78,27 +72,27 @@ def get_active_span_id() -> str | None:
 #             # Standard MLflow LLM attributes
 #             span.set_inputs({"prompt": prompt_text[:500]})
 #             span.set_outputs({"response": response_text[:500]})
-            
+
 #             # MLflow standard token attributes
 #             span.set_attribute("llm.token_count.prompt",     input_tokens)
 #             span.set_attribute("llm.token_count.completion", output_tokens)
 #             span.set_attribute("llm.token_count.total",      input_tokens + output_tokens)
-            
+
 #             # MLflow standard model attributes
 #             span.set_attribute("llm.model_name",  model)
 #             span.set_attribute("llm.provider",    "groq")
-            
+
 #             # MLflow standard cost attributes
 #             span.set_attribute("llm.usage.total_tokens",      input_tokens + output_tokens)
 #             span.set_attribute("llm.usage.prompt_tokens",     input_tokens)
 #             span.set_attribute("llm.usage.completion_tokens", output_tokens)
-            
+
 #             # Custom attributes
 #             span.set_attribute("prompt_name",    prompt_name)
 #             span.set_attribute("prompt_version", str(prompt_version))
 #             span.set_attribute("cost_usd",       cost)
 #             span.set_attribute("model",          model)
-            
+
 #     except Exception as e:
 #         print(f"  [mlflow] log_llm_span error ({span_name}): {e}")
 
@@ -119,29 +113,36 @@ def get_active_span_id() -> str | None:
 #         print(f"[DEBUG] span created: {span_name}")
 #     except Exception as e:
 #         print(f"  [mlflow] log_tool_span error ({span_name}): {e}")
-def log_llm_span(span_name, prompt_text, response_text,
-                 input_tokens, output_tokens, model,
-                 prompt_name, prompt_version,
-                 trace_id=None, parent_id=None):
+def log_llm_span(
+    span_name,
+    prompt_text,
+    response_text,
+    input_tokens,
+    output_tokens,
+    model,
+    prompt_name,
+    prompt_version,
+    trace_id=None,
+    parent_id=None,
+):
     cost = calculate_cost(model, input_tokens, output_tokens)
     try:
         with mlflow.start_span(name=span_name, span_type="LLM") as span:
             span.set_inputs({"prompt": prompt_text[:2000]})
             span.set_outputs({"response": response_text[:2000]})
-            span.set_attribute("llm.token_count.prompt",     input_tokens)
+            span.set_attribute("llm.token_count.prompt", input_tokens)
             span.set_attribute("llm.token_count.completion", output_tokens)
-            span.set_attribute("llm.token_count.total",      input_tokens + output_tokens)
-            span.set_attribute("llm.model_name",  model)
-            span.set_attribute("prompt_name",     prompt_name)
-            span.set_attribute("prompt_version",  str(prompt_version))
-            span.set_attribute("cost_usd",        cost)
+            span.set_attribute("llm.token_count.total", input_tokens + output_tokens)
+            span.set_attribute("llm.model_name", model)
+            span.set_attribute("prompt_name", prompt_name)
+            span.set_attribute("prompt_version", str(prompt_version))
+            span.set_attribute("cost_usd", cost)
     except Exception as e:
         print(f"  [mlflow] log_llm_span error ({span_name}): {e}")
     return cost
 
 
-def log_tool_span(span_name, tool_name, tool_input, tool_output,
-                  trace_id=None, parent_id=None):
+def log_tool_span(span_name, tool_name, tool_input, tool_output, trace_id=None, parent_id=None):
     try:
         with mlflow.start_span(name=span_name, span_type="TOOL") as span:
             span.set_inputs({"tool_input": str(tool_input)[:500]})
@@ -150,11 +151,12 @@ def log_tool_span(span_name, tool_name, tool_input, tool_output,
     except Exception as e:
         print(f"  [mlflow] log_tool_span error ({span_name}): {e}")
 
+
 def register_prompts():
     try:
         mlflow.genai.register_prompt(
-            name     = "order_analysis_prompt",
-            template = """You are an order status assistant.
+            name="order_analysis_prompt",
+            template="""You are an order status assistant.
 Order data: {{order_data}}
 Conversation history: {{history}}
 
@@ -174,8 +176,8 @@ Always mention the customer name and tracking number in your response.""",
 
     try:
         mlflow.genai.register_prompt(
-            name     = "response_generation_prompt",
-            template = """You are a helpful customer service assistant.
+            name="response_generation_prompt",
+            template="""You are a helpful customer service assistant.
 Order analysis: {{order_analysis}}
 Tracking info: {{tracking_info}}
 Customer asked: {{question}}
@@ -189,8 +191,8 @@ Always include customer name, current status, carrier name, tracking number and 
 
     try:
         mlflow.genai.register_prompt(
-            name     = "product_ranking_prompt",
-            template = """You are a product recommendation assistant.
+            name="product_ranking_prompt",
+            template="""You are a product recommendation assistant.
 
 User request: {{user_request}}
 
@@ -207,8 +209,8 @@ Example: 3,1,5,2,4""",
 
     try:
         mlflow.genai.register_prompt(
-            name     = "format_recommendations_prompt",
-            template = """You are a helpful product recommendation assistant.
+            name="format_recommendations_prompt",
+            template="""You are a helpful product recommendation assistant.
 
 User asked: {{user_request}}
 
@@ -239,8 +241,8 @@ Rules:
 
     try:
         mlflow.genai.register_prompt(
-            name     = "classify_issue_prompt",
-            template = """You are a customer support classifier.
+            name="classify_issue_prompt",
+            template="""You are a customer support classifier.
 
 Classify the customer complaint into exactly one issue type:
 - damaged_goods
@@ -265,10 +267,10 @@ Return only the issue type label. Nothing else.""",
         print(f"classify_issue_prompt: {e}")
 
     try:
-        
+
         mlflow.genai.register_prompt(
-        name     = "draft_resolution_prompt",
-        template = """You are a helpful customer support agent.
+            name="draft_resolution_prompt",
+            template="""You are a helpful customer support agent.
 
 Customer complaint: {{customer_message}}
 Issue type: {{issue_type}}
@@ -281,15 +283,15 @@ Write a clear empathetic resolution message.
 Include acknowledgement, action based on policy, and expected timeline using actual dates not placeholders.
 Never use [insert date] or similar placeholders — always calculate the actual date.
 Keep it under 5 sentences.""",
-    )
+        )
         print("Registered: draft_resolution_prompt")
     except Exception as e:
         print(f"draft_resolution_prompt: {e}")
 
     try:
         mlflow.genai.register_prompt(
-            name     = "escalation_response_prompt",
-            template = """You are a helpful customer support agent.
+            name="escalation_response_prompt",
+            template="""You are a helpful customer support agent.
 
 Customer complaint: {{customer_message}}
 Issue type: {{issue_type}}

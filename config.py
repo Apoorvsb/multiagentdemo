@@ -5,14 +5,10 @@ load_dotenv()
 
 
 class Config:
-    
 
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-    LLM_MODEL = os.getenv(
-        "LLM_MODEL",
-        "llama-3.1-8b-instant"
-    )
+    LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
 
     POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
     POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
@@ -22,7 +18,6 @@ class Config:
 
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
     MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "multi-agent-app")
-    
 
     ORDER_ANALYSIS_PROMPT_VERSION = int(os.getenv("ORDER_ANALYSIS_PROMPT_VERSION", "1"))
     RESPONSE_GENERATION_PROMPT_VERSION = int(os.getenv("RESPONSE_GENERATION_PROMPT_VERSION", "1"))

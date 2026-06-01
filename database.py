@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 from config import config
 
+
 def get_conn():
     return psycopg2.connect(
         host=config.POSTGRES_HOST,
@@ -53,7 +54,7 @@ def get_or_create_user(user_id: str):
             if not cur.fetchone():
                 cur.execute(
                     "INSERT INTO users (user_id, created_at, metadata) VALUES (%s, %s, %s)",
-                    [user_id, datetime.now(timezone.utc), psycopg2.extras.Json({})]
+                    [user_id, datetime.now(timezone.utc), psycopg2.extras.Json({})],
                 )
 
 
@@ -74,10 +75,10 @@ def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
                     raise ValueError("Session expired. Please start a new conversation.")
                 cur.execute(
                     "UPDATE sessions SET last_active_at = %s WHERE session_id = %s",
-                    [datetime.now(timezone.utc), session_id]
+                    [datetime.now(timezone.utc), session_id],
                 )
                 return session_id
-            
+
             else:
                 # Check if user has an existing active session within expiry window
                 cutoff = datetime.now(timezone.utc) - timedelta(minutes=config.SESSION_EXPIRY_MINUTES)
@@ -86,14 +87,14 @@ def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
                        WHERE user_id = %s AND is_active = true
                        AND last_active_at > %s
                        ORDER BY last_active_at DESC LIMIT 1""",
-                    [user_id, cutoff]
+                    [user_id, cutoff],
                 )
                 existing = cur.fetchone()
                 if existing:
                     # Reuse existing active session
                     cur.execute(
                         "UPDATE sessions SET last_active_at = %s WHERE session_id = %s",
-                        [datetime.now(timezone.utc), existing["session_id"]]
+                        [datetime.now(timezone.utc), existing["session_id"]],
                     )
                     return existing["session_id"]
 
@@ -101,7 +102,7 @@ def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
                 new_id = str(uuid.uuid4())
                 cur.execute(
                     "INSERT INTO sessions (session_id, user_id, created_at, last_active_at, is_active) VALUES (%s, %s, %s, %s, %s)",
-                    [new_id, user_id, datetime.now(timezone.utc), datetime.now(timezone.utc), True]
+                    [new_id, user_id, datetime.now(timezone.utc), datetime.now(timezone.utc), True],
                 )
                 return new_id
 
@@ -109,18 +110,14 @@ def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
 def update_session_agent(session_id: str, agent_name: str):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE sessions SET agent_last_used = %s WHERE session_id = %s",
-                [agent_name, session_id]
-            )
+            cur.execute("UPDATE sessions SET agent_last_used = %s WHERE session_id = %s", [agent_name, session_id])
 
 
 def load_conversation_history(session_id: str) -> list:
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
-                "SELECT role, content FROM messages WHERE session_id = %s ORDER BY created_at ASC",
-                [session_id]
+                "SELECT role, content FROM messages WHERE session_id = %s ORDER BY created_at ASC", [session_id]
             )
             return [{"role": r["role"], "content": r["content"]} for r in cur.fetchall()]
 
@@ -133,9 +130,13 @@ def save_message(session_id, role, content, agent_name=None, token_usage=None, m
                    (message_id, session_id, role, content, agent_name, created_at, token_usage, mlflow_run_id)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                 [
-                    str(uuid.uuid4()), session_id, role, content, agent_name,
+                    str(uuid.uuid4()),
+                    session_id,
+                    role,
+                    content,
+                    agent_name,
                     datetime.now(timezone.utc),
                     psycopg2.extras.Json(token_usage or {}),
                     mlflow_run_id,
-                ]
+                ],
             )

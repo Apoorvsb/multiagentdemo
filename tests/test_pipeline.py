@@ -1,12 +1,13 @@
 """Unit tests for pipeline.py intent router."""
-import pytest
+
+import pytest  # noqa: F401
 from unittest.mock import MagicMock, patch
 
 from helpers import make_state
 from pipeline import intent_router, route_to_agent
 
-
 # ─── route_to_agent ──────────────────────────────────────────────────────────
+
 
 class TestRouteToAgent:
     def test_order_query(self):
@@ -24,6 +25,7 @@ class TestRouteToAgent:
 
 
 # ─── intent_router — keyword shortcuts ───────────────────────────────────────
+
 
 class TestIntentRouterKeywords:
     """These queries should hit the keyword shortcut and bypass the LLM."""
@@ -58,6 +60,7 @@ class TestIntentRouterKeywords:
 
 # ─── intent_router — pending support session ─────────────────────────────────
 
+
 class TestIntentRouterPending:
     def test_pending_session_routes_to_support_without_llm(self):
         state = make_state(session_id="pending-session", current_input="1")
@@ -68,6 +71,7 @@ class TestIntentRouterPending:
 
 # ─── intent_router — LLM-based routing ───────────────────────────────────────
 
+
 class TestIntentRouterLLM:
     """Queries that don't match keyword shortcuts should use the LLM."""
 
@@ -76,8 +80,7 @@ class TestIntentRouterLLM:
         mock_result = MagicMock()
         mock_result.intent = llm_intent
 
-        with patch("pipeline._support_pending", {}), \
-             patch("pipeline.llm") as mock_llm:
+        with patch("pipeline._support_pending", {}), patch("pipeline.llm") as mock_llm:
             mock_llm.with_structured_output.return_value.invoke.return_value = mock_result
             result = intent_router(state)
 
@@ -91,8 +94,7 @@ class TestIntentRouterLLM:
 
     def test_llm_failure_defaults_to_order_query(self):
         state = make_state(current_input="something ambiguous")
-        with patch("pipeline._support_pending", {}), \
-             patch("pipeline.llm") as mock_llm:
+        with patch("pipeline._support_pending", {}), patch("pipeline.llm") as mock_llm:
             mock_llm.with_structured_output.return_value.invoke.side_effect = Exception("LLM down")
             result = intent_router(state)
 
