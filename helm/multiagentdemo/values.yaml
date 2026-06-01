@@ -1,0 +1,121 @@
+# ── Namespace ──────────────────────────────────────────────────────────────
+namespace: multiagent
+
+# ── App (FastAPI) ───────────────────────────────────────────────────────────
+app:
+  image:
+    repository: multiagent-app
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8000
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  env:
+    llmModel: "llama-3.1-8b-instant"
+    sessionExpiryMinutes: "30"
+    appHost: "0.0.0.0"
+    appPort: "8000"
+    lokiUrl: "http://loki:3100/loki/api/v1/push"
+    prometheusPort: "8001"
+
+# ── Frontend (nginx) ────────────────────────────────────────────────────────
+frontend:
+  image:
+    repository: multiagent-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 80
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+# ── PostgreSQL ──────────────────────────────────────────────────────────────
+postgres:
+  image:
+    repository: postgres
+    tag: "15"
+  port: 5432
+  database: multiagent
+  user: postgres
+  storage: 5Gi
+  storageClass: standard
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# ── MLflow ──────────────────────────────────────────────────────────────────
+mlflow:
+  image:
+    repository: ghcr.io/mlflow/mlflow
+    tag: v3.12.0
+  port: 5000
+  trackingUri: "http://mlflow:5000"
+  experimentName: "multi-agent-app"
+  artifactRoot: "/mlflow/artifacts"
+  storage: 2Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "2Gi"
+
+# ── Prometheus ──────────────────────────────────────────────────────────────
+prometheus:
+  image:
+    repository: prom/prometheus
+    tag: latest
+  port: 9090
+  scrapeInterval: 15s
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "192Mi"
+
+# ── Grafana ─────────────────────────────────────────────────────────────────
+grafana:
+  image:
+    repository: grafana/grafana
+    tag: latest
+  port: 3000
+  adminPassword: ""    # set via secrets.grafanaAdminPassword
+  storage: 1Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "300m"
+      memory: "256Mi"
+
+# ── Secrets (values injected at deploy time from GitHub Secrets) ────────────
+secrets:
+  groqApiKey: ""        # --set secrets.groqApiKey=$GROQ_API_KEY
+  postgresPassword: ""  # --set secrets.postgresPassword=$POSTGRES_PASSWORD
+  grafanaAdminPassword: "admin"
+
+# ── Ingress ─────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  host: multiagent.local
+  tls: false

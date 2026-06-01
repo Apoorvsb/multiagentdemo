@@ -37,6 +37,10 @@
     .google-btn:hover{border-color:var(--accent)}
     .guest-btn{width:100%;background:none;border:1px dashed var(--border);border-radius:8px;padding:10px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s}
     .guest-btn:hover{border-color:var(--muted);color:var(--text)}
+    .guest-btn.loading .spinner{display:block}
+    .guest-btn.loading .btn-label{display:none}
+    .guest-btn.loading svg{display:none}
+    .guest-btn:disabled{opacity:.45;cursor:not-allowed}
     .msg-box{padding:9px 13px;border-radius:8px;font-size:12px;display:none;margin-top:4px}
     .msg-box.err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ff8080;display:block}
     .msg-box.ok{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:#a09cff;display:block}
@@ -129,43 +133,76 @@
     <div class="logo"><div class="logo-dot"></div>OrderAI</div>
     <div class="login-title">Welcome</div>
     <div class="login-sub">Sign in to continue.</div>
-    <div class="form">
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;margin-bottom:18px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <button id="tab-signin" onclick="switchTab('signin')"
+        style="flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;transition:all .2s">
+        Sign In
+      </button>
+      <button id="tab-signup" onclick="switchTab('signup')"
+        style="flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s">
+        Sign Up
+      </button>
+    </div>
+
+    <!-- Sign In Form -->
+    <div id="form-signin" class="form">
       <div>
-        <label>User ID</label>
-        <input type="text" id="login-uid" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <label>Email / User ID</label>
+        <input type="email" id="login-uid" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
       <button class="btn" id="login-btn" onclick="doLogin()">
-        <div class="spinner"></div>
-        <span class="btn-label">Sign In</span>
+        <div class="spinner"></div><span class="btn-label">Sign In</span>
       </button>
-      
-      <div class="divider">or</div>
-      <button class="guest-btn" onclick="continueAsGuest()">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-        Continue as Guest
-      </button>
-      <div class="msg-box" id="login-msg"></div>
     </div>
-    <div class="divider">or continue with</div>
-      <div id="g_id_onload"
-           data-client_id="220368229478-i79oraqcapvpp0pnvm9vsgljn2npmsv0.apps.googleusercontent.com"
-           data-callback="handleGoogleResponse"
-           data-auto_prompt="false">
+
+    <!-- Sign Up Form -->
+    <div id="form-signup" class="form" style="display:none">
+      <div>
+        <label>Name</label>
+        <input type="text" id="reg-name" placeholder="Your name" onkeydown="if(event.key==='Enter')doRegister()"/>
       </div>
-      <div style="display:flex;justify-content:center;margin:4px 0">
-        <div class="g_id_signin"
-             data-type="standard"
-             data-shape="rectangular"
-             data-theme="filled_black"
-             data-text="continue_with"
-             data-size="large"
-             data-logo_alignment="left"
-             data-width="328">
-        </div>
+      <div>
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doRegister()"/>
       </div>
+      <button class="btn" id="register-btn" onclick="doRegister()">
+        <div class="spinner"></div><span class="btn-label">Create Account</span>
+      </button>
+    </div>
+
+    <div class="msg-box" id="login-msg"></div>
+    <div class="divider" style="margin:14px 0 10px">or continue with</div>
+
+    <!-- Google Sign-In -->
+    <div id="g_id_onload"
+         data-client_id="220368229478-i79oraqcapvpp0pnvm9vsgljn2npmsv0.apps.googleusercontent.com"
+         data-callback="handleGoogleResponse"
+         data-auto_prompt="false">
+    </div>
+    <div style="display:flex;justify-content:center;margin:4px 0">
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="filled_black"
+           data-text="continue_with"
+           data-size="large"
+           data-logo_alignment="left"
+           data-width="328">
+      </div>
+    </div>
+
+    <!-- Guest -->
+    <button class="guest-btn" id="guest-btn" onclick="continueAsGuest()" style="margin-top:10px">
+      <div class="spinner"></div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="btn-label">Continue as Guest</span>
+    </button>
+
     <div id="google-hidden-btn" style="position:absolute;opacity:0;pointer-events:none">
       <div class="g_id_signin" data-type="standard" data-size="large"></div>
     </div>
@@ -213,12 +250,6 @@
         <div class="welcome-icon">🤖</div>
         <h2>How can I help you?</h2>
         <p>Ask about your orders, find products, or get support for any issue.</p>
-        <div class="suggestions">
-          <div class="sug" id="sug-order" onclick="useSuggestion('Where is my order ORD0001?')">📦 Track an order</div>
-          <div class="sug" onclick="useSuggestion('Find me a good cable under ₹500')">🔍 Find products</div>
-          <div class="sug" onclick="useSuggestion('My item arrived damaged')">🎧 Get support</div>
-          <div class="sug" id="sug-delivery" onclick="useSuggestion('When will ORD0050 arrive?')">📅 Check delivery</div>
-        </div>
       </div>
     </div>
     <div class="typing-row" id="typing">
@@ -248,7 +279,7 @@
 </div>
 
 <script>
-const API = 'http://localhost:8000'
+const API = ''
 
 let sessionId  = localStorage.getItem('session_id')
 let userId     = localStorage.getItem('user_id')
@@ -259,24 +290,33 @@ let historyRendered = false
 function isGuest() {
   return userId && userId.includes('@guest.com')
 }
-
+let booted = false
 // ── BOOT ──────────────────────────────────────────────────
+// window.onload = async () => {
+//   console.log('window.onload fired')
+//   if (sessionId && userId) {
+//     try {
+//       const res  = await post('/login', { user_id: userId })
+//       const data = await res.json()
+//       if (res.ok) {
+//         sessionId = data.session_id
+//         localStorage.setItem('session_id', sessionId)
+//         showChat()
+//         console.log('calling renderHistory from window.onload')
+//         renderHistory(data.messages || [])
+//       } else {
+//         showScreen('login-screen')
+//       }
+//     } catch {
+//       showScreen('login-screen')
+//     }
+//   }
+// }
 window.onload = async () => {
   if (sessionId && userId) {
-    try {
-      const res  = await post('/login', { user_id: userId })
-      const data = await res.json()
-      if (res.ok) {
-        sessionId = data.session_id
-        localStorage.setItem('session_id', sessionId)
-        showChat()
-        renderHistory(data.messages || [])
-      } else {
-        showScreen('login-screen')
-      }
-    } catch {
-      showScreen('login-screen')
-    }
+    showChat()
+  } else {
+    showScreen('login-screen')
   }
 }
 
@@ -318,10 +358,7 @@ function showChat() {
 // }
 function renderHistory(messages) {
   if (!messages || messages.length === 0) return
-  if (historyRendered) return
-  historyRendered = true
-  const welcome = document.getElementById('welcome')
-  if (welcome) welcome.remove()
+
   messages.forEach(msg => {
     appendMsg(
       msg.role === 'user' ? 'user' : 'bot',
@@ -332,8 +369,11 @@ function renderHistory(messages) {
 }
 
 
+
 // ── SAVE & REDIRECT ───────────────────────────────────────
 function saveAndEnter(data, name) {
+  console.log('saveAndEnter fired')
+  console.trace()
   userId    = data.user_id
   sessionId = data.session_id
   userName  = name || data.name || 'User'
@@ -341,7 +381,40 @@ function saveAndEnter(data, name) {
   localStorage.setItem('session_id', sessionId)
   localStorage.setItem('user_name',  userName)
   showChat()
-  renderHistory(data.messages || [])
+  if (!historyRendered) {
+    renderHistory(data.messages || [])
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function switchTab(tab) {
+  const isSignin = tab === 'signin'
+  document.getElementById('form-signin').style.display = isSignin ? 'flex' : 'none'
+  document.getElementById('form-signup').style.display = isSignin ? 'none' : 'flex'
+  document.getElementById('tab-signin').style.background = isSignin ? 'var(--accent)' : 'var(--card)'
+  document.getElementById('tab-signin').style.color      = isSignin ? '#fff' : 'var(--muted)'
+  document.getElementById('tab-signup').style.background = isSignin ? 'var(--card)' : 'var(--accent)'
+  document.getElementById('tab-signup').style.color      = isSignin ? 'var(--muted)' : '#fff'
+  document.getElementById('login-msg').className = 'msg-box'
+}
+
+// ── REGISTER ──────────────────────────────────────────────
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim()
+  const email = document.getElementById('reg-email').value.trim()
+  if (!name)  { showMsg('login-msg', 'Please enter your name.', 'err'); return }
+  if (!email) { showMsg('login-msg', 'Please enter your email.', 'err'); return }
+  setLoading('register-btn', true)
+  try {
+    const res  = await post('/register', { name, email })
+    const data = await res.json()
+    if (!res.ok) {
+      showMsg('login-msg', data.detail?.error || 'Registration failed.', 'err')
+    } else {
+      saveAndEnter(data, name)
+    }
+  } catch { showMsg('login-msg', 'Cannot reach server.', 'err') }
+  finally   { setLoading('register-btn', false) }
 }
 
 // ── LOGIN ─────────────────────────────────────────────────
@@ -383,7 +456,7 @@ async function handleGoogleResponse(response) {
 
 // ── GUEST LOGIN ───────────────────────────────────────────
 async function continueAsGuest() {
-  setLoading('login-btn', true)
+  setLoading('guest-btn', true)
   try {
     const guestId = 'guest_' + Math.random().toString(36).slice(2, 10)
     const res     = await post('/register', {
@@ -399,7 +472,7 @@ async function continueAsGuest() {
   } catch {
     showMsg('login-msg', 'Cannot reach server.', 'err')
   } finally {
-    setLoading('login-btn', false)
+    setLoading('guest-btn', false)
   }
 }
 
@@ -439,13 +512,7 @@ function createWelcome() {
   d.innerHTML = `
     <div class="welcome-icon">🤖</div>
     <h2>How can I help you?</h2>
-    <p>${guest ? 'Ask about products or get support. Sign in to track orders.' : 'Ask about your orders, find products, or get support for any issue.'}</p>
-    <div class="suggestions">
-      ${!guest ? '<div class="sug" onclick="useSuggestion(\'Where is my order ORD0001?\')">📦 Track an order</div>' : ''}
-      <div class="sug" onclick="useSuggestion('Find me a good cable under ₹500')">🔍 Find products</div>
-      <div class="sug" onclick="useSuggestion('My item arrived damaged')">🎧 Get support</div>
-      ${!guest ? '<div class="sug" onclick="useSuggestion(\'When will ORD0050 arrive?\')">📅 Check delivery</div>' : ''}
-    </div>`
+    <p>${guest ? 'Ask about products or get support. Sign in to track orders.' : 'Ask about your orders, find products, or get support for any issue.'}</p>`
   return d
 }
 

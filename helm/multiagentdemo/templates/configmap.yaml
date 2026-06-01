@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: multiagent-config
+  namespace: {{ .Values.namespace }}
+data:
+  POSTGRES_HOST:        "postgres"
+  POSTGRES_PORT:        {{ .Values.postgres.port | quote }}
+  POSTGRES_DB:          {{ .Values.postgres.database | quote }}
+  POSTGRES_USER:        {{ .Values.postgres.user | quote }}
+  MLFLOW_TRACKING_URI:  {{ .Values.mlflow.trackingUri | quote }}
+  MLFLOW_EXPERIMENT_NAME: {{ .Values.mlflow.experimentName | quote }}
+  LLM_MODEL:            {{ .Values.app.env.llmModel | quote }}
+  SESSION_EXPIRY_MINUTES: {{ .Values.app.env.sessionExpiryMinutes | quote }}
+  APP_HOST:             {{ .Values.app.env.appHost | quote }}
+  APP_PORT:             {{ .Values.app.env.appPort | quote }}
+  LOKI_URL:             {{ .Values.app.env.lokiUrl | quote }}
+  PROMETHEUS_PORT:      {{ .Values.app.env.prometheusPort | quote }}
+  MLFLOW_HTTP_REQUEST_TIMEOUT: "30"
+  MLFLOW_HTTP_REQUEST_MAX_RETRIES: "0"

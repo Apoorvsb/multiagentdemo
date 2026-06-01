@@ -9,7 +9,21 @@ _client = MlflowClient()
 
 def setup_mlflow():
     mlflow.set_tracking_uri(config.MLFLOW_TRACKING_URI)
-    mlflow.set_experiment(config.MLFLOW_EXPERIMENT_NAME)
+    import threading
+    threading.Thread(target=_setup_mlflow_bg, daemon=True).start()
+
+
+def _setup_mlflow_bg():
+    import time
+    time.sleep(5)
+    try:
+        mlflow.set_experiment(config.MLFLOW_EXPERIMENT_NAME)
+    except Exception as e:
+        print(f"[mlflow] set_experiment failed: {e}")
+    try:
+        register_prompts()
+    except Exception as e:
+        print(f"[mlflow] register_prompts failed: {e}")
     
 
 
@@ -111,26 +125,7 @@ def log_llm_span(span_name, prompt_text, response_text,
                  trace_id=None, parent_id=None):
     cost = calculate_cost(model, input_tokens, output_tokens)
     try:
-        from mlflow.tracing.utils import set_span_chat_messages
-        from opentelemetry import trace as otel_trace
-
-        if trace_id and parent_id:
-            from opentelemetry.trace import NonRecordingSpan, SpanContext, TraceFlags
-            span_ctx = SpanContext(
-                trace_id    = int(trace_id, 16) if isinstance(trace_id, str) else trace_id,
-                span_id     = int(parent_id, 16) if isinstance(parent_id, str) else parent_id,
-                is_remote   = False,
-                trace_flags = TraceFlags(TraceFlags.SAMPLED),
-            )
-            ctx = otel_trace.set_span_in_context(NonRecordingSpan(span_ctx))
-        else:
-            ctx = None
-
-        with mlflow.start_span(
-            name      = span_name,
-            span_type = "LLM",
-            **({"context": ctx} if ctx else {})
-        ) as span:
+        with mlflow.start_span(name=span_name, span_type="LLM") as span:
             span.set_inputs({"prompt": prompt_text[:2000]})
             span.set_outputs({"response": response_text[:2000]})
             span.set_attribute("llm.token_count.prompt",     input_tokens)
@@ -220,8 +215,23 @@ User asked: {{user_request}}
 Top recommendations:
 {{products_text}}
 
-Write a friendly 4-5 sentence response recommending these products.
-Mention the price, rating, and key benefits of each.""",
+Format your response using the structure below. Use markdown.
+
+Start with one short sentence summarising what you found (e.g. "Here are the top earbuds for you:").
+
+Then for each product use this exact layout:
+
+### <rank>. <Product Name>
+- **Price:** ₹<price>
+- **Rating:** <rating>/5
+- **Why buy it:** <one sentence on the standout feature or use-case>
+
+End with a single sentence helping the user decide (e.g. budget vs premium pick).
+
+Rules:
+- Output only markdown — no extra prose outside the structure above.
+- Do not invent specs; use only what is in the products_text.
+- Keep "Why buy it" to one sentence.""",
         )
         print("Registered: format_recommendations_prompt")
     except Exception as e:

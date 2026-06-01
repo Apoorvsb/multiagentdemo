@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: {{ .Values.namespace }}
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:{{ .Values.prometheus.port }}
+        isDefault: true
+        editable: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-provider
+  namespace: {{ .Values.namespace }}
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: default
+        folder: MultiAgent
+        type: file
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-multiagent
+  namespace: {{ .Values.namespace }}
+data:
+  multiagent.json: |
+    {
+      "title": "MultiAgent App",
+      "uid": "multiagent-overview",
+      "tags": ["multiagent"],
+      "timezone": "browser",
+      "schemaVersion": 38,
+      "refresh": "30s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Requests per Minute",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "targets": [{
+            "expr": "rate(multiagent_requests_total[1m]) * 60",
+            "legendFormat": "{{ "{{" }}agent{{ "}}" }} - {{ "{{" }}status{{ "}}" }}"
+          }],
+          "fieldConfig": {"defaults": {"unit": "reqpm"}}
+        },
+        {
+          "id": 2,
+          "title": "Request Latency (p95)",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "targets": [{
+            "expr": "histogram_quantile(0.95, rate(multiagent_request_latency_seconds_bucket[5m]))",
+            "legendFormat": "p95 - {{ "{{" }}agent{{ "}}" }}"
+          }],
+          "fieldConfig": {"defaults": {"unit": "s"}}
+        },
+        {
+          "id": 3,
+          "title": "Total Requests by Agent",
+          "type": "piechart",
+          "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+          "targets": [{
+            "expr": "sum by (agent) (multiagent_requests_total)",
+            "legendFormat": "{{ "{{" }}agent{{ "}}" }}"
+          }]
+        },
+        {
+          "id": 4,
+          "title": "Tokens Used by Agent",
+          "type": "bargauge",
+          "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+          "targets": [{
+            "expr": "sum by (agent) (multiagent_tokens_total)",
+            "legendFormat": "{{ "{{" }}agent{{ "}}" }}"
+          }],
+          "fieldConfig": {"defaults": {"unit": "short"}}
+        },
+        {
+          "id": 5,
+          "title": "Errors",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+          "targets": [{
+            "expr": "rate(multiagent_errors_total[5m])",
+            "legendFormat": "{{ "{{" }}agent{{ "}}" }}"
+          }],
+          "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "fixed", "fixedColor": "red"}}}
+        }
+      ]
+    }

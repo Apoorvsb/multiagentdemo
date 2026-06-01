@@ -1,0 +1,133 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multiagent-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    {{- if .Values.ingress.tls }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    {{- $appPort := .Values.app.port }}
+    {{- $frontendPort := .Values.frontend.port }}
+    {{- range list .Values.ingress.host "localhost" }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /metrics
+            pathType: Exact
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /register
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /login
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /chat
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-app
+                port:
+                  number: {{ $appPort }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: multiagent-frontend
+                port:
+                  number: {{ $frontendPort }}
+    {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: multiagent-tls
+  {{- end }}
+---
+# Grafana at /grafana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multiagent-grafana-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    {{- $grafanaPort := .Values.grafana.port }}
+    {{- range list .Values.ingress.host "localhost" }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: {{ $grafanaPort }}
+    {{- end }}
+---
+# MLflow at /mlflow
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multiagent-mlflow-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /mlflow(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: mlflow
+                port:
+                  number: {{ .Values.mlflow.port }}
+{{- end }}

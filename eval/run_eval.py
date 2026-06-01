@@ -93,10 +93,11 @@ def get_live_response(sample: dict) -> str:
 # HALLUCINATION CHECK
 # ─────────────────────────────────────────────
 
-def check_hallucination(response: str, context: str) -> float:
+def check_hallucination(response: str, context: str, agent: str = "order_agent") -> float:
     """
     Checks whether the response contains facts not grounded in context.
-    Verifies order IDs, dates, carrier names, and item tokens.
+    For order_agent: verifies order IDs, dates, carrier names, and item tokens.
+    For product_agent: verifies price values and rating values are plausible.
     Returns 1.0 (no hallucination) down to 0.0 (heavy hallucination).
     """
     import re
@@ -120,46 +121,95 @@ def check_hallucination(response: str, context: str) -> float:
         tokens = re.findall(r'\b[A-Z][a-zA-Z0-9]{2,}\b', text)
         return {t.lower() for t in tokens if t.lower() not in COMMON}
 
-    resp_orders   = extract_orders(response)
-    ctx_orders    = extract_orders(context)
-    resp_dates    = extract_dates(response)
-    ctx_dates     = extract_dates(context)
-    resp_carriers = extract_carriers(response)
-    ctx_carriers  = extract_carriers(context)
-    resp_items    = extract_items(response)
-    ctx_items     = extract_items(context)
-
     violations = 0
     checks     = 0
 
-    if resp_orders:
-        checks += 1
-        hallucinated = resp_orders - ctx_orders
-        if hallucinated:
-            print(f"  ⚠ Hallucinated order IDs: {hallucinated}")
-            violations += 1
+    if agent == "order_agent":
+        resp_orders   = extract_orders(response)
+        ctx_orders    = extract_orders(context)
+        resp_dates    = extract_dates(response)
+        ctx_dates     = extract_dates(context)
+        resp_carriers = extract_carriers(response)
+        ctx_carriers  = extract_carriers(context)
+        resp_items    = extract_items(response)
+        ctx_items     = extract_items(context)
 
-    if resp_dates:
-        checks += 1
-        hallucinated = resp_dates - ctx_dates
-        if hallucinated:
-            print(f"  ⚠ Hallucinated dates: {hallucinated}")
-            violations += 1
+        if resp_orders:
+            checks += 1
+            hallucinated = resp_orders - ctx_orders
+            if hallucinated:
+                print(f"  ⚠ Hallucinated order IDs: {hallucinated}")
+                violations += 1
 
-    if resp_carriers:
-        checks += 1
-        hallucinated = resp_carriers - ctx_carriers
-        if hallucinated:
-            print(f"  ⚠ Hallucinated carriers: {hallucinated}")
-            violations += 1
+        if resp_dates:
+            checks += 1
+            hallucinated = resp_dates - ctx_dates
+            if hallucinated:
+                print(f"  ⚠ Hallucinated dates: {hallucinated}")
+                violations += 1
 
-    if resp_items:
-        checks += 1
-        overlap_ratio = len(resp_items & ctx_items) / len(resp_items)
-        if overlap_ratio < 0.4:
-            unsupported = resp_items - ctx_items
-            print(f"  ⚠ Possible hallucinated items: {unsupported}")
-            violations += 1
+        if resp_carriers:
+            checks += 1
+            hallucinated = resp_carriers - ctx_carriers
+            if hallucinated:
+                print(f"  ⚠ Hallucinated carriers: {hallucinated}")
+                violations += 1
+
+        if resp_items:
+            checks += 1
+            overlap_ratio = len(resp_items & ctx_items) / len(resp_items)
+            if overlap_ratio < 0.4:
+                unsupported = resp_items - ctx_items
+                print(f"  ⚠ Possible hallucinated items: {unsupported}")
+                violations += 1
+
+    elif agent == "product_agent":
+        # For product agent: check ratings are in valid range and prices are positive numbers
+        ratings = [float(m) for m in re.findall(r'(\d+\.?\d*)/5', response)]
+        prices  = [float(m.replace(",", "")) for m in re.findall(r'₹([\d,]+)', response)]
+
+        if ratings:
+            checks += 1
+            invalid_ratings = [r for r in ratings if r < 0 or r > 5]
+            if invalid_ratings:
+                print(f"  ⚠ Invalid product ratings: {invalid_ratings}")
+                violations += 1
+
+        if prices:
+            checks += 1
+            invalid_prices = [p for p in prices if p <= 0 or p > 10_000_000]
+            if invalid_prices:
+                print(f"  ⚠ Suspicious product prices: {invalid_prices}")
+                violations += 1
+
+    elif agent == "support_agent":
+        # Check ticket IDs have valid format (TKT prefix)
+        ticket_ids = re.findall(r'\bTKT[-\w]{4,}\b', response)
+        if ticket_ids:
+            checks += 1
+            invalid_tickets = [t for t in ticket_ids if not re.match(r'^TKT[-A-Z0-9]{4,}$', t)]
+            if invalid_tickets:
+                print(f"  ⚠ Malformed ticket IDs: {invalid_tickets}")
+                violations += 1
+
+        # Check SLA times are realistic (not invented extreme values)
+        sla_hours = [int(m) for m in re.findall(r'(\d+)\s*hours?', response.lower())]
+        if sla_hours:
+            checks += 1
+            invalid_sla = [h for h in sla_hours if h <= 0 or h > 168]
+            if invalid_sla:
+                print(f"  ⚠ Suspicious SLA hours mentioned: {invalid_sla}")
+                violations += 1
+
+        # Check order IDs mentioned exist in context
+        resp_orders = set(re.findall(r'ORD\d+', response.upper()))
+        ctx_orders  = set(re.findall(r'ORD\d+', context.upper()))
+        if resp_orders:
+            checks += 1
+            hallucinated = resp_orders - ctx_orders
+            if hallucinated:
+                print(f"  ⚠ Hallucinated order IDs in support response: {hallucinated}")
+                violations += 1
 
     if checks == 0:
         return 1.0
@@ -182,7 +232,7 @@ def _extract_key_tokens(text: str) -> set:
     return {t for t in tokens if t not in stop and len(t) > 1}
 
 
-def rule_based_score(response: str, expected: str, context: str) -> dict:
+def rule_based_score(response: str, expected: str, context: str, agent: str = "order_agent") -> dict:
     resp_tokens     = _extract_key_tokens(response)
     expected_tokens = _extract_key_tokens(expected)
     context_tokens  = _extract_key_tokens(context)
@@ -199,7 +249,7 @@ def rule_based_score(response: str, expected: str, context: str) -> dict:
         "relevance":     round(max(relevance,    0.70), 3),
         "correctness":   round(max(correctness,  0.70), 3),
         "completeness":  round(max(completeness, 0.70), 3),
-        "hallucination": check_hallucination(response, context),
+        "hallucination": check_hallucination(response, context, agent),
     }
 
 
@@ -207,14 +257,45 @@ def rule_based_score(response: str, expected: str, context: str) -> dict:
 # LLM SCORING
 # ─────────────────────────────────────────────
 
+AGENT_JUDGE_HINTS = {
+    "order_agent": (
+        "order tracking assistant",
+        "the correct key facts (order status, carrier, ETA, items). "
+        "Minor wording differences are fine.",
+        "Are the key facts (status, carrier, ETA, items) correct per context? (0.8+ if main facts match)",
+        "Does the response avoid inventing order IDs, dates, carriers, or items not in the context?",
+    ),
+    "product_agent": (
+        "product recommendation assistant",
+        "the relevant product names, prices, ratings, and a useful recommendation. "
+        "Minor wording differences are fine.",
+        "Are the product names, prices, and ratings consistent with the context? (0.8+ if main details match)",
+        "Does the response avoid inventing product names, prices, or features not grounded in the context?",
+    ),
+    "support_agent": (
+        "customer support assistant",
+        "the correct issue classification, appropriate empathy, ticket ID (if HIGH severity), "
+        "SLA or resolution timeline, and next steps for the customer. Minor wording differences are fine.",
+        "Is the issue type correctly identified and handled per context? Is a ticket created for HIGH severity? "
+        "Is the resolution or next steps aligned with the policy? (0.8+ if issue is handled correctly)",
+        "Does the response avoid inventing ticket IDs, order IDs, refund amounts, or policy details "
+        "not grounded in the context?",
+    ),
+}
+
+
 def score_with_llm(
     question: str,
     response: str,
     expected: str,
     context:  str,
+    agent:    str = "order_agent",
 ) -> dict:
     time.sleep(10)
     llm_scores = None
+
+    hints = AGENT_JUDGE_HINTS.get(agent, AGENT_JUDGE_HINTS["order_agent"])
+    agent_label, correctness_hint, correctness_guide, hallucination_guide = hints
 
     try:
         from langchain_groq import ChatGroq
@@ -226,9 +307,9 @@ def score_with_llm(
             api_key     = config.GROQ_API_KEY,
         )
 
-        prompt = f"""You are a lenient evaluation judge for an e-commerce order tracking assistant.
+        prompt = f"""You are a lenient evaluation judge for an e-commerce {agent_label}.
 Score the AI response on four dimensions. Be generous — the response just needs to convey
-the correct key facts (order status, carrier, ETA, items). Minor wording differences are fine.
+{correctness_hint}
 
 Question: {question}
 Expected Answer: {expected}
@@ -236,11 +317,11 @@ Context (ground truth): {context}
 Actual Response: {response}
 
 Scoring guide (0.0 to 1.0):
-- relevance:      Does the response address the question about the order? (0.8+ if it clearly answers)
-- correctness:    Are the key facts (status, carrier, ETA, items) correct per context? (0.8+ if main facts match)
+- relevance:      Does the response address the user's question? (0.8+ if it clearly answers)
+- correctness:    {correctness_guide}
 - completeness:   Does the response mention the key information from the expected answer? (0.75+ if main points covered)
-- hallucination:  Does the response avoid inventing facts not present in the context?
-                  (1.0 = no hallucination, 0.0 = response contains made-up order IDs/dates/carriers/items)
+- hallucination:  {hallucination_guide}
+                  (1.0 = no hallucination, 0.0 = response contains completely made-up information)
 
 Return ONLY valid JSON, nothing else:
 {{"relevance": 0.0, "correctness": 0.0, "completeness": 0.0, "hallucination": 0.0}}"""
@@ -264,11 +345,11 @@ Return ONLY valid JSON, nothing else:
 
     if llm_scores is None:
         print("  Using rule-based fallback scorer")
-        return rule_based_score(response, expected, context)
+        return rule_based_score(response, expected, context, agent)
 
     avg_llm = sum(llm_scores.values()) / len(llm_scores)
     if avg_llm < 0.40:
-        rb_scores = rule_based_score(response, expected, context)
+        rb_scores = rule_based_score(response, expected, context, agent)
         avg_rb    = sum(rb_scores.values()) / len(rb_scores)
         if avg_rb >= 0.65:
             print(f"  LLM judge too strict (avg {avg_llm:.2f}); rule-based gives {avg_rb:.2f} — blending")
@@ -278,7 +359,7 @@ Return ONLY valid JSON, nothing else:
             }
 
     # Always use rule-based hallucination check for reliability
-    llm_scores["hallucination"] = check_hallucination(response, context)
+    llm_scores["hallucination"] = check_hallucination(response, context, agent)
     return llm_scores
 
 
@@ -331,6 +412,7 @@ def run_evaluation():
                 response = response,
                 expected = sample["expected"],
                 context  = sample.get("context", ""),
+                agent    = sample.get("agent", "order_agent"),
             )
             print(
                 f"  Scores: relevance={scores['relevance']:.2f}  "
@@ -367,6 +449,11 @@ def run_evaluation():
         avgs = {dim: sum(all_scores[dim]) / len(all_scores[dim]) for dim in DIMENSIONS}
         overall_avg = sum(avgs.values()) / len(avgs)
 
+        # Per-agent aggregates
+        agent_results: dict[str, list] = {}
+        for r in results:
+            agent_results.setdefault(r["agent"], []).append(r)
+
         mlflow.log_metrics({
             "avg_relevance":     avgs["relevance"],
             "avg_correctness":   avgs["correctness"],
@@ -375,6 +462,10 @@ def run_evaluation():
             "overall_avg":       overall_avg,
             "total_samples":     len(dataset),
         })
+        for ag, ag_results in agent_results.items():
+            for dim in DIMENSIONS:
+                ag_avg = sum(r[dim] for r in ag_results) / len(ag_results)
+                mlflow.log_metric(f"{ag}_{dim}_avg", round(ag_avg, 3))
 
         print(f"\n{'─'*60}")
         for dim in DIMENSIONS:
@@ -442,6 +533,20 @@ def run_evaluation():
 def generate_json_report(results, avgs, overall_avg, passed, failures, commit_sha, branch_name):
     failed_samples = [r for r in results if r["avg_score"] < SAMPLE_PASS_THRESHOLD]
 
+    agent_breakdown: dict[str, dict] = {}
+    for r in results:
+        agent_breakdown.setdefault(r["agent"], []).append(r)
+    per_agent_avgs = {}
+    for ag, ag_results in agent_breakdown.items():
+        per_agent_avgs[ag] = {
+            dim: round(sum(r[dim] for r in ag_results) / len(ag_results), 3)
+            for dim in DIMENSIONS
+        }
+        per_agent_avgs[ag]["overall"] = round(
+            sum(per_agent_avgs[ag][d] for d in DIMENSIONS) / len(DIMENSIONS), 3
+        )
+        per_agent_avgs[ag]["sample_count"] = len(ag_results)
+
     report = {
         "run_timestamp":  datetime.now(timezone.utc).isoformat(),
         "git_commit_sha": commit_sha,
@@ -453,6 +558,7 @@ def generate_json_report(results, avgs, overall_avg, passed, failures, commit_sh
         "per_metric_averages": {
             dim: round(avgs[dim], 3) for dim in DIMENSIONS
         } | {"overall": round(overall_avg, 3)},
+        "per_agent_averages": per_agent_avgs,
         "thresholds": THRESHOLDS,
         "per_sample_scores": [
             {
@@ -500,6 +606,7 @@ def generate_html_report(results, json_report):
     passed       = json_report["overall_pass"]
     avgs         = json_report["per_metric_averages"]
     failed       = json_report["failed_samples"]
+    per_agent    = json_report.get("per_agent_averages", {})
     status_color = "#22c55e" if passed else "#ef4444"
     status_text  = "PASSED" if passed else "FAILED"
 
@@ -520,6 +627,26 @@ def generate_html_report(results, json_report):
           <td><strong>{r['avg_score']:.2f}</strong></td>
           <td>{badge}</td>
         </tr>"""
+
+    agent_breakdown_html = ""
+    if per_agent:
+        agent_breakdown_html = "<h2>Per-Agent Breakdown</h2><div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:32px'>"
+        for ag, ag_avgs in per_agent.items():
+            ag_overall_color = "#22c55e" if ag_avgs.get("overall", 0) >= 0.70 else "#ef4444"
+            agent_breakdown_html += f"""
+            <div style='background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px'>
+              <div style='font-weight:700;font-size:15px;margin-bottom:10px'>{ag}
+                <span style='font-size:12px;color:#6b7280;font-weight:400'>({ag_avgs.get('sample_count',0)} samples)</span>
+              </div>
+              <div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px'>
+                <div>Relevance: <strong>{ag_avgs.get('relevance',0):.2f}</strong></div>
+                <div>Correctness: <strong>{ag_avgs.get('correctness',0):.2f}</strong></div>
+                <div>Completeness: <strong>{ag_avgs.get('completeness',0):.2f}</strong></div>
+                <div>Hallucination: <strong>{ag_avgs.get('hallucination',0):.2f}</strong></div>
+              </div>
+              <div style='margin-top:10px;font-size:14px'>Overall: <strong style='color:{ag_overall_color}'>{ag_avgs.get('overall',0):.2f}</strong></div>
+            </div>"""
+        agent_breakdown_html += "</div>"
 
     failed_rows = ""
     for r in failed:
@@ -596,6 +723,8 @@ def generate_html_report(results, json_report):
     <div class="card-threshold">&nbsp;</div>
   </div>
 </div>
+
+{agent_breakdown_html}
 
 <h2>Per Sample Results</h2>
 <table>

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: multiagentdemo
+description: Multi-agent LLM app — FastAPI backend, nginx frontend, PostgreSQL, MLflow, Prometheus, Grafana
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - llm
+  - multiagent
+  - fastapi
+  - langgraph
+maintainers:
+  - name: Apoorva S B
+    email: apoorva.sb@sigmoidanalytics.com

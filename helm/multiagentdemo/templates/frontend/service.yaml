@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: multiagent-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: multiagent-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: multiagent-frontend
+  ports:
+    - port: {{ .Values.frontend.port }}
+      targetPort: {{ .Values.frontend.port }}
+      protocol: TCP

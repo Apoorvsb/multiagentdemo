@@ -14,15 +14,222 @@ from database import get_conn, save_message
 
 llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
+# session_id → {original_message, delivered_orders, issue_type}
+_support_pending: dict = {}
+
+_VALID_ISSUE_TYPES = {
+    "damaged_goods", "missing_item", "wrong_item", "warranty_claim",
+    "product_not_as_described", "account_issue", "refund_request",
+    "payment_failed", "billing_inquiry", "delayed_delivery",
+    "cancellation_request", "return_request", "technical_issue",
+    "general_complaint", "show_tickets",
+}
+
+_KEYWORD_OVERRIDES = {
+    # ── Special: list tickets (short-circuits the whole support flow) ──
+    "show_tickets": [
+        "my tickets", "all tickets", "raised tickets", "show tickets",
+        "list tickets", "ticket status", "my complaints", "all my tickets",
+        "how all my", "how many tickets", "open tickets", "pending tickets",
+        "tickets i have", "tickets i raised", "i have raised", "i raised",
+        "show me the tickets", "view tickets", "view my tickets",
+        "tickets raised", "have raised", "raised a ticket",
+        "status of my ticket", "status of ticket", "check my ticket",
+    ],
+    # ── HIGH severity ─────────────────────────────────────────────────
+    "damaged_goods": [
+        "cracked screen", "arrived damaged", "broken", "cracked",
+        "arrived with a crack", "damaged product", "damaged item",
+        "want a replacement", "i want a replacement", "need a replacement",
+        "want replacement",
+    ],
+    "wrong_item": [
+        "wrong product", "wrong item", "received a wrong",
+        "incorrect item", "incorrect product", "sent wrong",
+    ],
+    "missing_item": [
+        "item missing", "missing from my package", "missing item",
+        "item is missing", "not in the package", "not received",
+        "did not receive", "never received",
+        "order is missing", "my order is missing", "order missing",
+        "package is missing", "package missing", "parcel missing",
+        "parcel is missing", "shipment missing",
+    ],
+    "warranty_claim": [
+        "warranty claim", "under warranty", "raise a warranty",
+        "warranty issue", "claim warranty", "warranty period",
+    ],
+    "product_not_as_described": [
+        "not working as described", "not as described",
+        "product is not as", "not what was described",
+        "different from description", "misleading description",
+    ],
+    "account_issue": [
+        "account issue", "account problem", "login issue", "login problem",
+        "cant login", "can't login", "account access", "account blocked",
+        "account locked", "cannot access my account", "can't access my account",
+    ],
+    # ── MEDIUM severity ───────────────────────────────────────────────
+    "refund_request": [
+        "refund", "money back", "return money", "get my money",
+        "want my money back", "i want a refund",
+    ],
+    "payment_failed": [
+        "payment failed", "payment not processed", "deducted but",
+        "amount deducted", "amount was deducted", "money deducted",
+    ],
+    "billing_inquiry": [
+        "charged twice", "double charge", "wrong charge", "billing",
+        "double charged", "duplicate charge",
+    ],
+    "delayed_delivery": [
+        "delivery delayed", "not delivered yet", "late delivery",
+        "order is delayed", "order delayed", "is delayed",
+        "taking too long", "not arrived yet", "still not delivered",
+    ],
+    "cancellation_request": [
+        "cancel my order", "cancel order", "want to cancel",
+        "order cancellation", "cancel the order", "i want to cancel",
+        "please cancel",
+    ],
+    "return_request": [
+        "return my order", "want to return", "return request",
+        "send it back", "return the", "i want to return",
+        "return my product", "initiate return",
+    ],
+    # ── LOW severity ──────────────────────────────────────────────────
+    "technical_issue": [
+        "stopped working", "not working", "product stopped",
+        "stopped after", "product is not working", "device not working",
+        "product quality is poor", "quality is poor", "poor quality",
+    ],
+    "general_complaint": [
+        "not happy with", "unhappy with", "packaging was bad",
+        "bad packaging", "give feedback", "want to give feedback",
+        "delivery experience", "poor service", "not satisfied",
+        "disappointed", "bad experience",
+    ],
+}
+
+
+def _fetch_delivered_orders(user_id: str) -> list:
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, items, sales_per_customer, order_date, status
+                       FROM orders
+                       WHERE user_id = %s AND status = 'DELIVERED'
+                       ORDER BY order_date DESC""",
+                    [user_id],
+                )
+                return [dict(r) for r in cur.fetchall()]
+    except Exception:
+        return []
+
+
+def _fetch_all_orders(user_id: str) -> list:
+    """Fetch all orders (any status) — used for cancellation/return queries."""
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT order_id, items, sales_per_customer, order_date, status
+                       FROM orders
+                       WHERE user_id = %s
+                       ORDER BY order_date DESC""",
+                    [user_id],
+                )
+                return [dict(r) for r in cur.fetchall()]
+    except Exception:
+        return []
+
+
+def _fetch_user_tickets(user_id: str) -> list:
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """SELECT ticket_id, issue_type, priority, status, created_at, description
+                       FROM tickets WHERE user_id = %s
+                       ORDER BY created_at DESC""",
+                    [user_id],
+                )
+                return [dict(r) for r in cur.fetchall()]
+    except Exception:
+        return []
+
 
 def classify_issue(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "classify_issue")
+
+    # ── Block guest users ─────────────────────────────────
+    user_id = state.get("user_id", "")
+    if user_id.endswith("@guest.com"):
+        return {
+            **state,
+            "issue_type":     "guest_blocked",
+            "response":       "Guest users can only ask about products. Please sign up or log in to access support.",
+            "total_tokens":   state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    # Turn 2: user is responding with their order selection
+    if state["session_id"] in _support_pending:
+        user_input = state["current_input"].strip()
+        delivered  = _support_pending[state["session_id"]].get("delivered_orders", [])
+
+        looks_like_selection = (
+            user_input.isdigit() or
+            any(o["order_id"].upper() in user_input.upper() for o in delivered)
+        )
+
+        if looks_like_selection:
+            pending  = _support_pending.pop(state["session_id"])
+            order_id = None
+            if user_input.isdigit():
+                idx = int(user_input) - 1
+                if 0 <= idx < len(delivered):
+                    order_id = delivered[idx]["order_id"]
+            else:
+                for o in delivered:
+                    if o["order_id"].upper() in user_input.upper():
+                        order_id = o["order_id"]
+                        break
+            if not order_id and delivered:
+                order_id = delivered[0]["order_id"]
+            log.info(f"Order selected: {order_id}")
+            return {
+                **state,
+                "current_input": pending["original_message"],
+                "order_id":      order_id,
+                "issue_type":    pending["issue_type"],
+            }
+        else:
+            # New query — discard stale pending and reclassify
+            _support_pending.pop(state["session_id"], None)
+            log.info("Input is not an order selection — discarding pending, reclassifying")
+
+    msg_lower = state["current_input"].lower()
+    for _issue, _keywords in _KEYWORD_OVERRIDES.items():
+        if any(kw in msg_lower for kw in _keywords):
+            log.info(f"Keyword override — issue classified: {_issue}")
+            return {
+                **state,
+                "issue_type":     _issue,
+                "total_tokens":   state.get("total_tokens", 0),
+                "total_cost_usd": state.get("total_cost_usd", 0.0),
+            }
+
     log.info("LLM called")
+    summary = state.get("conversation_summary") or ""
+    recent  = str(state.get("messages", []))
+    history_context = f"{summary}\nRecent: {recent}".strip()
 
     prompt_template = mlflow.genai.load_prompt("prompts:/classify_issue_prompt/1")
     prompt = prompt_template.format(
         customer_message = state['current_input'],
-        history          = str(state['messages']),
+        history          = history_context,
     )
 
     try:
@@ -31,7 +238,10 @@ def classify_issue(state: AgentState) -> AgentState:
         input_tokens  = usage.get("input_tokens",  0)
         output_tokens = usage.get("output_tokens", 0)
         cost          = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
-        issue_type    = response.content.strip().lower().replace(" ", "_")
+        issue_type = response.content.strip().lower().replace(" ", "_")
+        if issue_type not in _VALID_ISSUE_TYPES:
+            log.warning(f"LLM returned unknown issue type '{issue_type}' — defaulting to general_complaint")
+            issue_type = "general_complaint"
     except Exception as e:
         log.error(f"Classification failed: {e}")
         issue_type    = "general_complaint"
@@ -75,6 +285,7 @@ def assess_severity(state: AgentState) -> AgentState:
     medium_severity_issues = [
         "refund_request", "technical_issue", "billing_inquiry",
         "delayed_delivery", "payment_failed",
+        "cancellation_request", "return_request",
     ]
 
     if issue_type in high_severity_issues:
@@ -98,9 +309,9 @@ def assess_severity(state: AgentState) -> AgentState:
 
 
 def severity_edge(state: AgentState) -> str:
-    if state.get("severity") == "HIGH":
+    if state.get("severity") == "HIGH" or state.get("order_id") == "__PENDING__":
         return "escalation_handler"
-    return "lookup_policy"
+    return "draft_resolution"
 
 
 def lookup_policy(state: AgentState) -> AgentState:
@@ -139,6 +350,36 @@ def lookup_policy(state: AgentState) -> AgentState:
         parent_id   = state.get("mlflow_span_id"),
     )
 
+    # HIGH severity issues need the user to pick their delivered order
+    _HIGH_ORDER_ISSUES = {
+        "damaged_goods", "missing_item", "wrong_item",
+        "warranty_claim", "product_not_as_described",
+    }
+    # MEDIUM severity issues also need order context (refund/return/cancel)
+    _MEDIUM_ORDER_ISSUES = {
+        "refund_request", "return_request", "cancellation_request",
+    }
+
+    issue_type = state.get("issue_type", "general_complaint")
+
+    if not state.get("order_id"):
+        if state.get("severity") == "HIGH" and issue_type in _HIGH_ORDER_ISSUES:
+            orders = _fetch_delivered_orders(state["user_id"])
+        elif issue_type in _MEDIUM_ORDER_ISSUES:
+            # cancellation needs all orders (including pending/in-transit)
+            orders = _fetch_all_orders(state["user_id"])
+        else:
+            orders = []
+
+        if orders:
+            _support_pending[state["session_id"]] = {
+                "original_message": state["current_input"],
+                "delivered_orders": orders,
+                "issue_type":       issue_type,
+            }
+            log.info("Awaiting order selection from user")
+            return {**state, "policy": policy, "order_id": "__PENDING__"}
+
     log.info(f"Policy found: {bool(policy)}")
     return {**state, "policy": policy}
 
@@ -147,8 +388,11 @@ def lookup_policy(state: AgentState) -> AgentState:
 
 def check_history(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "check_history")
-    log.info("Checking complaint history")
 
+    if state.get("order_id") == "__PENDING__":
+        return state
+
+    log.info("Checking complaint history")
     user_id          = state.get("user_id")
     previous_tickets = []
     ticket_count     = 0
@@ -157,7 +401,7 @@ def check_history(state: AgentState) -> AgentState:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT ticket_id, issue_type, priority, status, created_at
+                    """SELECT ticket_id, issue_type, priority, status, created_at, description
                        FROM tickets WHERE user_id = %s
                        ORDER BY created_at DESC LIMIT 5""",
                     [user_id]
@@ -177,12 +421,31 @@ def check_history(state: AgentState) -> AgentState:
         parent_id   = state.get("mlflow_span_id"),
     )
 
+    # Check if an open ticket already exists for this specific order
+    order_id        = state.get("order_id")
+    existing_ticket = None
+    if order_id:
+        for t in previous_tickets:
+            if (order_id in (t.get("description") or "") and
+                    t.get("status") not in ("Closed", "Resolved")):
+                existing_ticket = t
+                break
+
     log.info(f"Found {ticket_count} previous tickets")
-    return {**state, "previous_tickets": previous_tickets, "ticket_count": ticket_count}
+    return {
+        **state,
+        "previous_tickets": previous_tickets,
+        "ticket_count":     ticket_count,
+        "ticket_id":        existing_ticket["ticket_id"] if existing_ticket else None,
+    }
 
 
 def assign_priority(state: AgentState) -> AgentState:
-    log          = get_log(state["request_id"], "support_agent", "assign_priority")
+    log = get_log(state["request_id"], "support_agent", "assign_priority")
+
+    if state.get("order_id") == "__PENDING__" or state.get("ticket_id"):
+        return state
+
     ticket_count = state.get("ticket_count", 0)
     severity     = state.get("severity", "LOW")
 
@@ -211,9 +474,16 @@ def assign_priority(state: AgentState) -> AgentState:
 
 
 def create_ticket(state: AgentState) -> AgentState:
-    log       = get_log(state["request_id"], "support_agent", "create_ticket")
+    log = get_log(state["request_id"], "support_agent", "create_ticket")
+
+    # Skip if awaiting order selection or an existing ticket was already found
+    if state.get("order_id") == "__PENDING__" or state.get("ticket_id"):
+        return state
+
     log.info("Tool called: create_ticket")
-    ticket_id = f"TKT{str(uuid.uuid4())[:8].upper()}"
+    ticket_id   = f"TKT{str(uuid.uuid4())[:8].upper()}"
+    order_ref   = f"[Order: {state.get('order_id')}] " if state.get("order_id") else ""
+    description = (order_ref + state["current_input"])[:500]
 
     try:
         with get_conn() as conn:
@@ -231,7 +501,7 @@ def create_ticket(state: AgentState) -> AgentState:
                         state.get("severity"),
                         state.get("priority"),
                         "Open",
-                        state["current_input"][:500],
+                        description,
                     ]
                 )
         log.info(f"Ticket created: {ticket_id}")
@@ -270,7 +540,7 @@ def draft_resolution(state: AgentState) -> AgentState:
     policy      = state.get("policy", {})
     ticket_id   = state.get("ticket_id")
     prompt_template = mlflow.genai.load_prompt("prompts:/draft_resolution_prompt/1")
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime
 
     prompt = prompt_template.format(
     customer_message = state['current_input'],
@@ -318,19 +588,50 @@ def draft_resolution(state: AgentState) -> AgentState:
 
 
 def generate_escalation_response(state: AgentState) -> AgentState:
-    log       = get_log(state["request_id"], "support_agent", "generate_escalation_response")
-    log.info("LLM called")
+    log = get_log(state["request_id"], "support_agent", "generate_escalation_response")
 
-    ticket_id   = state.get("ticket_id", "N/A")
-    priority    = state.get("priority",  "PRIORITY_3")
-    policy      = state.get("policy",    {})
-    priority_sla = {
+    # Awaiting order selection — show the user their delivered orders
+    if state.get("order_id") == "__PENDING__":
+        pending   = _support_pending.get(state["session_id"], {})
+        delivered = pending.get("delivered_orders", [])
+        import json as _j
+        lines = ["I'd like to help with your issue. Which order is this about?\n"]
+        for i, o in enumerate(delivered, 1):
+            raw = o.get("items", [])
+            if isinstance(raw, str):
+                try:    raw = _j.loads(raw)
+                except Exception: pass
+            items_str = ", ".join(raw) if isinstance(raw, list) else str(raw)
+            lines.append(f"{i}. **{o['order_id']}** — {items_str} (₹{o.get('sales_per_customer', '')})")
+        lines.append("\nType the number or Order ID:")
+        return {**state, "response": "\n".join(lines)}
+
+    ticket_id        = state.get("ticket_id", "N/A")
+    previous_tickets = state.get("previous_tickets") or []
+    priority         = state.get("priority", "PRIORITY_3")
+    policy           = state.get("policy", {})
+    priority_sla     = {
         "PRIORITY_1": "2 hours",
         "PRIORITY_2": "4 hours",
         "PRIORITY_3": "24 hours",
         "PRIORITY_4": "48 hours",
     }
     sla = priority_sla.get(priority, "24 hours")
+
+    # Existing open ticket for this order — no need to create a new one
+    is_existing = any(t.get("ticket_id") == ticket_id for t in previous_tickets)
+    if is_existing:
+        order_id    = state.get("order_id", "")
+        issue_label = (state.get("issue_type") or "issue").replace("_", " ")
+        return {
+            **state,
+            "response": (
+                f"I found an existing open ticket **{ticket_id}** already raised for your "
+                f"**{issue_label}** on order **{order_id}**. "
+                f"Our support team is already working on it and will get back to you within {sla}. "
+                f"No new ticket has been created."
+            ),
+        }
 
     prompt_template = mlflow.genai.load_prompt("prompts:/escalation_response_prompt/1")
     prompt = prompt_template.format(
@@ -378,20 +679,68 @@ def generate_escalation_response(state: AgentState) -> AgentState:
     }
 
 
+def list_tickets_response(state: AgentState) -> AgentState:
+    import re as _re
+    log = get_log(state["request_id"], "support_agent", "list_tickets_response")
+    log.info("Fetching all tickets for user")
+
+    tickets = _fetch_user_tickets(state["user_id"])
+
+    if not tickets:
+        response = "You haven't raised any support tickets yet."
+    else:
+        lines = [f"Here are all your raised tickets ({len(tickets)} total):\n"]
+        for i, t in enumerate(tickets, 1):
+            created  = t.get("created_at")
+            date_str = created.strftime("%b %d, %Y") if created else "N/A"
+            issue    = (t.get("issue_type") or "general").replace("_", " ").title()
+            status   = t.get("status", "N/A")
+            priority = t.get("priority", "N/A")
+            tid      = t.get("ticket_id", "N/A")
+            desc     = t.get("description") or ""
+            m        = _re.search(r'\[Order:\s*([\w\d]+)\]', desc)
+            order_id = m.group(1) if m else "N/A"
+            lines.append(f"{i}. **{tid}** | Order: {order_id} | {issue} | Status: {status} | {priority} | {date_str}")
+        response = "\n".join(lines)
+
+    log_tool_span(
+        span_name   = "list_tickets_response",
+        tool_name   = "postgresql_tickets_table",
+        tool_input  = {"user_id": state["user_id"]},
+        tool_output = {"ticket_count": len(tickets)},
+        trace_id    = state.get("mlflow_trace_id"),
+        parent_id   = state.get("mlflow_span_id"),
+    )
+
+    log.info(f"Listed {len(tickets)} tickets")
+    return {**state, "response": response}
+
+
+def classify_issue_edge(state: AgentState) -> str:
+    if state.get("issue_type") == "guest_blocked":
+        return "save_to_db"
+    if state.get("issue_type") == "show_tickets":
+        return "list_tickets_response"
+    return "assess_severity"
+
+
 def save_to_db(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "save_to_db")
     log.info("Saving response to DB")
-    save_message(
-        session_id    = state["session_id"],
-        role          = "assistant",
-        content       = state["response"],
-        agent_name    = "support_agent",
-        token_usage   = {
-            "total_tokens":   state["total_tokens"],
-            "total_cost_usd": state["total_cost_usd"],
-        },
-        mlflow_run_id = state.get("mlflow_run_id"),
-    )
+    with mlflow.start_span(name="save_to_db", span_type="TOOL") as span:
+        span.set_inputs({"session_id": state["session_id"], "role": "assistant"})
+        save_message(
+            session_id    = state["session_id"],
+            role          = "assistant",
+            content       = state["response"],
+            agent_name    = "support_agent",
+            token_usage   = {
+                "total_tokens":   state["total_tokens"],
+                "total_cost_usd": state["total_cost_usd"],
+            },
+            mlflow_run_id = state.get("mlflow_run_id"),
+        )
+        span.set_outputs({"status": "saved"})
     log.info("Response saved")
     return state
 
@@ -405,20 +754,26 @@ def build_support_agent():
     graph.add_node("escalation_handler",           build_escalation_subgraph())
     graph.add_node("draft_resolution",             draft_resolution)
     graph.add_node("generate_escalation_response", generate_escalation_response)
+    graph.add_node("list_tickets_response",        list_tickets_response)
     graph.add_node("save_to_db",                   save_to_db)
 
     graph.set_entry_point("classify_issue")
-    graph.add_edge("classify_issue", "assess_severity")
+    graph.add_conditional_edges("classify_issue", classify_issue_edge, {
+        "save_to_db":            "save_to_db",
+        "list_tickets_response": "list_tickets_response",
+        "assess_severity":       "assess_severity",
+    })
+    graph.add_edge("list_tickets_response", "save_to_db")
+    graph.add_edge("assess_severity", "lookup_policy")
 
-    graph.add_conditional_edges("assess_severity", severity_edge, {
+    graph.add_conditional_edges("lookup_policy", severity_edge, {
         "escalation_handler": "escalation_handler",
-        "lookup_policy":      "lookup_policy",
+        "draft_resolution":   "draft_resolution",
     })
 
-    graph.add_edge("lookup_policy",                "draft_resolution")
-    graph.add_edge("escalation_handler",           "lookup_policy")
-    graph.add_edge("draft_resolution",             "save_to_db")
+    graph.add_edge("escalation_handler",           "generate_escalation_response")
     graph.add_edge("generate_escalation_response", "save_to_db")
+    graph.add_edge("draft_resolution",             "save_to_db")
     graph.add_edge("save_to_db",                   END)
 
     return graph.compile()

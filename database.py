@@ -77,13 +77,7 @@ def get_or_create_session(session_id: Optional[str], user_id: str) -> str:
                     [datetime.now(timezone.utc), session_id]
                 )
                 return session_id
-            # else:
-            #     new_id = str(uuid.uuid4())
-            #     cur.execute(
-            #         "INSERT INTO sessions (session_id, user_id, created_at, last_active_at, is_active) VALUES (%s, %s, %s, %s, %s)",
-            #         [new_id, user_id, datetime.now(timezone.utc), datetime.now(timezone.utc), True]
-            #     )
-            #     return new_id
+            
             else:
                 # Check if user has an existing active session within expiry window
                 cutoff = datetime.now(timezone.utc) - timedelta(minutes=config.SESSION_EXPIRY_MINUTES)

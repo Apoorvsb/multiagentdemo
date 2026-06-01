@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+        - name: mlflow
+          image: "{{ .Values.mlflow.image.repository }}:{{ .Values.mlflow.image.tag }}"
+          command:
+            - mlflow
+            - server
+            - --backend-store-uri
+            - sqlite:////mlflow/mlflow.db
+            - --default-artifact-root
+            - {{ .Values.mlflow.artifactRoot }}
+            - --host
+            - "0.0.0.0"
+            - --port
+            - {{ .Values.mlflow.port | quote }}
+            - --allowed-hosts
+            - "*"
+            - --cors-allowed-origins
+            - "*"
+          ports:
+            - containerPort: {{ .Values.mlflow.port }}
+          resources:
+            {{- toYaml .Values.mlflow.resources | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.mlflow.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 24
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.mlflow.port }}
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            failureThreshold: 3
+          volumeMounts:
+            - name: mlflow-storage
+              mountPath: /mlflow
+      volumes:
+        - name: mlflow-storage
+          persistentVolumeClaim:
+            claimName: mlflow-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: {{ .Values.mlflow.storage }}

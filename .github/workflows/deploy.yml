@@ -1,0 +1,218 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_APP:      ${{ secrets.DOCKER_USERNAME }}/multiagent-app
+  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/multiagent-frontend
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 1 — Lint and Format
+# ──────────────────────────────────────────────────────────────────────────────
+jobs:
+  lint:
+    name: "Stage 1 — Lint & Format"
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linting tools
+        run: pip install flake8 black
+
+      - name: flake8 — style check
+        run: |
+          flake8 . \
+            --max-line-length=120 \
+            --exclude=.git,__pycache__,venv,.github,mlruns,mlflow_artifacts
+
+      - name: black — format check
+        run: |
+          black --check --line-length 120 \
+            --exclude '/(\.git|__pycache__|venv|\.github|mlruns|mlflow_artifacts)/' \
+            .
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 2 — Unit Tests
+# ──────────────────────────────────────────────────────────────────────────────
+  test:
+    name: "Stage 2 — Unit Tests"
+    runs-on: self-hosted
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=. \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            --cov-fail-under=70 \
+            -q
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 3 — LLM Evaluation
+# ──────────────────────────────────────────────────────────────────────────────
+  evaluate:
+    name: "Stage 3 — LLM Evaluation"
+    runs-on: self-hosted
+    needs: test
+    env:
+      GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+      MLFLOW_TRACKING_URI:      ${{ secrets.MLFLOW_TRACKING_URI }}
+      MLFLOW_EXPERIMENT_NAME:   ci-evaluation
+      POSTGRES_HOST:            localhost
+      POSTGRES_PORT:            "5432"
+      POSTGRES_DB:              multiagent
+      POSTGRES_USER:            postgres
+      POSTGRES_PASSWORD:        ${{ secrets.POSTGRES_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install evaluation dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install deepeval
+
+      - name: Run LLM evaluation
+        run: python eval/run_eval.py
+
+      - name: Upload evaluation artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-reports
+          path: |
+            eval/reports/eval_report.json
+            eval/reports/eval_report.html
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 4 — Docker Build
+# ──────────────────────────────────────────────────────────────────────────────
+  docker-build:
+    name: "Stage 4 — Docker Build"
+    runs-on: self-hosted
+    needs: evaluate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app image
+        run: docker build -t ${{ env.IMAGE_APP }}:${{ github.sha }} .
+
+      - name: Build frontend image
+        run: docker build -t ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ./frontend
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 5 — Push to Registry
+# ──────────────────────────────────────────────────────────────────────────────
+  push-registry:
+    name: "Stage 5 — Push to Registry"
+    runs-on: self-hosted
+    needs: docker-build
+    steps:
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Tag and push app image
+        run: |
+          docker tag ${{ env.IMAGE_APP }}:${{ github.sha }} ${{ env.IMAGE_APP }}:latest
+          docker push ${{ env.IMAGE_APP }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_APP }}:latest
+
+      - name: Tag and push frontend image
+        run: |
+          docker tag ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} ${{ env.IMAGE_FRONTEND }}:latest
+          docker push ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_FRONTEND }}:latest
+
+      - name: Docker logout
+        if: always()
+        run: docker logout
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 6 — Deploy to Kubernetes  (main branch pushes only)
+# ──────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: "Stage 6 — Deploy to Kubernetes"
+    runs-on: self-hosted
+    needs: push-registry
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Helm upgrade / install
+        run: |
+          helm upgrade --install multiagent ./helm/multiagentdemo \
+            --namespace multiagent \
+            --create-namespace \
+            --values helm/multiagentdemo/values.yaml \
+            --set app.image.tag=${{ github.sha }} \
+            --set frontend.image.tag=${{ github.sha }} \
+            --set app.image.repository=${{ env.IMAGE_APP }} \
+            --set frontend.image.repository=${{ env.IMAGE_FRONTEND }} \
+            --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }} \
+            --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
+            --set mlflow.trackingUri=${{ secrets.MLFLOW_TRACKING_URI }} \
+            --wait \
+            --timeout 5m
+
+      - name: Smoke test — GET /health
+        id: smoke
+        run: |
+          for i in $(seq 1 10); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i: got $STATUS, retrying in 10s..."
+            sleep 10
+          done
+          echo "Smoke test failed after 10 attempts"
+          exit 1
+
+      - name: Rollback on smoke-test failure
+        if: failure() && steps.smoke.outcome == 'failure'
+        run: |
+          echo "Rolling back Helm release..."
+          helm rollback multiagent --namespace multiagent
+          echo "Rollback complete"

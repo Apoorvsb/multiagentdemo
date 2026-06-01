@@ -2,6 +2,7 @@
 
 import uuid
 import time
+import asyncio
 import logging
 import mlflow
 import psycopg2
@@ -29,6 +30,35 @@ from mlflow_helpers import setup_mlflow
 from pipeline import pipeline
 from opentelemetry import context as otel_context
 from opentelemetry.propagate import inject
+
+# ── Sliding window memory ─────────────────────────────────────────
+WINDOW_SIZE = 4  # recent messages kept verbatim (2 user+assistant exchanges)
+
+def build_sliding_window(history: list) -> tuple[str, list]:
+    """
+    Split session history into a compact summary of older messages and a
+    verbatim window of the most recent ones.  No LLM — summary is built
+    deterministically so it costs zero tokens to produce.
+    """
+    if len(history) <= WINDOW_SIZE:
+        return "", history
+
+    older  = history[:-WINDOW_SIZE]
+    recent = history[-WINDOW_SIZE:]
+
+    # Summarise at most the last 6 older messages so the summary stays
+    # compact (~80-120 tokens) regardless of session length.
+    sample = older[-6:]
+    parts  = []
+    for m in sample:
+        role    = m.get("role", "?")
+        content = (m.get("content") or "").replace("\n", " ").strip()
+        snippet = content[:70] + ("…" if len(content) > 70 else "")
+        parts.append(f"[{role}]: {snippet}")
+
+    summary = "Earlier in this session — " + " → ".join(parts)
+    return summary, recent
+
 # ── Prometheus metrics ─────────────────────────────────────
 REQUEST_COUNT = Counter(
     "multiagent_requests_total",
@@ -193,7 +223,6 @@ async def register(body: RegisterRequest):
             "message":       "User already exists. Logged in successfully.",
             "existing_user": True
         }
-
     get_or_create_user(user_id)
     update_user_metadata(user_id, {"name": body.name, "email": body.email})
     session_id = get_or_create_session(None, user_id)
@@ -204,6 +233,110 @@ async def register(body: RegisterRequest):
         "name":          body.name,
         "message":       "Registration successful.",
         "existing_user": False
+    }
+
+
+# ── Admin: manually seed demo orders for any user ────────────────
+class SeedOrdersRequest(BaseModel):
+    user_id: str
+    count:   Optional[int] = 10
+
+@app.post("/admin/seed-orders")
+async def seed_orders(body: SeedOrdersRequest):
+    import random, string, json as _json
+    from database import get_conn
+    from datetime import date, timedelta
+    import psycopg2.extras as _extras
+
+    if not user_exists(body.user_id):
+        raise HTTPException(status_code=404, detail=f"User '{body.user_id}' not found. Register first.")
+
+    TEMPLATES = [
+        {"status": "DELIVERED",        "carrier": "FedEx",      "items": ["Wireless Mouse"],                   "price": 499,   "days_ago": 20, "eta_offset": -10, "mode": "Standard Class", "risk": 0},
+        {"status": "DELIVERED",        "carrier": "Ekart",      "items": ["Laptop Stand", "Laptop Bag"],       "price": 1899,  "days_ago": 45, "eta_offset": -30, "mode": "First Class",    "risk": 0},
+        {"status": "DELIVERED",        "carrier": "Delhivery",  "items": ["Wireless Earbuds"],                 "price": 3499,  "days_ago": 30, "eta_offset": -20, "mode": "Express",        "risk": 0},
+        {"status": "DELIVERED",        "carrier": "Bluedart",   "items": ["Smart Watch"],                      "price": 8999,  "days_ago": 60, "eta_offset": -45, "mode": "First Class",    "risk": 0},
+        {"status": "DELIVERED",        "carrier": "FedEx",      "items": ["Noise Cancelling Headphones"],      "price": 12999, "days_ago": 25, "eta_offset": -15, "mode": "Express",        "risk": 0},
+        {"status": "IN_TRANSIT",       "carrier": "Delhivery",  "items": ["Mechanical Keyboard", "Mousepad"], "price": 2499,  "days_ago": 5,  "eta_offset":  3,  "mode": "Express",        "risk": 0},
+        {"status": "IN_TRANSIT",       "carrier": "FedEx",      "items": ["Gaming Monitor"],                   "price": 18999, "days_ago": 4,  "eta_offset":  5,  "mode": "First Class",    "risk": 0},
+        {"status": "PENDING",          "carrier": "Bluedart",   "items": ["USB Hub", "HDMI Cable"],            "price": 599,   "days_ago": 2,  "eta_offset":  7,  "mode": "Standard Class", "risk": 0},
+        {"status": "PENDING",          "carrier": "Delhivery",  "items": ["Webcam"],                           "price": 1999,  "days_ago": 1,  "eta_offset":  8,  "mode": "Standard Class", "risk": 0},
+        {"status": "OUT_FOR_DELIVERY", "carrier": "Ekart",      "items": ["Mechanical Keyboard"],              "price": 4999,  "days_ago": 7,  "eta_offset":  0,  "mode": "Express",        "risk": 0},
+        {"status": "DELAYED",          "carrier": "FedEx",      "items": ["Webcam"],                           "price": 1999,  "days_ago": 10, "eta_offset": -1,  "mode": "Express",        "risk": 1},
+        {"status": "RETURNED",         "carrier": "Delhivery",  "items": ["Defective Charger"],                "price": 299,   "days_ago": 40, "eta_offset": -25, "mode": "Standard Class", "risk": 0},
+    ]
+
+    today     = date.today()
+    templates = TEMPLATES[:body.count] if body.count <= len(TEMPLATES) else TEMPLATES
+
+    created = []
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                for t in templates:
+                    order_id = "ORD" + "".join(random.choices(string.digits, k=6))
+                    cur.execute("""
+                        INSERT INTO orders (
+                            order_id, user_id, status, carrier, items,
+                            sales_per_customer, estimated_delivery, order_date,
+                            shipping_mode, late_delivery_risk
+                        ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                        ON CONFLICT (order_id) DO NOTHING
+                    """, [
+                        order_id,
+                        body.user_id,
+                        t["status"],
+                        t["carrier"],
+                        _json.dumps(t["items"]),
+                        t["price"],
+                        str(today + timedelta(days=t["eta_offset"])),
+                        str(today - timedelta(days=t["days_ago"])),
+                        t["mode"],
+                        t["risk"],
+                    ])
+                    tracking_number = t["carrier"][:2].upper() + "".join(random.choices(string.digits, k=8))
+                    cur.execute("""
+                        UPDATE orders SET tracking_number = %s WHERE order_id = %s
+                    """, [tracking_number, order_id])
+                    events = [
+                        {"time": str(today - timedelta(days=t["days_ago"])) + "T09:00:00Z", "status": "Order placed"},
+                        {"time": str(today - timedelta(days=t["days_ago"] - 1)) + "T14:00:00Z", "status": "Picked up from seller"},
+                    ]
+                    if t["status"] not in ("PENDING",):
+                        events.append({"time": str(today - timedelta(days=max(t["days_ago"] - 2, 0))) + "T06:00:00Z", "status": "In transit"})
+                    if t["status"] in ("OUT_FOR_DELIVERY", "DELIVERED"):
+                        events.append({"time": str(today + timedelta(days=t["eta_offset"])) + "T08:00:00Z", "status": "Out for delivery"})
+                    if t["status"] == "DELIVERED":
+                        events.append({"time": str(today + timedelta(days=t["eta_offset"])) + "T15:00:00Z", "status": "Delivered"})
+                    if t["status"] == "DELAYED":
+                        events.append({"time": str(today - timedelta(days=1)) + "T10:00:00Z", "status": "Delivery delayed"})
+                    if t["status"] == "RETURNED":
+                        events.append({"time": str(today + timedelta(days=t["eta_offset"])) + "T11:00:00Z", "status": "Return initiated"})
+                    cur.execute("""
+                        INSERT INTO tracking_events
+                            (tracking_number, carrier, current_location, status,
+                             last_update, estimated_delivery, events)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s)
+                        ON CONFLICT (tracking_number) DO NOTHING
+                    """, [
+                        tracking_number,
+                        t["carrier"],
+                        t["carrier"] + " Hub",
+                        t["status"],
+                        str(today) + "T00:00:00Z",
+                        str(today + timedelta(days=t["eta_offset"])) + "T00:00:00Z",
+                        _json.dumps(events),
+                    ])
+                    created.append({"order_id": order_id, "tracking_number": tracking_number, "status": t["status"], "items": t["items"]})
+            conn.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Seed failed: {e}")
+
+    return {
+        "user_id":        body.user_id,
+        "orders_created": len(created),
+        "orders":         created,
+        "message":        f"Successfully seeded {len(created)} demo orders for {body.user_id}.",
     }
 
 
@@ -291,10 +424,14 @@ async def chat(
             }
         )
 
-    # ── Load history ──────────────────────────────────────────────
+    # ── Load history & apply sliding window ──────────────────────
     history = load_conversation_history(session_id)
-    history = history[-10:]
-    log.info(f"Session loaded | session_id={session_id} | history={len(history)} messages")
+    conv_summary, recent_messages = build_sliding_window(history)
+    log.info(
+        f"Session loaded | session_id={session_id} | "
+        f"total={len(history)} | window={len(recent_messages)} | "
+        f"summarised={len(history) - len(recent_messages)}"
+    )
 
     # ── Save user message ─────────────────────────────────────────
     save_message(session_id=session_id, role="user", content=body.message)
@@ -304,80 +441,89 @@ async def chat(
         session_id    = session_id,
         user_id       = user_id,
         request_id    = request_id,
-        messages      = history,
+        messages      = recent_messages,
         current_input = body.message,
     )
+    state["conversation_summary"] = conv_summary
 
-    # ── Run pipeline under MLflow run ─────────────────────────────
-    with mlflow.start_run() as run:
-        run_id = run.info.run_id
-        mlflow.set_tags({
-            "session_id": session_id,
-            "user_id":    user_id,
-            "request_id": request_id,
-            "endpoint":   "/chat",
-        })
+    # ── Run pipeline (with optional MLflow tracing) ───────────────
+    result = None
+    run_id = None
+    latency = 0
 
-        state["mlflow_run_id"] = run_id
-
+    def _mlflow_reachable() -> bool:
+        import socket
         try:
-            # Capture trace context and propagate to LangGraph nodes
-            from opentelemetry.propagate import inject, extract
-            from opentelemetry import context as otel_context
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect(('mlflow', 5000))
+            s.close()
+            return True
+        except Exception:
+            return False
 
-            carrier = {}
-            inject(carrier)
+    try:
+        if not _mlflow_reachable():
+            raise RuntimeError("MLflow not reachable")
+        with mlflow.start_run() as run:
+            run_id = run.info.run_id
+            mlflow.set_tags({
+                "session_id": session_id,
+                "user_id":    user_id,
+                "request_id": request_id,
+                "endpoint":   "/chat",
+            })
+            state["mlflow_run_id"] = run_id
 
             with mlflow.start_span(name="multi_agent_pipeline", span_type="CHAIN") as root_span:
                 state["mlflow_trace_id"] = root_span.trace_id
                 state["mlflow_span_id"]  = root_span.span_id
                 root_span.set_inputs({"message": body.message, "user_id": user_id})
-
-                # Attach context so LangGraph nodes can find it
-                ctx   = extract(carrier)
-                token = otel_context.attach(ctx)
-                try:
-                    result = pipeline.invoke(state)
-                finally:
-                    otel_context.detach(token)
+                result = pipeline.invoke(state)
                 root_span.set_outputs({"response": result.get("response", "")[:200]})
                 root_span.set_attribute("intent",         result.get("intent", ""))
                 root_span.set_attribute("total_tokens",   result["total_tokens"])
-                root_span.set_attribute("total_cost_usd", result["total_cost_usd"])    
-
-            mlflow.set_tag("agent_selected", result.get("intent", "unknown"))
+                root_span.set_attribute("total_cost_usd", result["total_cost_usd"])
 
             agent = result.get("intent", "unknown")
             mlflow.set_tag("agent_selected", agent)
+            latency = (time.time() - start) * 1000
+            mlflow.log_metrics({
+                "total_tokens":   result["total_tokens"],
+                "total_cost_usd": result["total_cost_usd"],
+                "latency_ms":     latency,
+            })
+            mlflow.log_table(
+                data={
+                    "role":    ["user",       "assistant"],
+                    "content": [body.message, result.get("response", "")],
+                    "agent":   ["",           result.get("intent", "")],
+                    "tokens":  [0,            result["total_tokens"]],
+                },
+                artifact_file="chat_history.json"
+            )
 
-            # ── Prometheus metrics ────────────────────────────
-            REQUEST_COUNT.labels(endpoint="/chat", agent=agent, status="success").inc()
-            REQUEST_LATENCY.labels(agent=agent).observe(time.time() - start)
-            TOKEN_USAGE.labels(agent=agent).inc(result["total_tokens"])
+    except Exception as mlflow_err:
+        log.warning(f"MLflow tracing unavailable: {mlflow_err}")
+        if result is None:
+            try:
+                result = pipeline.invoke(state)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                log.error(f"Pipeline failed: {e}")
+                ERROR_COUNT.labels(agent="unknown").inc()
+                REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
+                raise HTTPException(status_code=500, detail=str(e))
 
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            log.error(f"Pipeline failed: {e}")
-            ERROR_COUNT.labels(agent="unknown").inc()
-            REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
-            raise HTTPException(status_code=500, detail=str(e))
-
+    agent = result.get("intent", "unknown") if result else "unknown"
+    if latency == 0:
         latency = (time.time() - start) * 1000
-        mlflow.log_metrics({
-            "total_tokens":   result["total_tokens"],
-            "total_cost_usd": result["total_cost_usd"],
-            "latency_ms":     latency,
-        })
-        mlflow.log_table(
-        data={
-            "role":    ["user",        "assistant"],
-            "content": [body.message,  result.get("response", "")],
-            "agent":   ["",            result.get("intent", "")],
-            "tokens":  [0,             result["total_tokens"]],
-        },
-        artifact_file="chat_history.json"
-    )
+
+    # ── Prometheus metrics ────────────────────────────────────────
+    REQUEST_COUNT.labels(endpoint="/chat", agent=agent, status="success").inc()
+    REQUEST_LATENCY.labels(agent=agent).observe(time.time() - start)
+    TOKEN_USAGE.labels(agent=agent).inc(result["total_tokens"])
 
     # ── Save assistant response ───────────────────────────────────
     save_message(

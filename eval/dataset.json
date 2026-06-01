@@ -68,5 +68,292 @@
     "input": "Which of my orders are pending?",
     "expected": "You have one pending order: ORD1437 containing RAM and SSD, being shipped via Delhivery with an estimated delivery date of 2024-06-08.",
     "context": "User pending orders: ORD1437 PENDING Delhivery Items: RAM, SSD ETA 2024-06-08."
+  },
+  {
+    "id": "eval_011",
+    "agent": "order_agent",
+    "input": "How many orders do I have?",
+    "expected": "You have 6 orders in total — 2 delivered, 2 in transit, 1 out for delivery, and 1 pending.",
+    "context": "User has 6 orders total: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1419 IN_TRANSIT, ORD1455 DELIVERED, ORD1401 DELIVERED."
+  },
+  {
+    "id": "eval_012",
+    "agent": "order_agent",
+    "input": "Show me all my delivered orders",
+    "expected": "You have two delivered orders: ORD1455 (Smartphone via Delhivery, delivered 2024-03-05) and ORD1401 (Hard Drive via Ekart, delivered 2024-01-06).",
+    "context": "Delivered orders: ORD1455 DELIVERED Delhivery Smartphone 2024-03-05, ORD1401 DELIVERED Ekart Hard Drive 2024-01-06."
+  },
+  {
+    "id": "eval_013",
+    "agent": "order_agent",
+    "input": "Is ORD1473 out for delivery?",
+    "expected": "Yes, ORD1473 is out for delivery with Delhivery and is expected to arrive by 2024-04-23. It contains Books.",
+    "context": "Order ORD1473. Status: OUT_FOR_DELIVERY. Carrier: Delhivery. Items: Books. ETA: 2024-04-23."
+  },
+  {
+    "id": "eval_014",
+    "agent": "order_agent",
+    "input": "Do I have any orders with FedEx?",
+    "expected": "Yes, you have one order with FedEx: ORD1419 containing a Laptop Bag, currently in transit with an estimated delivery of 2024-04-11.",
+    "context": "FedEx orders: ORD1419 IN_TRANSIT FedEx Laptop Bag ETA 2024-04-11."
+  },
+  {
+    "id": "eval_015",
+    "agent": "order_agent",
+    "input": "What items did I order in ORD1437?",
+    "expected": "ORD1437 contains RAM and SSD. The order is pending with Delhivery and the estimated delivery date is 2024-06-08.",
+    "context": "Order ORD1437. Status: PENDING. Carrier: Delhivery. Items: RAM, SSD. ETA: 2024-06-08."
+  },
+  {
+    "id": "eval_016",
+    "agent": "order_agent",
+    "input": "Which of my orders are out for delivery?",
+    "expected": "You have one order out for delivery: ORD1473 with Books via Delhivery, expected by 2024-04-23.",
+    "context": "Out for delivery orders: ORD1473 OUT_FOR_DELIVERY Delhivery Books ETA 2024-04-23."
+  },
+  {
+    "id": "eval_017",
+    "agent": "order_agent",
+    "input": "What is the tracking info for ORD1419?",
+    "expected": "ORD1419 is being tracked with FedEx. Current status is in transit and expected delivery is 2024-04-11. It contains a Laptop Bag.",
+    "context": "Order ORD1419. Status: IN_TRANSIT. Carrier: FedEx. Items: Laptop Bag. ETA: 2024-04-11."
+  },
+  {
+    "id": "eval_018",
+    "agent": "order_agent",
+    "input": "Has my Hard Drive been delivered?",
+    "expected": "Yes, ORD1401 containing a Hard Drive has been delivered via Ekart on 2024-01-06.",
+    "context": "Order ORD1401. Status: DELIVERED. Carrier: Ekart. Items: Hard Drive. ETA: 2024-01-06."
+  },
+  {
+    "id": "eval_019",
+    "agent": "order_agent",
+    "input": "Show me all my orders",
+    "expected": "You have 6 orders across all statuses: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1419 IN_TRANSIT, ORD1455 DELIVERED, ORD1401 DELIVERED.",
+    "context": "All user orders: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1419 IN_TRANSIT, ORD1455 DELIVERED, ORD1401 DELIVERED."
+  },
+  {
+    "id": "eval_020",
+    "agent": "order_agent",
+    "input": "What is the delivery date for ORD1491?",
+    "expected": "ORD1491 containing a Motherboard is expected to be delivered by 2024-05-28 via Delhivery. It is currently in transit.",
+    "context": "Order ORD1491. Status: IN_TRANSIT. Carrier: Delhivery. Items: Motherboard. ETA: 2024-05-28."
+  },
+  {
+    "id": "eval_021",
+    "agent": "product_agent",
+    "input": "Find me good earphones under 2000",
+    "expected": "Top earphone recommendations under ₹2000 with price, rating, and key features listed for each product.",
+    "context": "User wants earphones with budget up to ₹2000. Multiple earphone options available across wired and wireless categories at different price points."
+  },
+  {
+    "id": "eval_022",
+    "agent": "product_agent",
+    "input": "I need a laptop for college students",
+    "expected": "Laptop recommendations suitable for college use, highlighting portability, performance, and value for money.",
+    "context": "User wants laptops for student use. Available laptops with Ryzen/Intel processors, 8GB RAM, SSD storage across ₹35000–₹60000 range."
+  },
+  {
+    "id": "eval_023",
+    "agent": "product_agent",
+    "input": "Show me top rated smartphones",
+    "expected": "Highly rated smartphones listed with price, rating, and standout feature for each. Best value and best-rated picks highlighted.",
+    "context": "User wants high-rated smartphones. Available phones with ratings above 4.0, ranging from mid-range to flagship segment."
+  },
+  {
+    "id": "eval_024",
+    "agent": "product_agent",
+    "input": "Find me something good for making tea",
+    "expected": "Electric kettle or tea maker recommendations with price, rating, and relevant features for tea preparation.",
+    "context": "User wants a product for making tea. Relevant appliances: electric kettles with fast-boil, auto shut-off, and keep-warm features."
+  },
+  {
+    "id": "eval_025",
+    "agent": "product_agent",
+    "input": "Find me energy saving appliances",
+    "expected": "Energy-efficient appliance recommendations with BEE star ratings and power consumption details mentioned.",
+    "context": "User wants energy saving appliances. Available products: BLDC fans, LED lights, and 5-star rated appliances with low power consumption."
+  },
+  {
+    "id": "eval_026",
+    "agent": "product_agent",
+    "input": "What should I buy for my new home?",
+    "expected": "Essential home appliance recommendations from diverse categories like cooker, mixer, and kitchen tools, covering basic needs.",
+    "context": "User wants home appliances for a new home. Broad query covering multiple essential kitchen and home appliance categories."
+  },
+  {
+    "id": "eval_027",
+    "agent": "product_agent",
+    "input": "Show me boAt brand earphones",
+    "expected": "boAt brand earphone recommendations with price, rating, and features like battery life, bass quality, and water resistance.",
+    "context": "User specifically wants boAt brand earphones. Available boAt models: Bassheads wired, Rockerz wireless neckband, Airdopes true wireless."
+  },
+  {
+    "id": "eval_028",
+    "agent": "product_agent",
+    "input": "I want a coffee maker for home use",
+    "expected": "Coffee maker recommendations for home use, with price, wattage, cup capacity, and brewing features highlighted.",
+    "context": "User wants a home coffee maker. Available: drip coffee makers from budget to premium, ranging ₹1200–₹3500."
+  },
+  {
+    "id": "eval_029",
+    "agent": "product_agent",
+    "input": "Find me a budget pressure cooker",
+    "expected": "Budget-friendly pressure cooker recommendations with ISI certification, safety features, and capacity details.",
+    "context": "User wants a budget pressure cooker. Available: aluminum and stainless steel pressure cookers from ₹700 to ₹1800."
+  },
+  {
+    "id": "eval_030",
+    "agent": "product_agent",
+    "input": "What are the best blenders available?",
+    "expected": "Top blender recommendations with motor wattage, jar capacity, and durability features highlighted for each.",
+    "context": "User wants the best blenders. Available: mixer-grinder blenders from 500W to 900W with stainless steel jars."
+  },
+  {
+    "id": "eval_031",
+    "agent": "product_agent",
+    "input": "Recommend a good microwave for baking",
+    "expected": "Convection microwave recommendations with auto-cook menus, baking presets, and capacity suitable for home baking.",
+    "context": "User wants a microwave for baking. Relevant: convection microwaves with 20–35L capacity and baking/grill modes."
+  },
+  {
+    "id": "eval_032",
+    "agent": "product_agent",
+    "input": "Show me must have kitchen appliances",
+    "expected": "Essential kitchen appliance recommendations from diverse categories — cooker, mixer, kettle — covering the most useful kitchen tools.",
+    "context": "Broad intent query for must-have kitchen appliances. Diversity filter ensures one product per appliance type across all categories."
+  },
+  {
+    "id": "eval_033",
+    "agent": "product_agent",
+    "input": "I'm looking for a toaster for breakfast",
+    "expected": "Toaster recommendations with browning settings, slice capacity, and ease-of-cleaning features highlighted.",
+    "context": "User wants a toaster for breakfast. Available: 2-slice and 4-slice pop-up toasters from ₹700 to ₹2300."
+  },
+  {
+    "id": "eval_034",
+    "agent": "product_agent",
+    "input": "Find me a good water bottle for the gym",
+    "expected": "Gym water bottle recommendations with insulation, leak-proof design, and capacity details for each option.",
+    "context": "User wants a water bottle for gym use. Available: stainless steel insulated and BPA-free plastic bottles from ₹299 to ₹799."
+  },
+  {
+    "id": "eval_035",
+    "agent": "product_agent",
+    "input": "What's a good gift for someone who loves cooking?",
+    "expected": "Premium kitchen appliance gift recommendations with price, rating, and what makes each a great gift for a cooking enthusiast.",
+    "context": "User wants kitchen gift ideas for a cooking enthusiast. Relevant: high-rated coffee makers, mixer grinders, and pressure cookers."
+  },
+  {
+    "id": "eval_036",
+    "agent": "support_agent",
+    "input": "show me my tickets",
+    "expected": "A list of all support tickets raised by the user showing ticket ID, issue type, status, priority, and date.",
+    "context": "User wants to view all their raised support tickets. Expected response lists tickets with ticket ID, order reference, issue type, status (Open/Closed/Resolved), priority level, and creation date."
+  },
+  {
+    "id": "eval_037",
+    "agent": "support_agent",
+    "input": "my laptop arrived with a cracked screen",
+    "expected": "Acknowledgement of damaged goods issue, ticket ID created, priority assigned, SLA for resolution mentioned, and apology offered.",
+    "context": "Issue type: damaged_goods. Severity: HIGH. A new support ticket should be created with PRIORITY_1 or PRIORITY_2. SLA: 2-4 hours. Policy: replacement or repair within 7 days for physically damaged items delivered in that condition."
+  },
+  {
+    "id": "eval_038",
+    "agent": "support_agent",
+    "input": "I received a wrong product",
+    "expected": "Acknowledgement of wrong item received, ticket created with HIGH priority, SLA mentioned, and next steps for return and replacement provided.",
+    "context": "Issue type: wrong_item. Severity: HIGH. Ticket created. Policy: customer must return the wrong item within 7 days and a replacement will be shipped within 3-5 business days. SLA: 4 hours response time."
+  },
+  {
+    "id": "eval_039",
+    "agent": "support_agent",
+    "input": "there is an item missing from my package",
+    "expected": "Acknowledgement of missing item, ticket created with HIGH priority, SLA and resolution steps mentioned.",
+    "context": "Issue type: missing_item. Severity: HIGH. Ticket created. Policy: missing items investigated within 48 hours and reshipped if confirmed missing. SLA: 4 hours response time for HIGH priority."
+  },
+  {
+    "id": "eval_040",
+    "agent": "support_agent",
+    "input": "I want to raise a warranty claim",
+    "expected": "Acknowledgement of warranty claim, ticket created, warranty policy details mentioned including coverage period and process.",
+    "context": "Issue type: warranty_claim. Severity: HIGH. Ticket created. Policy: warranty claims processed within 5-7 business days. Products covered under manufacturer warranty for 1 year from date of purchase. SLA: 4 hours."
+  },
+  {
+    "id": "eval_041",
+    "agent": "support_agent",
+    "input": "my product is not working as described",
+    "expected": "Acknowledgement of product mismatch issue, ticket created with HIGH priority, resolution options (return/replacement) and SLA mentioned.",
+    "context": "Issue type: product_not_as_described. Severity: HIGH. Ticket created. Policy: if product does not match description, customer eligible for full refund or replacement within 10 days of delivery. SLA: 4 hours."
+  },
+  {
+    "id": "eval_042",
+    "agent": "support_agent",
+    "input": "I cannot access my account",
+    "expected": "Acknowledgement of account access issue, ticket created with HIGH priority, steps to regain access or timeline for resolution mentioned.",
+    "context": "Issue type: account_issue. Severity: HIGH. Ticket created with PRIORITY_1 or PRIORITY_2. Policy: account issues resolved within 2-4 hours by the security team. SLA: 2 hours."
+  },
+  {
+    "id": "eval_043",
+    "agent": "support_agent",
+    "input": "I want a refund for my order",
+    "expected": "Agent asks which order the refund is for, presenting a numbered list of the user's orders to select from.",
+    "context": "Issue type: refund_request. Severity: MEDIUM. Agent should ask which order the refund is for before proceeding. User has multiple orders including ORD3001 Gaming Mouse, ORD3004 Laptop Stand, ORD3006 Wireless Earbuds."
+  },
+  {
+    "id": "eval_044",
+    "agent": "support_agent",
+    "input": "I want to cancel my order",
+    "expected": "Agent asks which order the user wants to cancel, presenting a numbered list of orders to choose from.",
+    "context": "Issue type: cancellation_request. Severity: MEDIUM. Agent should ask which order to cancel. User has orders in various statuses: PENDING ORD3003, IN_TRANSIT ORD3002, DELIVERED ORD3001."
+  },
+  {
+    "id": "eval_045",
+    "agent": "support_agent",
+    "input": "I want to return my product",
+    "expected": "Agent asks which order the return is for, presenting a list of the user's delivered orders to select from.",
+    "context": "Issue type: return_request. Severity: MEDIUM. Agent should ask which delivered order to return. Delivered orders: ORD3001 Gaming Mouse, ORD3004 Laptop Stand, ORD3006 Wireless Earbuds."
+  },
+  {
+    "id": "eval_046",
+    "agent": "support_agent",
+    "input": "I was charged twice for the same order",
+    "expected": "Acknowledgement of double charge, apology, resolution steps including refund of the duplicate charge within specified timeframe.",
+    "context": "Issue type: billing_inquiry. Severity: MEDIUM. Policy: duplicate charges investigated within 2 business days and refunded within 5-7 business days if confirmed. No ticket created — draft resolution provided."
+  },
+  {
+    "id": "eval_047",
+    "agent": "support_agent",
+    "input": "my payment failed but amount was deducted",
+    "expected": "Acknowledgement of payment failure with amount deducted, resolution steps to recover funds, timeframe mentioned.",
+    "context": "Issue type: payment_failed. Severity: MEDIUM. Policy: if payment is deducted but order not confirmed, amount auto-refunded within 5-7 business days. No ticket created — draft resolution provided."
+  },
+  {
+    "id": "eval_048",
+    "agent": "support_agent",
+    "input": "my order is delayed",
+    "expected": "Acknowledgement of delayed delivery, apology, explanation of what steps are being taken and expected resolution timeline.",
+    "context": "Issue type: delayed_delivery. Severity: MEDIUM. Policy: delayed orders investigated within 24 hours. If delay exceeds 5 business days beyond ETA, customer eligible for compensation or cancellation. No ticket created — draft resolution."
+  },
+  {
+    "id": "eval_049",
+    "agent": "support_agent",
+    "input": "my product stopped working after 2 days",
+    "expected": "Acknowledgement of technical issue, empathetic response, troubleshooting steps or warranty/replacement guidance provided.",
+    "context": "Issue type: technical_issue. Severity: LOW. Policy: technical issues within 30 days of purchase eligible for replacement. Troubleshooting steps should be provided first. No ticket created — draft resolution."
+  },
+  {
+    "id": "eval_050",
+    "agent": "support_agent",
+    "input": "I am not happy with my purchase",
+    "expected": "Empathetic acknowledgement of dissatisfaction, apology, options to resolve including return, refund, or feedback escalation.",
+    "context": "Issue type: general_complaint. Severity: LOW. Policy: general complaints acknowledged within 24 hours. Return window is 10 days from delivery. No ticket created — draft resolution."
+  },
+  {
+    "id": "eval_051",
+    "agent": "support_agent",
+    "input": "my item arrived damaged and I also want a refund",
+    "expected": "Issue classified as damaged_goods (HIGH severity wins over refund request), ticket created, replacement or refund options mentioned.",
+    "context": "Issue type: damaged_goods (HIGH) takes priority over refund_request (MEDIUM) when both are mentioned. Ticket created with HIGH priority. Policy: damaged goods eligible for replacement or full refund within 7 days."
   }
 ]

@@ -1,0 +1,30 @@
+# Production overrides — merge with values.yaml via: helm upgrade --values values.yaml --values values-prod.yaml
+
+app:
+  replicas: 3
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+frontend:
+  replicas: 2
+
+postgres:
+  storage: 20Gi
+  storageClass: ssd
+
+mlflow:
+  storage: 10Gi
+
+grafana:
+  storage: 5Gi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: multiagent.example.com
+  tls: true

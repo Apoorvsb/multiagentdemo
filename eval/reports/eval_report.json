@@ -1,17 +1,43 @@
 {
-  "run_timestamp": "2026-05-24T13:04:47.465241+00:00",
-  "git_commit_sha": "7d3114445e336cf89c77d23109a88b1a84995884",
+  "run_timestamp": "2026-05-31T09:38:55.385958+00:00",
+  "git_commit_sha": "fd33858d3c370b422129f3880f60a4e49d732054",
   "branch_name": "main",
   "eval_mode": "mocked",
-  "total_samples": 10,
+  "total_samples": 51,
   "overall_pass": true,
   "failures": [],
   "per_metric_averages": {
-    "relevance": 0.962,
-    "correctness": 0.872,
-    "completeness": 0.992,
-    "hallucination": 1.0,
-    "overall": 0.957
+    "relevance": 0.792,
+    "correctness": 0.721,
+    "completeness": 0.799,
+    "hallucination": 0.897,
+    "overall": 0.802
+  },
+  "per_agent_averages": {
+    "order_agent": {
+      "relevance": 0.931,
+      "correctness": 0.854,
+      "completeness": 0.934,
+      "hallucination": 0.912,
+      "overall": 0.908,
+      "sample_count": 20
+    },
+    "product_agent": {
+      "relevance": 0.755,
+      "correctness": 0.7,
+      "completeness": 0.856,
+      "hallucination": 1.0,
+      "overall": 0.828,
+      "sample_count": 15
+    },
+    "support_agent": {
+      "relevance": 0.652,
+      "correctness": 0.575,
+      "completeness": 0.575,
+      "hallucination": 0.781,
+      "overall": 0.646,
+      "sample_count": 16
+    }
   },
   "thresholds": {
     "relevance": 0.7,
@@ -129,7 +155,519 @@
       "hallucination": 1.0,
       "avg_score": 1.0,
       "passed": true
+    },
+    {
+      "id": "eval_011",
+      "agent": "order_agent",
+      "input": "How many orders do I have?",
+      "relevance": 0.0,
+      "correctness": 0.0,
+      "completeness": 0.0,
+      "hallucination": 0.0,
+      "avg_score": 0.0,
+      "passed": false
+    },
+    {
+      "id": "eval_012",
+      "agent": "order_agent",
+      "input": "Show me all my delivered orders",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    },
+    {
+      "id": "eval_013",
+      "agent": "order_agent",
+      "input": "Is ORD1473 out for delivery?",
+      "relevance": 1.0,
+      "correctness": 0.862,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.966,
+      "passed": true
+    },
+    {
+      "id": "eval_014",
+      "agent": "order_agent",
+      "input": "Do I have any orders with FedEx?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 0.8,
+      "hallucination": 1.0,
+      "avg_score": 0.95,
+      "passed": true
+    },
+    {
+      "id": "eval_015",
+      "agent": "order_agent",
+      "input": "What items did I order in ORD1437?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    },
+    {
+      "id": "eval_016",
+      "agent": "order_agent",
+      "input": "Which of my orders are out for delivery?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    },
+    {
+      "id": "eval_017",
+      "agent": "order_agent",
+      "input": "What is the tracking info for ORD1419?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 0.964,
+      "hallucination": 1.0,
+      "avg_score": 0.991,
+      "passed": true
+    },
+    {
+      "id": "eval_018",
+      "agent": "order_agent",
+      "input": "Has my Hard Drive been delivered?",
+      "relevance": 1.0,
+      "correctness": 1.0,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 1.0,
+      "passed": true
+    },
+    {
+      "id": "eval_019",
+      "agent": "order_agent",
+      "input": "Show me all my orders",
+      "relevance": 1.0,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 0.25,
+      "avg_score": 0.738,
+      "passed": true
+    },
+    {
+      "id": "eval_020",
+      "agent": "order_agent",
+      "input": "What is the delivery date for ORD1491?",
+      "relevance": 1.0,
+      "correctness": 0.8,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.95,
+      "passed": true
+    },
+    {
+      "id": "eval_021",
+      "agent": "product_agent",
+      "input": "Find me good earphones under 2000",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_022",
+      "agent": "product_agent",
+      "input": "I need a laptop for college students",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_023",
+      "agent": "product_agent",
+      "input": "Show me top rated smartphones",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_024",
+      "agent": "product_agent",
+      "input": "Find me something good for making tea",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.85,
+      "passed": true
+    },
+    {
+      "id": "eval_025",
+      "agent": "product_agent",
+      "input": "Find me energy saving appliances",
+      "relevance": 0.9,
+      "correctness": 0.7,
+      "completeness": 0.955,
+      "hallucination": 1.0,
+      "avg_score": 0.889,
+      "passed": true
+    },
+    {
+      "id": "eval_026",
+      "agent": "product_agent",
+      "input": "What should I buy for my new home?",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_027",
+      "agent": "product_agent",
+      "input": "Show me boAt brand earphones",
+      "relevance": 0.853,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.888,
+      "passed": true
+    },
+    {
+      "id": "eval_028",
+      "agent": "product_agent",
+      "input": "I want a coffee maker for home use",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.85,
+      "passed": true
+    },
+    {
+      "id": "eval_029",
+      "agent": "product_agent",
+      "input": "Find me a budget pressure cooker",
+      "relevance": 0.738,
+      "correctness": 0.7,
+      "completeness": 0.818,
+      "hallucination": 1.0,
+      "avg_score": 0.814,
+      "passed": true
+    },
+    {
+      "id": "eval_030",
+      "agent": "product_agent",
+      "input": "What are the best blenders available?",
+      "relevance": 0.985,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.846,
+      "passed": true
+    },
+    {
+      "id": "eval_031",
+      "agent": "product_agent",
+      "input": "Recommend a good microwave for baking",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.85,
+      "passed": true
+    },
+    {
+      "id": "eval_032",
+      "agent": "product_agent",
+      "input": "Show me must have kitchen appliances",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.857,
+      "hallucination": 1.0,
+      "avg_score": 0.814,
+      "passed": true
+    },
+    {
+      "id": "eval_033",
+      "agent": "product_agent",
+      "input": "I'm looking for a toaster for breakfast",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.9,
+      "hallucination": 1.0,
+      "avg_score": 0.825,
+      "passed": true
+    },
+    {
+      "id": "eval_034",
+      "agent": "product_agent",
+      "input": "Find me a good water bottle for the gym",
+      "relevance": 0.847,
+      "correctness": 0.7,
+      "completeness": 1.0,
+      "hallucination": 1.0,
+      "avg_score": 0.887,
+      "passed": true
+    },
+    {
+      "id": "eval_035",
+      "agent": "product_agent",
+      "input": "What's a good gift for someone who loves cooking?",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.808,
+      "hallucination": 1.0,
+      "avg_score": 0.802,
+      "passed": true
+    },
+    {
+      "id": "eval_036",
+      "agent": "support_agent",
+      "input": "show me my tickets",
+      "relevance": 0.0,
+      "correctness": 0.0,
+      "completeness": 0.0,
+      "hallucination": 0.5,
+      "avg_score": 0.125,
+      "passed": false
+    },
+    {
+      "id": "eval_037",
+      "agent": "support_agent",
+      "input": "my laptop arrived with a cracked screen",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_038",
+      "agent": "support_agent",
+      "input": "I received a wrong product",
+      "relevance": 0.873,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.818,
+      "passed": true
+    },
+    {
+      "id": "eval_039",
+      "agent": "support_agent",
+      "input": "there is an item missing from my package",
+      "relevance": 0.838,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.809,
+      "passed": true
+    },
+    {
+      "id": "eval_040",
+      "agent": "support_agent",
+      "input": "I want to raise a warranty claim",
+      "relevance": 1.0,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.85,
+      "passed": true
+    },
+    {
+      "id": "eval_041",
+      "agent": "support_agent",
+      "input": "my product is not working as described",
+      "relevance": 1.0,
+      "correctness": 0.7,
+      "completeness": 0.75,
+      "hallucination": 1.0,
+      "avg_score": 0.863,
+      "passed": true
+    },
+    {
+      "id": "eval_042",
+      "agent": "support_agent",
+      "input": "I cannot access my account",
+      "relevance": 0.711,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.778,
+      "passed": true
+    },
+    {
+      "id": "eval_043",
+      "agent": "support_agent",
+      "input": "I want a refund for my order",
+      "relevance": 0.0,
+      "correctness": 0.0,
+      "completeness": 0.0,
+      "hallucination": 0.0,
+      "avg_score": 0.0,
+      "passed": false
+    },
+    {
+      "id": "eval_044",
+      "agent": "support_agent",
+      "input": "I want to cancel my order",
+      "relevance": 0.0,
+      "correctness": 0.0,
+      "completeness": 0.0,
+      "hallucination": 0.0,
+      "avg_score": 0.0,
+      "passed": false
+    },
+    {
+      "id": "eval_045",
+      "agent": "support_agent",
+      "input": "I want to return my product",
+      "relevance": 0.8,
+      "correctness": 0.8,
+      "completeness": 0.75,
+      "hallucination": 0.0,
+      "avg_score": 0.588,
+      "passed": false
+    },
+    {
+      "id": "eval_046",
+      "agent": "support_agent",
+      "input": "I was charged twice for the same order",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_047",
+      "agent": "support_agent",
+      "input": "my payment failed but amount was deducted",
+      "relevance": 0.835,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.809,
+      "passed": true
+    },
+    {
+      "id": "eval_048",
+      "agent": "support_agent",
+      "input": "my order is delayed",
+      "relevance": 0.743,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.786,
+      "passed": true
+    },
+    {
+      "id": "eval_049",
+      "agent": "support_agent",
+      "input": "my product stopped working after 2 days",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_050",
+      "agent": "support_agent",
+      "input": "I am not happy with my purchase",
+      "relevance": 0.7,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.775,
+      "passed": true
+    },
+    {
+      "id": "eval_051",
+      "agent": "support_agent",
+      "input": "my item arrived damaged and I also want a refund",
+      "relevance": 0.835,
+      "correctness": 0.7,
+      "completeness": 0.7,
+      "hallucination": 1.0,
+      "avg_score": 0.809,
+      "passed": true
     }
   ],
-  "failed_samples": []
+  "failed_samples": [
+    {
+      "id": "eval_011",
+      "input": "How many orders do I have?",
+      "response": "You have a total of 6 orders:\n\u2022 2 Delivered\n\u2022 2 In Transit\n\u2022 1 Out for Delivery\n\u2022 1 Pending\n\nReply with 'show all orders' for a full list or an Order ID for details.",
+      "expected": "You have 6 orders in total \u2014 2 delivered, 2 in transit, 1 out for delivery, and 1 pending.",
+      "scores": {
+        "relevance": 0.0,
+        "correctness": 0.0,
+        "completeness": 0.0,
+        "hallucination": 0.0
+      }
+    },
+    {
+      "id": "eval_036",
+      "input": "show me my tickets",
+      "response": "Here are all your raised tickets (3 total):\n\n1. **TKT1A2B3C4D** | Order: ORD3001 | Damaged Goods | Status: Open | PRIORITY_2 | May 28, 2026\n2. **TKT5E6F7G8H** | Order: ORD3004 | Wrong Item | Status: Resolved | PRIORITY_2 | May 20, 2026\n3. **TKT9I0J1K2L** | Order: N/A | Account Issue | Status: Closed | PRIORITY_1 | May 10, 2026",
+      "expected": "A list of all support tickets raised by the user showing ticket ID, issue type, status, priority, and date.",
+      "scores": {
+        "relevance": 0.0,
+        "correctness": 0.0,
+        "completeness": 0.0,
+        "hallucination": 0.5
+      }
+    },
+    {
+      "id": "eval_043",
+      "input": "I want a refund for my order",
+      "response": "I'd be happy to help you with your refund request. To process this for you, I need to know which order you'd like a refund for.\n\nWhich order is this about?\n\n1. **ORD3001** \u2014 Gaming Mouse (\u20b9899.0)\n2. **ORD3004** \u2014 Laptop Stand, Laptop Bag (\u20b91299.0)\n3. **ORD3006** \u2014 Wireless Earbuds (\u20b93499.0)\n4. **ORD3007** \u2014 Smart Watch (\u20b98999.0)\n5. **ORD3008** \u2014 Noise Cancelling Headphones (\u20b912999.0)\n\nType the number or Order ID:",
+      "expected": "Agent asks which order the refund is for, presenting a numbered list of the user's orders to select from.",
+      "scores": {
+        "relevance": 0.0,
+        "correctness": 0.0,
+        "completeness": 0.0,
+        "hallucination": 0.0
+      }
+    },
+    {
+      "id": "eval_044",
+      "input": "I want to cancel my order",
+      "response": "I can help you cancel your order. Please let me know which order you'd like to cancel.\n\nWhich order is this about?\n\n1. **ORD3003** \u2014 USB Hub, HDMI Cable (\u20b9599.0) \u2014 PENDING\n2. **ORD3002** \u2014 Mechanical Keyboard, Mousepad (\u20b92499.0) \u2014 IN_TRANSIT\n3. **ORD3005** \u2014 Webcam (\u20b91999.0) \u2014 DELAYED\n4. **ORD3001** \u2014 Gaming Mouse (\u20b9899.0) \u2014 DELIVERED\n5. **ORD3004** \u2014 Laptop Stand, Laptop Bag (\u20b91299.0) \u2014 DELIVERED\n\nType the number or Order ID:",
+      "expected": "Agent asks which order the user wants to cancel, presenting a numbered list of orders to choose from.",
+      "scores": {
+        "relevance": 0.0,
+        "correctness": 0.0,
+        "completeness": 0.0,
+        "hallucination": 0.0
+      }
+    },
+    {
+      "id": "eval_045",
+      "input": "I want to return my product",
+      "response": "I'd like to help you with your return request. Please let me know which order you'd like to return.\n\nWhich order is this about?\n\n1. **ORD3001** \u2014 Gaming Mouse (\u20b9899.0)\n2. **ORD3004** \u2014 Laptop Stand, Laptop Bag (\u20b91299.0)\n3. **ORD3006** \u2014 Wireless Earbuds (\u20b93499.0)\n4. **ORD3007** \u2014 Smart Watch (\u20b98999.0)\n5. **ORD3008** \u2014 Noise Cancelling Headphones (\u20b912999.0)\n\nType the number or Order ID:",
+      "expected": "Agent asks which order the return is for, presenting a list of the user's delivered orders to select from.",
+      "scores": {
+        "relevance": 0.8,
+        "correctness": 0.8,
+        "completeness": 0.75,
+        "hallucination": 0.0
+      }
+    }
+  ]
 }
