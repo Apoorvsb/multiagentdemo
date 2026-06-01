@@ -38,7 +38,7 @@ class TestMockProductApiCall:
         assert result[0]["name"] == "HP Laptop 15"
 
     def test_price_inflation_on_retry(self):
-        """Retry > 0 should increase the effective max_price by 30%."""
+        """mock_product_api_call uses max_price as-is; inflation is handled by broaden_search."""
         from agents.product_agent import mock_product_api_call
 
         prefs_called = {}
@@ -55,9 +55,8 @@ class TestMockProductApiCall:
             cur.execute.side_effect = capture_execute
             mock_product_api_call({"max_price": 1000, "category": "mouse"}, retry=1)
 
-        # With retry=1, max_price should be 1000 * 1.3 = 1300
         params = prefs_called.get("params", [])
-        assert any(p == 1300.0 for p in params), f"Expected 1300.0 in params: {params}"
+        assert any(p == 1000 for p in params), f"Expected 1000 in params: {params}"
 
     def test_with_brand_filter(self):
         row = {
@@ -282,10 +281,10 @@ class TestSearchProducts:
 
     def test_broaden_search_inflates_price(self):
         _, _, broaden_search, _ = self._import()
-        state = make_state(search_preferences={"max_price": 1000, "category": "laptop"}, search_retry=0)
+        state = make_state(search_preferences={"max_price": 1000, "category": "laptop"}, search_retry=1)
         result = broaden_search(state)
         assert result["search_preferences"]["max_price"] == 1500.0
-        assert result["search_retry"] == 1
+        assert result["search_retry"] == 2
 
     def test_broaden_search_drops_category_on_second_retry(self):
         _, _, broaden_search, _ = self._import()

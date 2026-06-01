@@ -36,18 +36,18 @@ class TestRegister:
         with patch("main.user_exists", return_value=False), patch("main.get_or_create_user"), patch(
             "main.update_user_metadata"
         ), patch("main.get_or_create_session", return_value="sess-123"):
-            resp = client.post("/register", json={"name": "Alice", "email": "alice@example.com"})
+            resp = client.post("/register", json={"name": "Alice", "email": "alice@sigmoidanalytics.com"})
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["user_id"] == "alice@example.com"
+        assert data["user_id"] == "alice@sigmoidanalytics.com"
         assert data["existing_user"] is False
 
     def test_existing_user_login_on_register(self, client):
         with patch("main.user_exists", return_value=True), patch(
             "main.get_or_create_session", return_value="sess-existing"
         ):
-            resp = client.post("/register", json={"name": "Alice", "email": "alice@example.com"})
+            resp = client.post("/register", json={"name": "Alice", "email": "alice@sigmoidanalytics.com"})
 
         assert resp.status_code == 200
         assert resp.json()["existing_user"] is True
@@ -65,7 +65,7 @@ class TestLogin:
             cur.fetchall.return_value = []
             conn = mock_gc.return_value.__enter__.return_value
             conn.cursor.return_value.__enter__.return_value = cur
-            resp = client.post("/login", json={"user_id": "alice@example.com"})
+            resp = client.post("/login", json={"user_id": "alice@sigmoidanalytics.com"})
 
         assert resp.status_code == 200
         assert resp.json()["session_id"] == "sess-abc"
