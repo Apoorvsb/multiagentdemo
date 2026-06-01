@@ -3,229 +3,294 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OrderAI</title>
+  <title>SigmoidAI</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --bg:#0a0a0f;--surface:#111118;--card:#15151f;
-      --border:#1e1e2e;--accent:#6c63ff;--accent2:#ff6b6b;
-      --text:#f0f0f5;--muted:#6b6b80;
+      --bg:#0d0d14;--surface:#12121c;--card:#1a1a28;--card2:#1e1e2e;
+      --sidebar:#0f0f18;
+      --border:#232336;--border2:#2e2e48;
+      --accent:#7c6fff;--accent2:#a78bfa;--accent3:#c4b5fd;
+      --green:#34d399;--orange:#fb923c;--red:#f87171;
+      --text:#eeeeff;--muted:#6b6b90;--muted2:#4a4a6a;
+      --grad:linear-gradient(135deg,#7c6fff,#a78bfa);
     }
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
     .screen{display:none;flex:1;overflow:hidden}
     .screen.active{display:flex}
-    #login-screen{align-items:center;justify-content:center;background:var(--bg)}
-    .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;margin:16px}
-    .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:28px}
-    .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
-    .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
-    .login-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
+
+    /* ── LOGIN ── */
+    #login-screen{align-items:stretch;background:var(--bg)}
+    .login-left{
+      flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;
+      background:linear-gradient(145deg,#0a0a1a 0%,#111128 50%,#0d0d20 100%);
+      position:relative;overflow:hidden;padding:60px;
+    }
+    .login-left::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse 60% 50% at 30% 40%,rgba(124,111,255,.12) 0%,transparent 70%),
+                 radial-gradient(ellipse 40% 60% at 70% 70%,rgba(167,139,250,.08) 0%,transparent 70%);
+    }
+    .login-left-content{position:relative;z-index:1;max-width:400px}
+    .brand-logo{display:flex;align-items:center;gap:12px;margin-bottom:48px}
+    .brand-logo svg{width:44px;height:44px}
+    .brand-name{font-size:26px;font-weight:800;letter-spacing:-.5px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .login-headline{font-size:40px;font-weight:800;line-height:1.15;letter-spacing:-.5px;margin-bottom:16px}
+    .login-headline span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .login-desc{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:40px}
+    .feature-list{display:flex;flex-direction:column;gap:14px}
+    .feature-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+    .feature-dot{width:28px;height:28px;border-radius:8px;background:rgba(124,111,255,.12);border:1px solid rgba(124,111,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+    .login-right{width:440px;display:flex;align-items:center;justify-content:center;padding:40px 48px;background:var(--surface);border-left:1px solid var(--border)}
+    .login-card{width:100%}
+    .card-title{font-size:22px;font-weight:700;margin-bottom:4px;letter-spacing:-.3px}
+    .card-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+    .tabs{display:flex;background:var(--card);border-radius:10px;padding:3px;gap:3px;margin-bottom:22px;border:1px solid var(--border)}
+    .tab{flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);font-family:'Inter',sans-serif;border-radius:7px;transition:all .2s}
+    .tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(124,111,255,.3)}
     .form{display:flex;flex-direction:column;gap:14px}
-    label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;display:block;margin-bottom:4px}
-    input[type=text],input[type=email]{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
-    input:focus{border-color:var(--accent)}
-    input::placeholder{color:var(--muted)}
-    .btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-    .btn:hover{opacity:.88}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+    .field input{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+    .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.1)}
+    .field input::placeholder{color:var(--muted2)}
+    .btn{width:100%;background:var(--grad);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(124,111,255,.3)}
+    .btn:hover{opacity:.9}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    .divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:11px;font-weight:500;margin:16px 0}
     .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-    .google-btn{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:9px;transition:border-color .2s}
-    .google-btn:hover{border-color:var(--accent)}
-    .guest-btn{width:100%;background:none;border:1px dashed var(--border);border-radius:8px;padding:10px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s}
-    .guest-btn:hover{border-color:var(--muted);color:var(--text)}
+    .guest-btn{width:100%;background:none;border:1px solid var(--border);border-radius:9px;padding:10px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-top:8px}
+    .guest-btn:hover{border-color:var(--accent);color:var(--text)}
+    .guest-btn:disabled{opacity:.45;cursor:not-allowed}
     .guest-btn.loading .spinner{display:block}
     .guest-btn.loading .btn-label{display:none}
     .guest-btn.loading svg{display:none}
-    .guest-btn:disabled{opacity:.45;cursor:not-allowed}
-    .msg-box{padding:9px 13px;border-radius:8px;font-size:12px;display:none;margin-top:4px}
-    .msg-box.err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:#ff8080;display:block}
-    .msg-box.ok{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:#a09cff;display:block}
+    .msg-box{padding:9px 13px;border-radius:8px;font-size:12px;display:none;margin-top:6px}
+    .msg-box.err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;display:block}
+    .msg-box.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:#34d399;display:block}
     .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
     .btn.loading .spinner{display:block}
     .btn.loading .btn-label{display:none}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── CHAT SCREEN ── */
     #chat-screen{flex-direction:row}
-    .sidebar{width:190px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px;flex-shrink:0}
-    .sidebar-logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px;margin-bottom:22px}
-    .new-btn{display:flex;align-items:center;gap:6px;padding:8px 11px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--accent);font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:18px;transition:background .2s;width:100%}
-    .new-btn:hover{background:rgba(108,99,255,.18)}
-    .side-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;margin-bottom:7px;padding:0 3px}
-    .agent-list{display:flex;flex-direction:column;gap:2px;flex:1}
-    .agent-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:11px;color:var(--muted);transition:all .15s;cursor:default}
-    .agent-item.active{background:var(--card);color:var(--text)}
-    .agent-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);margin-left:auto;display:none}
-    .agent-item.active .agent-dot{display:block}
-    .guest-badge-sidebar{font-size:9px;padding:2px 6px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);border-radius:4px;color:#ff8080;display:none;margin-top:4px;text-align:center}
-    .sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:12px}
-    .user-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding:0 2px}
-    .avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-    .user-info{overflow:hidden}
-    .user-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .user-id-txt{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .logout-btn{width:100%;padding:6px;background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
-    .logout-btn:hover{border-color:var(--accent2);color:var(--accent2)}
-    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-    .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
-    .topbar-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600}
-    .status-pill{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);background:var(--card);padding:3px 9px;border-radius:99px;border:1px solid var(--border)}
-    .status-dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80}
-    .intent-pill{font-size:9px;font-weight:500;padding:2px 7px;border-radius:99px;display:none}
-    .intent-pill.order{background:rgba(108,99,255,.15);color:#a09cff;border:1px solid rgba(108,99,255,.3)}
-    .intent-pill.product{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25)}
-    .intent-pill.support{background:rgba(255,107,107,.1);color:#ff8080;border:1px solid rgba(255,107,107,.25)}
-    .messages{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
-    .messages::-webkit-scrollbar{width:3px}
-    .messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-    .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:40px}
-    .welcome-icon{width:52px;height:52px;border-radius:14px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
-    .welcome h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px}
-    .welcome p{font-size:13px;color:var(--muted);line-height:1.6;max-width:340px;margin-bottom:24px}
-    .suggestions{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
-    .sug{padding:7px 13px;background:var(--card);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s}
-    .sug:hover{border-color:var(--accent);color:var(--text)}
-    .msg-row{display:flex;gap:9px;max-width:76%;animation:fadeUp .2s ease}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Sidebar */
+    .sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 14px;flex-shrink:0}
+    .sb-brand{display:flex;align-items:center;gap:9px;margin-bottom:24px;padding:2px 0}
+    .sb-brand svg{width:28px;height:28px}
+    .sb-brand-name{font-size:15px;font-weight:800;letter-spacing:-.3px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .new-btn{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.2);border-radius:9px;color:var(--accent2);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:20px;transition:all .2s;width:100%}
+    .new-btn:hover{background:rgba(124,111,255,.15);border-color:rgba(124,111,255,.35)}
+    .guest-badge-sidebar{font-size:10px;padding:4px 8px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:6px;color:var(--orange);display:none;margin-bottom:10px;text-align:center;font-weight:500}
+    .sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:14px}
+    .user-row{display:flex;align-items:center;gap:9px;margin-bottom:10px;padding:0 2px}
+    .avatar{width:30px;height:30px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(124,111,255,.3)}
+    .user-info{overflow:hidden;flex:1}
+    .user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .user-id-txt{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .logout-btn{width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+    .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+    /* Main */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 22px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+    .topbar-left{display:flex;align-items:center;gap:10px}
+    .topbar-title{font-size:14px;font-weight:700;letter-spacing:-.2px}
+    .status-pill{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);background:var(--card);padding:4px 10px;border-radius:99px;border:1px solid var(--border)}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+    .intent-pill{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:none;letter-spacing:.02em}
+    .intent-pill.order{background:rgba(124,111,255,.15);color:var(--accent3);border:1px solid rgba(124,111,255,.25)}
+    .intent-pill.product{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+    .intent-pill.support{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(251,146,60,.2)}
+
+    /* Messages */
+    .messages{flex:1;overflow-y:auto;padding:28px 24px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth}
+    .messages::-webkit-scrollbar{width:4px}
+    .messages::-webkit-scrollbar-track{background:transparent}
+    .messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+    /* Welcome */
+    .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;padding:48px 24px}
+    .welcome-logo{width:64px;height:64px;border-radius:18px;background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.15);display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 0 30px rgba(124,111,255,.1)}
+    .welcome-logo svg{width:38px;height:38px}
+    .welcome h2{font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-.3px}
+    .welcome p{font-size:14px;color:var(--muted);line-height:1.7;max-width:380px;margin-bottom:28px}
+    .suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:500px}
+    .sug{padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:99px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s}
+    .sug:hover{border-color:var(--accent);color:var(--text);background:rgba(124,111,255,.05)}
+
+    /* Message rows */
+    .msg-row{display:flex;gap:10px;max-width:80%;animation:fadeUp .25s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     .msg-row.user{align-self:flex-end;flex-direction:row-reverse}
     .msg-row.bot{align-self:flex-start}
-    .msg-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px}
-    .msg-av.u{font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-    .msg-av.b{background:var(--card);border:1px solid var(--border)}
+    .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px}
+    .msg-av.u{font-weight:700;color:#fff;background:var(--grad);box-shadow:0 2px 8px rgba(124,111,255,.25)}
+    .msg-av.b{background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.2)}
+    .msg-av.b svg{width:16px;height:16px}
     .msg-body{display:flex;flex-direction:column;gap:5px}
-    .bubble{padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.6}
-    .msg-row.user .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:3px}
-    .msg-row.bot  .bubble{background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:3px}
-    .msg-row.bot.error .bubble{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.25);color:#ff8080}
-    .meta{display:flex;align-items:center;gap:7px;font-size:9px;color:var(--muted);padding:0 3px}
+    .bubble{padding:11px 15px;border-radius:16px;font-size:13.5px;line-height:1.65}
+    .msg-row.user .bubble{background:var(--grad);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 12px rgba(124,111,255,.2)}
+    .msg-row.bot  .bubble{background:var(--card2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+    .msg-row.bot.error .bubble{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.2);color:#f87171}
+    .meta{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted);padding:0 3px}
     .msg-row.user .meta{justify-content:flex-end}
-    .meta-tag{padding:1px 5px;border-radius:3px;font-size:8px;font-weight:500}
-    .meta-tag.order{background:rgba(108,99,255,.15);color:#a09cff}
-    .meta-tag.product{background:rgba(74,222,128,.1);color:#4ade80}
-    .meta-tag.support{background:rgba(255,107,107,.1);color:#ff8080}
-    .typing-row{display:none;align-self:flex-start;align-items:center;gap:9px;animation:fadeUp .2s ease}
+    .meta-tag{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:.04em}
+    .meta-tag.order{background:rgba(124,111,255,.12);color:var(--accent3)}
+    .meta-tag.product{background:rgba(52,211,153,.08);color:var(--green)}
+    .meta-tag.support{background:rgba(251,146,60,.08);color:var(--orange)}
+
+    /* Typing */
+    .typing-row{display:none;align-self:flex-start;align-items:center;gap:10px;animation:fadeUp .2s ease}
     .typing-row.show{display:flex}
-    .typing-bubble{background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:3px;padding:12px 15px;display:flex;gap:4px;align-items:center}
-    .tdot{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
-    .tdot:nth-child(2){animation-delay:.2s}
-    .tdot:nth-child(3){animation-delay:.4s}
-    @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
-    .input-area{padding:12px 20px 16px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
-    .input-wrap{display:flex;align-items:flex-end;gap:9px;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:9px 12px;transition:border-color .2s}
-    .input-wrap:focus-within{border-color:var(--accent)}
-    textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;resize:none;max-height:110px;min-height:20px;line-height:1.5}
-    textarea::placeholder{color:var(--muted)}
-    .send-btn{width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .1s}
-    .send-btn:hover{opacity:.85}
-    .send-btn:active{transform:scale(.93)}
-    .send-btn:disabled{opacity:.4;cursor:not-allowed}
-    .input-footer{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:var(--muted);padding:0 2px}
-    .sess-badge{font-family:monospace;font-size:9px;background:var(--card);padding:2px 6px;border-radius:4px;border:1px solid var(--border)}
+    .typing-bubble{background:var(--card2);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;padding:13px 16px;display:flex;gap:5px;align-items:center}
+    .tdot{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:bounce 1.3s infinite}
+    .tdot:nth-child(2){animation-delay:.18s}
+    .tdot:nth-child(3){animation-delay:.36s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-5px);opacity:1}}
+
+    /* Input */
+    .input-area{padding:14px 22px 18px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+    .input-wrap{display:flex;align-items:flex-end;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:10px 14px;transition:border-color .2s,box-shadow .2s}
+    .input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.08)}
+    textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;resize:none;max-height:120px;min-height:22px;line-height:1.55}
+    textarea::placeholder{color:var(--muted2)}
+    .send-btn{width:34px;height:34px;border-radius:9px;background:var(--grad);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .1s,box-shadow .2s;box-shadow:0 3px 10px rgba(124,111,255,.3)}
+    .send-btn:hover{opacity:.88;box-shadow:0 4px 14px rgba(124,111,255,.4)}
+    .send-btn:active{transform:scale(.92)}
+    .send-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+    .input-footer{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--muted);padding:0 2px}
+    .sess-badge{font-family:'Inter',monospace;font-size:9px;background:var(--card);padding:2px 7px;border-radius:5px;border:1px solid var(--border)}
   </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
 <div class="screen active" id="login-screen">
-  <div class="login-card">
-    <div class="logo"><div class="logo-dot"></div>OrderAI</div>
-    <div class="login-title">Welcome</div>
-    <div class="login-sub">Sign in to continue.</div>
 
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;margin-bottom:18px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
-      <button id="tab-signin" onclick="switchTab('signin')"
-        style="flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;transition:all .2s">
-        Sign In
-      </button>
-      <button id="tab-signup" onclick="switchTab('signup')"
-        style="flex:1;padding:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s">
-        Sign Up
-      </button>
-    </div>
-
-    <!-- Sign In Form -->
-    <div id="form-signin" class="form">
-      <div>
-        <label>Email / User ID</label>
-        <input type="email" id="login-uid" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+  <!-- Left branding panel -->
+  <div class="login-left">
+    <div class="login-left-content">
+      <div class="brand-logo">
+        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="44" height="44" rx="12" fill="url(#logo-bg)"/>
+          <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+          <circle cx="10" cy="30" r="3" fill="white" opacity=".9"/>
+          <circle cx="34" cy="14" r="3" fill="white" opacity=".9"/>
+          <defs>
+            <linearGradient id="logo-bg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7c6fff"/>
+              <stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="brand-name">SigmoidAI</span>
       </div>
-      <button class="btn" id="login-btn" onclick="doLogin()">
-        <div class="spinner"></div><span class="btn-label">Sign In</span>
-      </button>
-    </div>
-
-    <!-- Sign Up Form -->
-    <div id="form-signup" class="form" style="display:none">
-      <div>
-        <label>Name</label>
-        <input type="text" id="reg-name" placeholder="Your name" onkeydown="if(event.key==='Enter')doRegister()"/>
-      </div>
-      <div>
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doRegister()"/>
-      </div>
-      <button class="btn" id="register-btn" onclick="doRegister()">
-        <div class="spinner"></div><span class="btn-label">Create Account</span>
-      </button>
-    </div>
-
-    <div class="msg-box" id="login-msg"></div>
-    <div class="divider" style="margin:14px 0 10px">or continue with</div>
-
-    <!-- Google Sign-In -->
-    <div id="g_id_onload"
-         data-client_id="220368229478-i79oraqcapvpp0pnvm9vsgljn2npmsv0.apps.googleusercontent.com"
-         data-callback="handleGoogleResponse"
-         data-auto_prompt="false">
-    </div>
-    <div style="display:flex;justify-content:center;margin:4px 0">
-      <div class="g_id_signin"
-           data-type="standard"
-           data-shape="rectangular"
-           data-theme="filled_black"
-           data-text="continue_with"
-           data-size="large"
-           data-logo_alignment="left"
-           data-width="328">
+      <div class="login-headline">Your intelligent<br/><span>business assistant</span></div>
+      <div class="login-desc">Track orders, discover products, and resolve support issues — all in one conversation.</div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-dot">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          Real-time order tracking &amp; status updates
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          AI-powered product recommendations
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          Instant support with automated resolutions
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Guest -->
-    <button class="guest-btn" id="guest-btn" onclick="continueAsGuest()" style="margin-top:10px">
-      <div class="spinner"></div>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <span class="btn-label">Continue as Guest</span>
-    </button>
+  <!-- Right login panel -->
+  <div class="login-right">
+    <div class="login-card">
+      <div class="card-title">Welcome back</div>
+      <div class="card-sub">Sign in with your Sigmoid account</div>
 
-    <div id="google-hidden-btn" style="position:absolute;opacity:0;pointer-events:none">
-      <div class="g_id_signin" data-type="standard" data-size="large"></div>
+      <div class="msg-box" id="login-msg"></div>
+
+      <!-- Google Sign-In -->
+      <div id="g_id_onload"
+           data-client_id="220368229478-i79oraqcapvpp0pnvm9vsgljn2npmsv0.apps.googleusercontent.com"
+           data-callback="handleGoogleResponse"
+           data-auto_prompt="false">
+      </div>
+      <div style="display:flex;justify-content:center;margin:0 0 12px">
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="filled_black"
+             data-text="continue_with"
+             data-size="large"
+             data-logo_alignment="left"
+             data-width="328">
+        </div>
+      </div>
+
+      <div class="divider">or</div>
+
+      <!-- Guest -->
+      <button class="guest-btn" id="guest-btn" onclick="continueAsGuest()">
+        <div class="spinner"></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="btn-label">Continue as Guest</span>
+      </button>
     </div>
   </div>
 </div>
 
-<!-- CHAT SCREEN -->
+<!-- ═══════════════════════════════════════════
+     CHAT SCREEN
+═══════════════════════════════════════════ -->
 <div class="screen" id="chat-screen">
   <aside class="sidebar">
-    <div class="sidebar-logo"><div class="logo-dot"></div>OrderAI</div>
+    <div class="sb-brand">
+      <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" rx="12" fill="url(#sb-logo-bg)"/>
+        <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <circle cx="10" cy="30" r="3" fill="white" opacity=".9"/>
+        <circle cx="34" cy="14" r="3" fill="white" opacity=".9"/>
+        <defs>
+          <linearGradient id="sb-logo-bg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7c6fff"/>
+            <stop offset="1" stop-color="#a78bfa"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="sb-brand-name">SigmoidAI</span>
+    </div>
+
     <button class="new-btn" onclick="newChat()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       New Chat
     </button>
-    <div class="side-label">Agents</div>
-    <div class="agent-list">
-      <div class="agent-item" id="agent-order"><span>📦</span> Orders<div class="agent-dot"></div></div>
-      <div class="agent-item" id="agent-product"><span>🔍</span> Products<div class="agent-dot"></div></div>
-      <div class="agent-item" id="agent-support"><span>🎧</span> Support<div class="agent-dot"></div></div>
-    </div>
-    <div class="guest-badge-sidebar" id="guest-badge-sidebar">👤 Guest Mode</div>
+
+    <div class="guest-badge-sidebar" id="guest-badge-sidebar">Guest Mode</div>
+
     <div class="sidebar-footer">
       <div class="user-row">
         <div class="avatar" id="sb-avatar">U</div>
@@ -237,32 +302,59 @@
       <button class="logout-btn" onclick="doLogout()">Sign out</button>
     </div>
   </aside>
+
   <div class="main">
     <div class="topbar">
-      <span class="topbar-title">Chat</span>
-      <div style="display:flex;align-items:center;gap:10px">
+      <div class="topbar-left">
+        <span class="topbar-title">SigmoidAI Assistant</span>
         <span class="intent-pill" id="intent-pill"></span>
-        <div class="status-pill"><div class="status-dot"></div>Online</div>
       </div>
+      <div class="status-pill"><div class="status-dot"></div>Online</div>
     </div>
+
     <div class="messages" id="messages">
       <div class="welcome" id="welcome">
-        <div class="welcome-icon">🤖</div>
-        <h2>How can I help you?</h2>
-        <p>Ask about your orders, find products, or get support for any issue.</p>
+        <div class="welcome-logo">
+          <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="url(#wl-g)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+            <circle cx="10" cy="30" r="3" fill="url(#wl-g)" opacity=".9"/>
+            <circle cx="34" cy="14" r="3" fill="url(#wl-g)" opacity=".9"/>
+            <defs>
+              <linearGradient id="wl-g" x1="0" y1="14" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7c6fff"/>
+                <stop offset="1" stop-color="#a78bfa"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2>How can I help you today?</h2>
+        <p>Ask about your orders, discover products, or get instant support — I'm here to help.</p>
       </div>
     </div>
+
     <div class="typing-row" id="typing">
-      <div class="msg-av b">🤖</div>
+      <div class="msg-av b">
+        <svg viewBox="0 0 44 44" fill="none">
+          <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="url(#ty-g)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+          <circle cx="10" cy="30" r="3" fill="url(#ty-g)"/>
+          <circle cx="34" cy="14" r="3" fill="url(#ty-g)"/>
+          <defs>
+            <linearGradient id="ty-g" x1="0" y1="14" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7c6fff"/><stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
       <div class="typing-bubble">
         <div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>
       </div>
     </div>
+
     <div class="input-area">
       <div class="input-wrap">
         <textarea id="msg-input" rows="1" placeholder="Ask about orders, products, or support..."
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
-          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px'"></textarea>
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
         <button class="send-btn" id="send-btn" onclick="sendMessage()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/>
@@ -290,28 +382,8 @@ let historyRendered = false
 function isGuest() {
   return userId && userId.includes('@guest.com')
 }
-let booted = false
+
 // ── BOOT ──────────────────────────────────────────────────
-// window.onload = async () => {
-//   console.log('window.onload fired')
-//   if (sessionId && userId) {
-//     try {
-//       const res  = await post('/login', { user_id: userId })
-//       const data = await res.json()
-//       if (res.ok) {
-//         sessionId = data.session_id
-//         localStorage.setItem('session_id', sessionId)
-//         showChat()
-//         console.log('calling renderHistory from window.onload')
-//         renderHistory(data.messages || [])
-//       } else {
-//         showScreen('login-screen')
-//       }
-//     } catch {
-//       showScreen('login-screen')
-//     }
-//   }
-// }
 window.onload = async () => {
   if (sessionId && userId) {
     showChat()
@@ -330,35 +402,20 @@ function showChat() {
   showScreen('chat-screen')
   const guest    = isGuest()
   const initials = guest ? 'G' : (userName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) || 'U')
-  document.getElementById('sb-avatar').textContent      = initials
-  document.getElementById('sb-name').textContent        = guest ? 'Guest' : userName
-  document.getElementById('sb-uid').textContent         = guest ? 'Guest Session' : (userId||'').slice(0,14)+'...'
-  document.getElementById('sess-badge').textContent     = sessionId ? sessionId.slice(0,8)+'...' : 'No session'
+  document.getElementById('sb-avatar').textContent  = initials
+  document.getElementById('sb-name').textContent    = guest ? 'Guest' : userName
+  document.getElementById('sb-uid').textContent     = guest ? 'Guest Session' : (userId||'').slice(0,20)
+  document.getElementById('sess-badge').textContent = sessionId ? sessionId.slice(0,8)+'...' : 'No session'
   document.getElementById('guest-badge-sidebar').style.display = guest ? 'block' : 'none'
 
-  // Hide order suggestions for guest
   const sugOrder    = document.getElementById('sug-order')
   const sugDelivery = document.getElementById('sug-delivery')
   if (sugOrder)    sugOrder.style.display    = guest ? 'none' : ''
   if (sugDelivery) sugDelivery.style.display = guest ? 'none' : ''
 }
 
-// ── RENDER HISTORY ────────────────────────────────────────
-// function renderHistory(messages) {
-//   if (!messages || messages.length === 0) return
-//   const welcome = document.getElementById('welcome')
-//   if (welcome) welcome.remove()
-//   messages.forEach(msg => {
-//     appendMsg(
-//       msg.role === 'user' ? 'user' : 'bot',
-//       msg.content,
-//       { intent: msg.agent_name }
-//     )
-//   })
-// }
 function renderHistory(messages) {
   if (!messages || messages.length === 0) return
-
   messages.forEach(msg => {
     appendMsg(
       msg.role === 'user' ? 'user' : 'bot',
@@ -368,12 +425,8 @@ function renderHistory(messages) {
   })
 }
 
-
-
 // ── SAVE & REDIRECT ───────────────────────────────────────
 function saveAndEnter(data, name) {
-  console.log('saveAndEnter fired')
-  console.trace()
   userId    = data.user_id
   sessionId = data.session_id
   userName  = name || data.name || 'User'
@@ -386,15 +439,19 @@ function saveAndEnter(data, name) {
   }
 }
 
+// ── DOMAIN CHECK ──────────────────────────────────────────
+const ALLOWED_DOMAIN = 'sigmoidanalytics.com'
+function isAllowedEmail(email) {
+  return email.toLowerCase().endsWith('@' + ALLOWED_DOMAIN)
+}
+
 // ── TABS ──────────────────────────────────────────────────
 function switchTab(tab) {
   const isSignin = tab === 'signin'
   document.getElementById('form-signin').style.display = isSignin ? 'flex' : 'none'
   document.getElementById('form-signup').style.display = isSignin ? 'none' : 'flex'
-  document.getElementById('tab-signin').style.background = isSignin ? 'var(--accent)' : 'var(--card)'
-  document.getElementById('tab-signin').style.color      = isSignin ? '#fff' : 'var(--muted)'
-  document.getElementById('tab-signup').style.background = isSignin ? 'var(--card)' : 'var(--accent)'
-  document.getElementById('tab-signup').style.color      = isSignin ? 'var(--muted)' : '#fff'
+  document.getElementById('tab-signin').className = 'tab' + (isSignin ? ' active' : '')
+  document.getElementById('tab-signup').className = 'tab' + (isSignin ? '' : ' active')
   document.getElementById('login-msg').className = 'msg-box'
 }
 
@@ -404,6 +461,7 @@ async function doRegister() {
   const email = document.getElementById('reg-email').value.trim()
   if (!name)  { showMsg('login-msg', 'Please enter your name.', 'err'); return }
   if (!email) { showMsg('login-msg', 'Please enter your email.', 'err'); return }
+  if (!isAllowedEmail(email)) { showMsg('login-msg', 'Only @sigmoidanalytics.com emails are allowed.', 'err'); return }
   setLoading('register-btn', true)
   try {
     const res  = await post('/register', { name, email })
@@ -420,7 +478,8 @@ async function doRegister() {
 // ── LOGIN ─────────────────────────────────────────────────
 async function doLogin() {
   const uid = document.getElementById('login-uid').value.trim()
-  if (!uid) { showMsg('login-msg', 'Please enter your User ID.', 'err'); return }
+  if (!uid) { showMsg('login-msg', 'Please enter your email.', 'err'); return }
+  if (!isAllowedEmail(uid)) { showMsg('login-msg', 'Only @sigmoidanalytics.com emails are allowed.', 'err'); return }
   setLoading('login-btn', true)
   try {
     const res  = await post('/login', { user_id: uid })
@@ -428,7 +487,7 @@ async function doLogin() {
     if (!res.ok) {
       showMsg('login-msg', data.detail?.error || 'User not found. Please sign up.', 'err')
     } else {
-      showMsg('login-msg', 'Login successful!', 'ok')
+      showMsg('login-msg', 'Welcome back!', 'ok')
       setTimeout(() => saveAndEnter({ ...data, user_id: uid }), 600)
     }
   } catch { showMsg('login-msg', 'Cannot reach server.', 'err') }
@@ -436,17 +495,13 @@ async function doLogin() {
 }
 
 // ── GOOGLE SSO ────────────────────────────────────────────
-function triggerGoogle() {
-  
-  if (window.google) {
-    window.google.accounts.id.prompt()
-  } else {
-    showMsg('login-msg', 'Google Sign-In not configured.', 'err')
-  }
-}
 async function handleGoogleResponse(response) {
   const payload = JSON.parse(atob(response.credential.split('.')[1]))
   const { name, email } = payload
+  if (!isAllowedEmail(email)) {
+    showMsg('login-msg', 'Only @sigmoidanalytics.com Google accounts are allowed.', 'err')
+    return
+  }
   try {
     const res  = await post('/register', { name, email })
     const data = await res.json()
@@ -459,21 +514,15 @@ async function continueAsGuest() {
   setLoading('guest-btn', true)
   try {
     const guestId = 'guest_' + Math.random().toString(36).slice(2, 10)
-    const res     = await post('/register', {
-      name:  'Guest',
-      email: guestId + '@guest.com'
-    })
-    const data = await res.json()
+    const res     = await post('/register', { name: 'Guest', email: guestId + '@guest.com' })
+    const data    = await res.json()
     if (res.ok) {
       saveAndEnter({ ...data, user_id: data.user_id }, 'Guest')
     } else {
       showMsg('login-msg', 'Could not start guest session.', 'err')
     }
-  } catch {
-    showMsg('login-msg', 'Cannot reach server.', 'err')
-  } finally {
-    setLoading('guest-btn', false)
-  }
+  } catch { showMsg('login-msg', 'Cannot reach server.', 'err') }
+  finally  { setLoading('guest-btn', false) }
 }
 
 // ── LOGOUT ────────────────────────────────────────────────
@@ -507,12 +556,23 @@ async function newChat() {
 function createWelcome() {
   const guest = isGuest()
   const d = document.createElement('div')
-  d.className = 'welcome'
-  d.id = 'welcome'
+  d.className = 'welcome'; d.id = 'welcome'
   d.innerHTML = `
-    <div class="welcome-icon">🤖</div>
-    <h2>How can I help you?</h2>
-    <p>${guest ? 'Ask about products or get support. Sign in to track orders.' : 'Ask about your orders, find products, or get support for any issue.'}</p>`
+    <div class="welcome-logo">
+      <svg viewBox="0 0 44 44" fill="none">
+        <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="url(#cw-g)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <circle cx="10" cy="30" r="3" fill="url(#cw-g)"/>
+        <circle cx="34" cy="14" r="3" fill="url(#cw-g)"/>
+        <defs>
+          <linearGradient id="cw-g" x1="0" y1="14" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7c6fff"/><stop offset="1" stop-color="#a78bfa"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <h2>How can I help you today?</h2>
+    <p>${guest ? 'Ask about products or get support. Sign in to track your orders.' : 'Ask about your orders, discover products, or get instant support.'}</p>
+  `
   return d
 }
 
@@ -527,53 +587,35 @@ async function sendMessage() {
   const input = document.getElementById('msg-input')
   const text  = input.value.trim()
   if (!text) return
-
-  input.value = ''
-  input.style.height = 'auto'
+  input.value = ''; input.style.height = 'auto'
   isBusy = true
   document.getElementById('send-btn').disabled = true
-
   const welcome = document.getElementById('welcome')
   if (welcome) welcome.remove()
-
   appendMsg('user', text)
   showTyping(true)
-
   try {
     const res  = await fetch(`${API}/chat`, {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Session-ID': sessionId },
-      body:    JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text })
     })
     const data = await res.json()
     showTyping(false)
-
     if (res.status === 400 && data.detail?.error?.includes('expired')) {
       await refreshSession()
       appendMsg('bot', 'Session refreshed. Please send your message again.', {})
       return
     }
-
     if (res.status === 401) { doLogout(); return }
-
-    if (!res.ok) {
-      appendMsg('bot', data.detail?.message || 'Something went wrong.', {}, true)
-      return
-    }
-
+    if (!res.ok) { appendMsg('bot', data.detail?.message || 'Something went wrong.', {}, true); return }
     if (data.session_id) {
       sessionId = data.session_id
       localStorage.setItem('session_id', sessionId)
       document.getElementById('sess-badge').textContent = sessionId.slice(0,8)+'...'
     }
-
     setAgent(data.intent)
-    appendMsg('bot', data.response, {
-      intent: data.intent,
-      tokens: data.tokens_used,
-      cost:   data.cost_usd,
-    })
-
+    appendMsg('bot', data.response, { intent: data.intent, tokens: data.tokens_used, cost: data.cost_usd })
   } catch {
     showTyping(false)
     appendMsg('bot', 'Could not reach the server. Check your connection.', {}, true)
@@ -586,36 +628,44 @@ async function sendMessage() {
 
 // ── MESSAGE RENDERING ─────────────────────────────────────
 function appendMsg(role, text, meta = {}, isError = false) {
-  const msgs     = document.getElementById('messages')
-  const row      = document.createElement('div')
-  const initials = isGuest() ? 'G' : (userName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)||'U')
-  const intentClass = intentCls(meta.intent)
-  const intentLbl   = meta.intent ? meta.intent.replace('_query','').toUpperCase() : ''
-
+  const msgs      = document.getElementById('messages')
+  const row       = document.createElement('div')
+  const initials  = isGuest() ? 'G' : (userName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)||'U')
+  const intentCls = iCls(meta.intent)
+  const intentLbl = meta.intent ? meta.intent.replace('_query','').toUpperCase() : ''
   row.className = `msg-row ${role}${isError?' error':''}`
-
   if (role === 'user') {
     row.innerHTML = `
       <div class="msg-av u">${initials}</div>
       <div class="msg-body"><div class="bubble">${esc(text)}</div></div>`
   } else {
     row.innerHTML = `
-      <div class="msg-av b">🤖</div>
+      <div class="msg-av b">
+        <svg viewBox="0 0 44 44" fill="none">
+          <path d="M10 30 Q10 22 22 22 Q34 22 34 14" stroke="url(#av-g-${Date.now()})" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+          <circle cx="10" cy="30" r="3" fill="url(#av-g-${Date.now()})"/>
+          <circle cx="34" cy="14" r="3" fill="url(#av-g-${Date.now()})"/>
+          <defs>
+            <linearGradient id="av-g-${Date.now()}" x1="0" y1="14" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7c6fff"/><stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
       <div class="msg-body">
         <div class="bubble">${fmt(text)}</div>
         ${!isError && meta.intent ? `
           <div class="meta">
-            <span class="meta-tag ${intentClass}">${intentLbl}</span>
+            <span class="meta-tag ${intentCls}">${intentLbl}</span>
             ${meta.tokens ? `${meta.tokens} tokens · $${(meta.cost||0).toFixed(6)}` : ''}
           </div>` : ''}
       </div>`
   }
-
   msgs.appendChild(row)
   msgs.scrollTop = msgs.scrollHeight
 }
 
-function intentCls(intent) {
+function iCls(intent) {
   if (!intent) return ''
   if (intent.includes('order'))   return 'order'
   if (intent.includes('product')) return 'product'
@@ -623,13 +673,9 @@ function intentCls(intent) {
 }
 
 function setAgent(intent) {
-  ['order','product','support'].forEach(a => {
-    document.getElementById('agent-'+a)?.classList.remove('active')
-  })
   const pill = document.getElementById('intent-pill')
   if (!intent) { pill.style.display='none'; return }
-  const cls = intentCls(intent)
-  if (cls) document.getElementById('agent-'+cls)?.classList.add('active')
+  const cls = iCls(intent)
   pill.textContent   = intent.replace('_query','').toUpperCase()
   pill.className     = `intent-pill ${cls}`
   pill.style.display = 'block'
@@ -646,10 +692,12 @@ function esc(t) {
 }
 
 function fmt(t) {
-  return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+  return esc(t)
+    .replace(/### (.*?)(<br\/>|$)/g,'<strong style="font-size:14px;display:block;margin:8px 0 4px">$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^- (.*)/gm,'<span style="display:block;padding-left:12px">• $1</span>')
 }
 
-// ── SESSION REFRESH ───────────────────────────────────────
 async function refreshSession() {
   try {
     const res  = await post('/login', { user_id: userId })
@@ -662,7 +710,6 @@ async function refreshSession() {
   } catch { doLogout() }
 }
 
-// ── HELPERS ───────────────────────────────────────────────
 function showMsg(id, text, type) {
   const el = document.getElementById(id)
   el.textContent = text
@@ -677,9 +724,9 @@ function setLoading(btnId, on) {
 
 function post(path, body) {
   return fetch(`${API}${path}`, {
-    method:  'POST',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body)
+    body: JSON.stringify(body)
   })
 }
 </script>

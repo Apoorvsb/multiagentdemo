@@ -44,11 +44,15 @@ spec:
               command: ["pg_isready", "-U", "postgres"]
             initialDelaySeconds: 10
             periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 6
           livenessProbe:
             exec:
               command: ["pg_isready", "-U", "postgres"]
             initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data

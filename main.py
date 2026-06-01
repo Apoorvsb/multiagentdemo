@@ -210,9 +210,14 @@ def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+ALLOWED_DOMAIN = "sigmoidanalytics.com"
+
 @app.post("/register")
 async def register(body: RegisterRequest):
     user_id = body.email
+
+    if not user_id.lower().endswith("@" + ALLOWED_DOMAIN):
+        raise HTTPException(status_code=403, detail="Only @sigmoidanalytics.com accounts are allowed.")
 
     if user_exists(user_id):
         session_id = get_or_create_session(None, user_id)

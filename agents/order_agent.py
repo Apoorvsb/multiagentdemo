@@ -729,23 +729,23 @@ def group_orders_by_status(orders: list) -> str:
             grouped[s] = []
         grouped[s].append(o)
 
+    def _fmt_order(o):
+        placed = f" | Placed: {o['order_date']}" if o.get("order_date") else ""
+        return (
+            f"  • {o['order_id']} — via {o['carrier']}"
+            f"{placed} (Delivery: {o['estimated_delivery']})"
+            f" — ₹{o.get('sales_per_customer', 'N/A')} — Items: {o['items']}"
+        )
+
     sections = []
     for status in status_order:
         if status in grouped:
-            lines = "\n".join([
-                f"  • {o['order_id']} — via {o['carrier']} "
-                f"(Delivery: {o['estimated_delivery']}) — ₹{o.get('sales_per_customer', 'N/A')} — Items: {o['items']}"
-                for o in grouped[status]
-            ])
+            lines = "\n".join([_fmt_order(o) for o in grouped[status]])
             sections.append(f"{emoji_map.get(status, '•')} **{status.replace('_', ' ')}**\n{lines}")
 
-    for status, items in grouped.items():
+    for status, grp_items in grouped.items():
         if status not in status_order:
-            lines = "\n".join([
-                f"  • {o['order_id']} — via {o['carrier']} "
-                f"(Delivery: {o['estimated_delivery']}) — ₹{o.get('sales_per_customer', 'N/A')} — Items: {o['items']}"
-                for o in grouped[status]
-            ])
+            lines = "\n".join([_fmt_order(o) for o in grp_items])
             sections.append(f"• **{status}**\n{lines}")
 
     return "\n\n".join(sections)
@@ -787,6 +787,9 @@ def validate_input(state: AgentState) -> AgentState:
             "min_price":       None,
             "max_price":       None,
             "query_limit":     10,
+            "date_filter":     None,
+            "month_filter":    None,
+            "year_filter":     None,
         }
 
     # ── Check follow-up from history (no LLM needed) ─────
@@ -831,6 +834,9 @@ def validate_input(state: AgentState) -> AgentState:
                     "min_price":       None,
                     "max_price":       None,
                     "query_limit":     10,
+                    "date_filter":     None,
+                    "month_filter":    None,
+                    "year_filter":     None,
                 }
 
     # ── Fetch product names for LLM context only ─────────
@@ -873,7 +879,10 @@ Extract and return ONLY a JSON object with these fields:
     "city_filter": "city name if mentioned else null",
     "min_price": null,
     "max_price": null,
-    "limit": 10
+    "limit": 10,
+    "date_filter": "YYYY-MM-DD if a specific date is mentioned else null",
+    "month_filter": "month number 1-12 if a month is mentioned else null",
+    "year_filter": "4-digit year if a year is mentioned else null"
 }}
 
 
@@ -911,6 +920,10 @@ Rules:
 - city_filter: city name if mentioned
 - limit: if users message has "all" then 20, else 10
 - PRIORITY: status_filter and shipping_mode take priority over special_query
+- date_filter: if user mentions a specific date (e.g. "31-05-2026", "2026-05-31", "May 31 2026"), convert to YYYY-MM-DD format
+- month_filter: if user mentions a month name or number without a specific day (e.g. "in May", "in May 2026", "month 5"), extract as 1-12 integer. Set null if date_filter is set
+- year_filter: if user mentions a year (e.g. "in 2026", "placed in 2025"), extract as 4-digit integer
+- If a specific date is given, set date_filter and leave month_filter/year_filter null
 
 Return ONLY valid JSON. No explanation."""
     
@@ -963,6 +976,70 @@ Return ONLY valid JSON. No explanation."""
     else:
         final_limit = extracted.get("limit", 10)
 
+    # ── Regex fallback for status_filter ─────────────────
+    _STATUS_PATTERNS = [
+        (r'\bpending\b',          "PENDING"),
+        (r'\bdelayed\b',          "DELAYED"),
+        (r'\bdelivered\b',        "DELIVERED"),
+        (r'\breturned\b',         "RETURNED"),
+        (r'\bin.transit\b',       "IN_TRANSIT"),
+        (r'\bout.for.delivery\b', "OUT_FOR_DELIVERY"),
+        (r'\bcancelled\b',        "CANCELLED"),
+    ]
+    if not extracted.get("status_filter"):
+        for pattern, status in _STATUS_PATTERNS:
+            if re.search(pattern, msg_lower):
+                extracted["status_filter"] = status
+                break
+
+    # ── Date/month/year — regex-only, LLM values discarded ───────────
+    # LLM is unreliable here: it guesses wrong years and defaults to the
+    # 1st of the month when only a month name is mentioned. Pure regex is
+    # more accurate and consistent.
+    _MONTH_NAMES = {
+        "january": 1, "february": 2, "march": 3, "april": 4,
+        "may": 5, "june": 6, "july": 7, "august": 8,
+        "september": 9, "october": 10, "november": 11, "december": 12,
+        "jan": 1, "feb": 2, "mar": 3, "apr": 4,
+        "jun": 6, "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    }
+    extracted["date_filter"]  = None
+    extracted["month_filter"] = None
+    extracted["year_filter"]  = None
+
+    # 1. Specific date patterns — set date_filter only
+    m = re.search(r'\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b', msg_lower)
+    if m:
+        extracted["date_filter"] = f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}"
+    else:
+        m = re.search(r'\b(\d{4})[-/](\d{1,2})[-/](\d{1,2})\b', msg_lower)
+        if m:
+            extracted["date_filter"] = f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+        else:
+            # "31 May 2026" or "May 31 2026" or "May 31, 2026"
+            _mon_pat = '|'.join(_MONTH_NAMES)
+            m = re.search(r'\b(\d{1,2})\s+(' + _mon_pat + r')\s+(\d{4})\b', msg_lower) or \
+                re.search(r'\b(' + _mon_pat + r')\s+(\d{1,2})[,\s]+(\d{4})\b', msg_lower)
+            if m:
+                g = m.groups()
+                if g[0].isdigit():
+                    day, mon, yr = int(g[0]), _MONTH_NAMES[g[1]], int(g[2])
+                else:
+                    day, mon, yr = int(g[1]), _MONTH_NAMES[g[0]], int(g[2])
+                extracted["date_filter"] = f"{yr}-{mon:02d}-{day:02d}"
+
+    # 2. Month name (only if no specific date found)
+    if not extracted["date_filter"]:
+        for name, num in _MONTH_NAMES.items():
+            if re.search(r'\b' + name + r'\b', msg_lower):
+                extracted["month_filter"] = num
+                break
+
+    # 3. Year (only if no specific date found; present = filter to that year, absent = all years)
+    if not extracted["date_filter"]:
+        m = re.search(r'\b(20\d{2})\b', msg_lower)
+        extracted["year_filter"] = int(m.group(1)) if m else None
+
     # ── Regex fallback for product_keyword ───────────────
     # Catches cases where LLM skips product_keyword because the item
     # isn't in the user's orders list (e.g. "how many SSD orders").
@@ -970,6 +1047,9 @@ Return ONLY valid JSON. No explanation."""
         _IGNORE = {
             "my", "the", "all", "total", "of", "do", "i", "have",
             "how", "many", "any", "order", "orders", "there", "are",
+            # status words — must never become product_keyword
+            "pending", "delivered", "delayed", "returned",
+            "transit", "in_transit", "out_for_delivery", "cancelled",
         }
         m = re.search(
             r'(?:how\s+many|count\s+of|number\s+of|any)\s+(\w+(?:[\s-]\w+)?)\s+order',
@@ -993,6 +1073,9 @@ Return ONLY valid JSON. No explanation."""
         "min_price":       extracted.get("min_price"),
         "max_price":       extracted.get("max_price"),
         "query_limit":     final_limit,
+        "date_filter":     extracted.get("date_filter"),
+        "month_filter":    extracted.get("month_filter"),
+        "year_filter":     extracted.get("year_filter"),
         "total_tokens":    state.get("total_tokens", 0) + input_tokens + output_tokens,
         "total_cost_usd":  state.get("total_cost_usd", 0.0) + cost,
     }
@@ -1032,6 +1115,9 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
     min_price       = state.get("min_price")
     max_price       = state.get("max_price")
     limit           = state.get("query_limit", 10)
+    date_filter     = state.get("date_filter")
+    month_filter    = state.get("month_filter")
+    year_filter     = state.get("year_filter")
     log.info(f"Query params — order_id={order_id} special={special_query} status={status_filter} product={product_keyword} carrier={carrier_filter} shipping={shipping_mode} limit={limit}")
     msg_lower       = state["current_input"].lower()
     
@@ -1090,6 +1176,18 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
         if max_price:
             count_conditions.append("sales_per_customer <= %s")
             count_params.append(float(max_price))
+        if date_filter:
+            count_conditions.append("order_date::date = %s")
+            count_params.append(date_filter)
+        elif month_filter and year_filter:
+            count_conditions.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
+            count_params.extend([month_filter, year_filter])
+        elif month_filter:
+            count_conditions.append("EXTRACT(MONTH FROM order_date::date) = %s")
+            count_params.append(month_filter)
+        elif year_filter:
+            count_conditions.append("EXTRACT(YEAR FROM order_date::date) = %s")
+            count_params.append(year_filter)
         count_where = " AND ".join(count_conditions)
         with get_conn() as conn:
             with conn.cursor() as cur:
@@ -1248,12 +1346,24 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
     if max_price:
         conditions.append("sales_per_customer <= %s")
         params.append(float(max_price))
+    if date_filter:
+        conditions.append("order_date::date = %s")
+        params.append(date_filter)
+    elif month_filter and year_filter:
+        conditions.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
+        params.extend([month_filter, year_filter])
+    elif month_filter:
+        conditions.append("EXTRACT(MONTH FROM order_date::date) = %s")
+        params.append(month_filter)
+    elif year_filter:
+        conditions.append("EXTRACT(YEAR FROM order_date::date) = %s")
+        params.append(year_filter)
 
     where = " AND ".join(conditions)
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
-            f"""SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer
+            f"""SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer, order_date
                 FROM orders WHERE {where}
                 ORDER BY order_date DESC LIMIT {limit}""",
             params
@@ -1286,6 +1396,22 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
         elif min_price or max_price:
             return {**state, "order_data": None,
                     "response": "I could not find any orders matching that price range."}
+        elif date_filter:
+            return {**state, "order_data": None,
+                    "response": f"You have no orders placed on {date_filter}."}
+        elif month_filter and year_filter:
+            import calendar
+            month_name = calendar.month_name[month_filter]
+            return {**state, "order_data": None,
+                    "response": f"You have no orders placed in {month_name} {year_filter}."}
+        elif month_filter:
+            import calendar
+            month_name = calendar.month_name[month_filter]
+            return {**state, "order_data": None,
+                    "response": f"You have no orders placed in {month_name}."}
+        elif year_filter:
+            return {**state, "order_data": None,
+                    "response": f"You have no orders placed in {year_filter}."}
         else:
             return {**state, "order_data": None,
                     "response": "You have no orders in our system yet."}

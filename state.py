@@ -49,6 +49,9 @@ class AgentState(TypedDict):
     min_price:       Optional[float]
     max_price:       Optional[float]
     query_limit:     Optional[int]
+    date_filter:     Optional[str]
+    month_filter:    Optional[int]
+    year_filter:     Optional[int]
 
 
 
@@ -94,4 +97,7 @@ def empty_state(session_id, user_id, request_id, messages, current_input,
         "min_price":       None,
         "max_price":       None,
         "query_limit":     10,
+        "date_filter":     None,
+        "month_filter":    None,
+        "year_filter":     None,
     }
