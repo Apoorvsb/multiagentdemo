@@ -147,18 +147,16 @@ def intent_router(state: AgentState) -> AgentState:
 
 User message: {state['current_input']}
 
-IMPORTANT:
+IMPORTANT RULES:
+- "where is my [product]" → order_query (tracking a purchase)
 - "where is [product]" → order_query (asking about their order)
 - "find me [product]" → product_query (shopping)
 - "recommend [product]" → product_query (shopping)
-- "eta of [product]" → order_query
-- "arrival date of [product]" → order_query
-- "when does [product] arrive" → order_query
-- "find me [product]" → product_query
-- "recommend [product]" → product_query
--"show orders below 1000", "orders under 500", "orders above 5000",
-    "orders costing more than 2000", "show orders below price"
-KEY SIGNAL: 'orders above/below/under/over [number]' = order_query
+- "eta of [product]" / "when does [product] arrive" → order_query
+- "orders above/below/under/over [number]" → order_query
+- "here is my [product]" / "this is my [product]" / "i have a [product]" → product_query (user describing what they own, not tracking)
+- "my [product] is not working" / "my [product] broke" → support_query
+- Greetings, random sentences, or unclear messages → product_query (safe default for non-order context)
 
 Return only the intent label. Nothing else."""
 
