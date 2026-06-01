@@ -23,6 +23,7 @@ def create_tables():
     sql = """
     CREATE TABLE IF NOT EXISTS orders (
         order_id              TEXT PRIMARY KEY,
+        user_id               TEXT,
         customer_name         TEXT,
         status                TEXT,
         carrier               TEXT,
@@ -74,15 +75,16 @@ def seed_orders():
                 cur.execute(
                     """
                     INSERT INTO orders
-                        (order_id, customer_name, status, carrier, tracking_number,
+                        (order_id, user_id, customer_name, status, carrier, tracking_number,
                          estimated_delivery, items, shipping_mode, order_region,
                          order_country, order_city, market, late_delivery_risk,
                          benefit_per_order, sales_per_customer, order_date)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                     ON CONFLICT (order_id) DO NOTHING
                     """,
                     [
                         row["order_id"],
+                        row["user_id"],
                         row["customer_name"],
                         row["status"],
                         row["carrier"],

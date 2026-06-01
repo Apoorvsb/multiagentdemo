@@ -21530,3 +21530,6 @@ list my orders
 2026-05-31T15:22:21 | INFO     | request_id=09da49b7-3dea-43ab-b49b-944f94a21acd | agent=support_agent | node=save_to_db | Response saved
 2026-05-31T15:22:21 | INFO     | request_id=09da49b7-3dea-43ab-b49b-944f94a21acd | agent=support_agent | node=entry | Support agent completed
 2026-05-31T15:22:21 | INFO     | request_id=09da49b7-3dea-43ab-b49b-944f94a21acd | agent=- | node=- | Response returned | intent=support_query | tokens=646 | latency=2129ms
+2026-06-01T18:22:20 | INFO     | request_id=test-req-id | agent=product_agent | node=broaden_search | Broadening search filters
+2026-06-01T18:23:11 | INFO     | request_id=test-req-id | agent=product_agent | node=broaden_search | Broadening search filters
+2026-06-01T18:24:20 | INFO     | request_id=test-req-id | agent=product_agent | node=broaden_search | Broadening search filters

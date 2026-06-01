@@ -706,8 +706,38 @@ def generate_escalation_response(state: AgentState) -> AgentState:
         delivered = pending.get("delivered_orders", [])
         import json as _j
 
-        lines = ["I'd like to help with your issue. Which order is this about?\n"]
-        for i, o in enumerate(delivered, 1):
+        # Extract product keyword from original message and filter orders
+        original_msg = pending.get("original_message", "").lower()
+        _STOP = {
+            "my", "the", "a", "an", "of", "for", "i", "want", "need",
+            "refund", "return", "cancel", "complaint", "issue", "order",
+            "orders", "about", "with", "this", "that", "damaged", "wrong",
+            "product", "item", "please", "help", "got", "received",
+        }
+        import re as _re
+        words = [w for w in _re.findall(r"\b\w+\b", original_msg) if w not in _STOP and len(w) > 2]
+        keyword = " ".join(words[:2]) if words else ""
+
+        if keyword:
+            filtered = [
+                o for o in delivered
+                if keyword.lower() in str(o.get("items", "")).lower()
+            ]
+        else:
+            filtered = []
+
+        if filtered:
+            display_orders = filtered
+            header = f"I found {len(filtered)} order(s) matching **{keyword}**. Which one is this about?\n"
+        else:
+            display_orders = delivered[:10]
+            header = (
+                f"I couldn't find an order for **{keyword}** in your history. "
+                f"Please select from your recent orders:\n"
+            ) if keyword else "I'd like to help with your issue. Which order is this about?\n"
+
+        lines = [header]
+        for i, o in enumerate(display_orders, 1):
             raw = o.get("items", [])
             if isinstance(raw, str):
                 try:

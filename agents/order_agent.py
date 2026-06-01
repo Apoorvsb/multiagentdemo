@@ -349,6 +349,29 @@ Return ONLY valid JSON. No explanation."""
                 extracted["status_filter"] = status
                 break
 
+    # ── Relative date shortcuts ───────────────────────────────────────
+    from datetime import date as _date
+
+    _today = _date.today()
+    if re.search(r"\bthis\s+month\b", msg_lower):
+        extracted["month_filter"] = _today.month
+        extracted["year_filter"] = _today.year
+    elif re.search(r"\blast\s+month\b", msg_lower):
+        _first = _today.replace(day=1)
+        from datetime import timedelta as _td
+        _prev = _first - _td(days=1)
+        extracted["month_filter"] = _prev.month
+        extracted["year_filter"] = _prev.year
+    elif re.search(r"\bthis\s+year\b", msg_lower):
+        extracted["year_filter"] = _today.year
+    elif re.search(r"\blast\s+year\b", msg_lower):
+        extracted["year_filter"] = _today.year - 1
+    elif re.search(r"\btoday\b", msg_lower):
+        extracted["date_filter"] = str(_today)
+    elif re.search(r"\byesterday\b", msg_lower):
+        from datetime import timedelta as _td
+        extracted["date_filter"] = str(_today - _td(days=1))
+
     # ── Date/month/year — regex-only, LLM values discarded ───────────
     # LLM is unreliable here: it guesses wrong years and defaults to the
     # 1st of the month when only a month name is mentioned. Pure regex is
@@ -378,9 +401,13 @@ Return ONLY valid JSON. No explanation."""
         "nov": 11,
         "dec": 12,
     }
-    extracted["date_filter"] = None
-    extracted["month_filter"] = None
-    extracted["year_filter"] = None
+    # Preserve relative date values set above; only reset if not already set
+    if not extracted.get("date_filter"):
+        extracted["date_filter"] = None
+    if not extracted.get("month_filter"):
+        extracted["month_filter"] = None
+    if not extracted.get("year_filter"):
+        extracted["year_filter"] = None
 
     # 1. Specific date patterns — set date_filter only
     m = re.search(r"\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b", msg_lower)
@@ -404,15 +431,15 @@ Return ONLY valid JSON. No explanation."""
                     day, mon, yr = int(g[1]), _MONTH_NAMES[g[0]], int(g[2])
                 extracted["date_filter"] = f"{yr}-{mon:02d}-{day:02d}"
 
-    # 2. Month name (only if no specific date found)
-    if not extracted["date_filter"]:
+    # 2. Month name (only if no specific date found and not already set by relative date)
+    if not extracted["date_filter"] and not extracted["month_filter"]:
         for name, num in _MONTH_NAMES.items():
             if re.search(r"\b" + name + r"\b", msg_lower):
                 extracted["month_filter"] = num
                 break
 
-    # 3. Year (only if no specific date found; present = filter to that year, absent = all years)
-    if not extracted["date_filter"]:
+    # 3. Year (only if no specific date found and not already set by relative date)
+    if not extracted["date_filter"] and not extracted["year_filter"]:
         m = re.search(r"\b(20\d{2})\b", msg_lower)
         extracted["year_filter"] = int(m.group(1)) if m else None
 
@@ -451,6 +478,18 @@ Return ONLY valid JSON. No explanation."""
             candidate = m.group(1).strip()
             if candidate not in _IGNORE:
                 extracted["product_keyword"] = candidate
+
+        # "where is my mouse", "where is my keyboard order", "track my webcam"
+        if not extracted.get("product_keyword"):
+            m = re.search(
+                r"(?:where\s+is\s+my|where\s+is\s+the|track\s+my|status\s+of\s+my|my)\s+(\w+(?:\s+\w+)?)"
+                r"(?:\s+order)?",
+                msg_lower,
+            )
+            if m:
+                candidate = m.group(1).strip()
+                if candidate not in _IGNORE and len(candidate) > 2:
+                    extracted["product_keyword"] = candidate
 
     # ── Always return all filters — NO DB QUERIES ─────────
     return {
