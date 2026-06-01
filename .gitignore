@@ -1,2 +1,6 @@
 .env
 actions-runner/
+venv/
+__pycache__/
+*.pyc
+*.pyo
