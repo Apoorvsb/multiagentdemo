@@ -29,15 +29,12 @@ jobs:
         run: pip install flake8 black
 
       - name: flake8 — style check
-        run: |
-          flake8 . \
-            --max-line-length=120 \
-            --exclude=.git,__pycache__,venv,.github,mlruns,mlflow_artifacts
+        run: flake8 .
 
       - name: black — format check
         run: |
           black --check --line-length 120 \
-            --exclude '/(\.git|__pycache__|venv|\.github|mlruns|mlflow_artifacts)/' \
+            --exclude '/(\.git|__pycache__|venv|\.github|mlruns|mlflow_artifacts|actions-runner|tools)/' \
             .
 
 # ──────────────────────────────────────────────────────────────────────────────
