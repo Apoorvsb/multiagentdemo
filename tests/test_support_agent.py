@@ -427,11 +427,12 @@ class TestListTicketsResponse:
         rows = [
             {
                 "ticket_id": "TKT001",
+                "order_id": "ORD001",
                 "issue_type": "damaged_goods",
                 "priority": "HIGH",
                 "status": "Open",
                 "created_at": datetime(2025, 1, 10),
-                "description": "Screen cracked [Order: ORD001]",
+                "description": "Screen cracked",
             },
         ]
         state = make_state(user_id="test@example.com")
