@@ -44,7 +44,7 @@
   {
     "id": "eval_007",
     "agent": "order_agent",
-    "input": "What are my orders in transit?",
+    "input": "List all orders that are in transit",
     "expected": "You have two orders currently in transit. ORD1491 with a Motherboard is being shipped via Delhivery and expected by 2024-05-28. ORD1419 with a Laptop Bag is being shipped via FedEx and expected by 2024-04-11.",
     "context": "User has multiple orders. ORD1491 is IN_TRANSIT via Delhivery (ETA 2024-05-28, Items: Motherboard). ORD1419 is IN_TRANSIT via FedEx (ETA 2024-04-11, Items: Laptop Bag)."
   },
@@ -65,7 +65,7 @@
   {
     "id": "eval_010",
     "agent": "order_agent",
-    "input": "Which of my orders are pending?",
+    "input": "List all pending orders",
     "expected": "You have one pending order: ORD1437 containing RAM and SSD, being shipped via Delhivery with an estimated delivery date of 2024-06-08.",
     "context": "User pending orders: ORD1437 PENDING Delhivery Items: RAM, SSD ETA 2024-06-08."
   },
@@ -73,13 +73,13 @@
     "id": "eval_011",
     "agent": "order_agent",
     "input": "How many orders do I have?",
-    "expected": "You have 6 orders in total — 2 delivered, 2 in transit, 1 out for delivery, and 1 pending.",
+    "expected": "6 orders total. DELIVERED: 2, IN_TRANSIT: 2, OUT_FOR_DELIVERY: 1, PENDING: 1.",
     "context": "User has 6 orders total: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1419 IN_TRANSIT, ORD1455 DELIVERED, ORD1401 DELIVERED."
   },
   {
     "id": "eval_012",
     "agent": "order_agent",
-    "input": "Show me all my delivered orders",
+    "input": "List all delivered orders",
     "expected": "You have two delivered orders: ORD1455 (Smartphone via Delhivery, delivered 2024-03-05) and ORD1401 (Hard Drive via Ekart, delivered 2024-01-06).",
     "context": "Delivered orders: ORD1455 DELIVERED Delhivery Smartphone 2024-03-05, ORD1401 DELIVERED Ekart Hard Drive 2024-01-06."
   },
@@ -107,7 +107,7 @@
   {
     "id": "eval_016",
     "agent": "order_agent",
-    "input": "Which of my orders are out for delivery?",
+    "input": "Show orders out for delivery",
     "expected": "You have one order out for delivery: ORD1473 with Books via Delhivery, expected by 2024-04-23.",
     "context": "Out for delivery orders: ORD1473 OUT_FOR_DELIVERY Delhivery Books ETA 2024-04-23."
   },
@@ -254,37 +254,37 @@
   {
     "id": "eval_037",
     "agent": "support_agent",
-    "input": "my laptop arrived with a cracked screen",
+    "input": "my Hard Drive arrived with physical damage, the casing is cracked",
     "expected": "Acknowledgement of damaged goods issue, ticket ID created, priority assigned, SLA for resolution mentioned, and apology offered.",
-    "context": "Issue type: damaged_goods. Severity: HIGH. A new support ticket should be created with PRIORITY_1 or PRIORITY_2. SLA: 2-4 hours. Policy: replacement or repair within 7 days for physically damaged items delivered in that condition."
+    "context": "Issue type: damaged_goods. Severity: HIGH. Order ORD1401 Hard Drive. A new support ticket should be created with PRIORITY_1 or PRIORITY_2. SLA: 2-4 hours. Policy: replacement or repair within 7 days for physically damaged items delivered in that condition."
   },
   {
     "id": "eval_038",
     "agent": "support_agent",
-    "input": "I received a wrong product",
+    "input": "I received a wrong Smartphone, the model delivered is different from what I ordered",
     "expected": "Acknowledgement of wrong item received, ticket created with HIGH priority, SLA mentioned, and next steps for return and replacement provided.",
-    "context": "Issue type: wrong_item. Severity: HIGH. Ticket created. Policy: customer must return the wrong item within 7 days and a replacement will be shipped within 3-5 business days. SLA: 4 hours response time."
+    "context": "Issue type: wrong_item. Severity: HIGH. Order ORD1455 Smartphone. Ticket created. Policy: customer must return the wrong item within 7 days and a replacement will be shipped within 3-5 business days. SLA: 4 hours response time."
   },
   {
     "id": "eval_039",
     "agent": "support_agent",
-    "input": "there is an item missing from my package",
+    "input": "the Smartphone I received is missing accessories from the package",
     "expected": "Acknowledgement of missing item, ticket created with HIGH priority, SLA and resolution steps mentioned.",
-    "context": "Issue type: missing_item. Severity: HIGH. Ticket created. Policy: missing items investigated within 48 hours and reshipped if confirmed missing. SLA: 4 hours response time for HIGH priority."
+    "context": "Issue type: missing_item. Severity: HIGH. Order ORD1455 Smartphone. Ticket created. Policy: missing items investigated within 48 hours and reshipped if confirmed missing. SLA: 4 hours response time for HIGH priority."
   },
   {
     "id": "eval_040",
     "agent": "support_agent",
-    "input": "I want to raise a warranty claim",
+    "input": "I want to raise a warranty claim for my Hard Drive, it stopped working",
     "expected": "Acknowledgement of warranty claim, ticket created, warranty policy details mentioned including coverage period and process.",
-    "context": "Issue type: warranty_claim. Severity: HIGH. Ticket created. Policy: warranty claims processed within 5-7 business days. Products covered under manufacturer warranty for 1 year from date of purchase. SLA: 4 hours."
+    "context": "Issue type: warranty_claim. Severity: HIGH. Order ORD1401 Hard Drive. Ticket created. Policy: warranty claims processed within 5-7 business days. Products covered under manufacturer warranty for 1 year from date of purchase. SLA: 4 hours."
   },
   {
     "id": "eval_041",
     "agent": "support_agent",
-    "input": "my product is not working as described",
+    "input": "my Smartphone is not working as described, the battery life is much worse than advertised",
     "expected": "Acknowledgement of product mismatch issue, ticket created with HIGH priority, resolution options (return/replacement) and SLA mentioned.",
-    "context": "Issue type: product_not_as_described. Severity: HIGH. Ticket created. Policy: if product does not match description, customer eligible for full refund or replacement within 10 days of delivery. SLA: 4 hours."
+    "context": "Issue type: product_not_as_described. Severity: HIGH. Order ORD1455 Smartphone. Ticket created. Policy: if product does not match description, customer eligible for full refund or replacement within 10 days of delivery. SLA: 4 hours."
   },
   {
     "id": "eval_042",
@@ -298,21 +298,21 @@
     "agent": "support_agent",
     "input": "I want a refund for my order",
     "expected": "Agent asks which order the refund is for, presenting a numbered list of the user's orders to select from.",
-    "context": "Issue type: refund_request. Severity: MEDIUM. Agent should ask which order the refund is for before proceeding. User has multiple orders including ORD3001 Gaming Mouse, ORD3004 Laptop Stand, ORD3006 Wireless Earbuds."
+    "context": "Issue type: refund_request. Severity: MEDIUM. Agent should ask which order the refund is for before proceeding. User has multiple orders including ORD1401 Hard Drive, ORD1455 Smartphone, ORD1437 RAM+SSD."
   },
   {
     "id": "eval_044",
     "agent": "support_agent",
     "input": "I want to cancel my order",
     "expected": "Agent asks which order the user wants to cancel, presenting a numbered list of orders to choose from.",
-    "context": "Issue type: cancellation_request. Severity: MEDIUM. Agent should ask which order to cancel. User has orders in various statuses: PENDING ORD3003, IN_TRANSIT ORD3002, DELIVERED ORD3001."
+    "context": "Issue type: cancellation_request. Severity: MEDIUM. Agent should ask which order to cancel. User has orders in various statuses: PENDING ORD1437, IN_TRANSIT ORD1491, DELIVERED ORD1401."
   },
   {
     "id": "eval_045",
     "agent": "support_agent",
     "input": "I want to return my product",
     "expected": "Agent asks which order the return is for, presenting a list of the user's delivered orders to select from.",
-    "context": "Issue type: return_request. Severity: MEDIUM. Agent should ask which delivered order to return. Delivered orders: ORD3001 Gaming Mouse, ORD3004 Laptop Stand, ORD3006 Wireless Earbuds."
+    "context": "Issue type: return_request. Severity: MEDIUM. Agent should ask which delivered order to return. Delivered orders: ORD1401 Hard Drive, ORD1455 Smartphone."
   },
   {
     "id": "eval_046",
@@ -352,8 +352,8 @@
   {
     "id": "eval_051",
     "agent": "support_agent",
-    "input": "my item arrived damaged and I also want a refund",
+    "input": "my Hard Drive arrived damaged and I also want a refund",
     "expected": "Issue classified as damaged_goods (HIGH severity wins over refund request), ticket created, replacement or refund options mentioned.",
-    "context": "Issue type: damaged_goods (HIGH) takes priority over refund_request (MEDIUM) when both are mentioned. Ticket created with HIGH priority. Policy: damaged goods eligible for replacement or full refund within 7 days."
+    "context": "Issue type: damaged_goods (HIGH) takes priority over refund_request (MEDIUM) when both are mentioned. Order ORD1401 Hard Drive. Ticket created with HIGH priority. Policy: damaged goods eligible for replacement or full refund within 7 days."
   }
 ]

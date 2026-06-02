@@ -1,3 +1,4 @@
+import re
 import uuid
 import mlflow
 import psycopg2
@@ -10,6 +11,14 @@ from config import config
 from logger import get_log
 from mlflow_helpers import calculate_cost, log_llm_span, log_tool_span
 from database import get_conn, save_message
+
+
+def _clean_response(text: str) -> str:
+    text = re.sub(r"\[Your Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
+    text = re.sub(r"\[Agent Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
+    text = re.sub(r"\[Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
+    text = re.sub(r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE)
+    return text.strip()
 
 llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
@@ -253,7 +262,7 @@ def _fetch_user_tickets(user_id: str) -> list:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    """SELECT ticket_id, issue_type, priority, status, created_at, description
+                    """SELECT ticket_id, order_id, issue_type, priority, status, created_at, description
                        FROM tickets WHERE user_id = %s
                        ORDER BY created_at DESC""",
                     [user_id],
@@ -600,13 +609,14 @@ def create_ticket(state: AgentState) -> AgentState:
             with conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO tickets
-                       (ticket_id, user_id, session_id, issue_type,
+                       (ticket_id, user_id, session_id, order_id, issue_type,
                         severity, priority, status, description)
-                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s)""",
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                     [
                         ticket_id,
                         state.get("user_id"),
                         state.get("session_id"),
+                        state.get("order_id") if state.get("order_id") != "__PENDING__" else None,
                         state.get("issue_type"),
                         state.get("severity"),
                         state.get("priority"),
@@ -667,7 +677,7 @@ def draft_resolution(state: AgentState) -> AgentState:
         input_tokens = usage.get("input_tokens", 0)
         output_tokens = usage.get("output_tokens", 0)
         cost = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
-        resolution = response.content
+        resolution = _clean_response(response.content)
     except Exception as e:
         log.error(f"Draft resolution failed: {e}")
         resolution = f"We have received your complaint and will resolve it within 24 hours.{f' Ticket: {ticket_id}.' if ticket_id else ''}"
@@ -792,7 +802,7 @@ def generate_escalation_response(state: AgentState) -> AgentState:
         input_tokens = usage.get("input_tokens", 0)
         output_tokens = usage.get("output_tokens", 0)
         cost = calculate_cost(config.LLM_MODEL, input_tokens, output_tokens)
-        resolution = response.content
+        resolution = _clean_response(response.content)
     except Exception as e:
         log.error(f"Escalation response failed: {e}")
         resolution = (
@@ -843,9 +853,7 @@ def list_tickets_response(state: AgentState) -> AgentState:
             status = t.get("status", "N/A")
             priority = t.get("priority", "N/A")
             tid = t.get("ticket_id", "N/A")
-            desc = t.get("description") or ""
-            m = _re.search(r"\[Order:\s*([\w\d]+)\]", desc)
-            order_id = m.group(1) if m else "N/A"
+            order_id = t.get("order_id") or "N/A"
             lines.append(f"{i}. **{tid}** | Order: {order_id} | {issue} | Status: {status} | {priority} | {date_str}")
         response = "\n".join(lines)
 

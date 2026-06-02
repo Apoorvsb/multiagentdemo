@@ -733,7 +733,11 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s AND order_date::date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY order_date DESC LIMIT 10",
+                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
+                       FROM orders WHERE user_id = %s
+                       AND EXTRACT(YEAR  FROM order_date::date) = EXTRACT(YEAR  FROM CURRENT_DATE - INTERVAL '1 month')
+                       AND EXTRACT(MONTH FROM order_date::date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
+                       ORDER BY order_date DESC LIMIT 50""",
                     [user_id],
                 )
                 orders = [dict(r) for r in cur.fetchall()]

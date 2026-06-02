@@ -75,8 +75,13 @@ def get_live_response(sample: dict) -> str:
         from state import empty_state
         from pipeline import pipeline
 
+        from database import get_conn
         user_id = "eval_user"
         get_or_create_user(user_id)
+        # Expire any active session so each eval case starts fresh
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE sessions SET is_active = false WHERE user_id = %s", [user_id])
         session_id = get_or_create_session(None, user_id)
 
         state = empty_state(

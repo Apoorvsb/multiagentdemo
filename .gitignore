@@ -4,3 +4,9 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+logs/
+mlruns/
+mlflow_artifacts/
+mlflow.db
+cleanup.sh
+eval/reports/
