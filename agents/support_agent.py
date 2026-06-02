@@ -17,7 +17,9 @@ def _clean_response(text: str) -> str:
     text = re.sub(r"\[Your Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
     text = re.sub(r"\[Agent Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
     text = re.sub(r"\[Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
-    text = re.sub(r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE
+    )
     return text.strip()
 
 
@@ -720,19 +722,40 @@ def generate_escalation_response(state: AgentState) -> AgentState:
         # Extract product keyword from original message and filter orders
         original_msg = pending.get("original_message", "").lower()
         _STOP = {
-            "my", "the", "a", "an", "of", "for", "i", "want", "need",
-            "refund", "return", "cancel", "complaint", "issue", "order",
-            "orders", "about", "with", "this", "that", "damaged", "wrong",
-            "product", "item", "please", "help", "got", "received",
+            "my",
+            "the",
+            "a",
+            "an",
+            "of",
+            "for",
+            "i",
+            "want",
+            "need",
+            "refund",
+            "return",
+            "cancel",
+            "complaint",
+            "issue",
+            "order",
+            "orders",
+            "about",
+            "with",
+            "this",
+            "that",
+            "damaged",
+            "wrong",
+            "product",
+            "item",
+            "please",
+            "help",
+            "got",
+            "received",
         }
         words = [w for w in re.findall(r"\b\w+\b", original_msg) if w not in _STOP and len(w) > 2]
         keyword = " ".join(words[:2]) if words else ""
 
         if keyword:
-            filtered = [
-                o for o in delivered
-                if keyword.lower() in str(o.get("items", "")).lower()
-            ]
+            filtered = [o for o in delivered if keyword.lower() in str(o.get("items", "")).lower()]
         else:
             filtered = []
 
@@ -742,9 +765,13 @@ def generate_escalation_response(state: AgentState) -> AgentState:
         else:
             display_orders = delivered[:10]
             header = (
-                f"I couldn't find an order for **{keyword}** in your history. "
-                f"Please select from your recent orders:\n"
-            ) if keyword else "I'd like to help with your issue. Which order is this about?\n"
+                (
+                    f"I couldn't find an order for **{keyword}** in your history. "
+                    f"Please select from your recent orders:\n"
+                )
+                if keyword
+                else "I'd like to help with your issue. Which order is this about?\n"
+            )
 
         lines = [header]
         for i, o in enumerate(display_orders, 1):

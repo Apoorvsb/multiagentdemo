@@ -359,6 +359,7 @@ Return ONLY valid JSON. No explanation."""
     elif re.search(r"\blast\s+month\b", msg_lower):
         _first = _today.replace(day=1)
         from datetime import timedelta as _td
+
         _prev = _first - _td(days=1)
         extracted["month_filter"] = _prev.month
         extracted["year_filter"] = _prev.year
@@ -370,6 +371,7 @@ Return ONLY valid JSON. No explanation."""
         extracted["date_filter"] = str(_today)
     elif re.search(r"\byesterday\b", msg_lower):
         from datetime import timedelta as _td
+
         extracted["date_filter"] = str(_today - _td(days=1))
 
     # ── Date/month/year — regex-only, LLM values discarded ───────────

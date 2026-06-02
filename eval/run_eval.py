@@ -76,6 +76,7 @@ def get_live_response(sample: dict) -> str:
         from pipeline import pipeline
 
         from database import get_conn
+
         user_id = "eval_user"
         get_or_create_user(user_id)
         # Expire any active session so each eval case starts fresh
