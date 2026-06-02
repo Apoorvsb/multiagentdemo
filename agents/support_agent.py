@@ -20,6 +20,7 @@ def _clean_response(text: str) -> str:
     text = re.sub(r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE)
     return text.strip()
 
+
 llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
 # session_id → {original_message, delivered_orders, issue_type}
@@ -724,8 +725,7 @@ def generate_escalation_response(state: AgentState) -> AgentState:
             "orders", "about", "with", "this", "that", "damaged", "wrong",
             "product", "item", "please", "help", "got", "received",
         }
-        import re as _re
-        words = [w for w in _re.findall(r"\b\w+\b", original_msg) if w not in _STOP and len(w) > 2]
+        words = [w for w in re.findall(r"\b\w+\b", original_msg) if w not in _STOP and len(w) > 2]
         keyword = " ".join(words[:2]) if words else ""
 
         if keyword:
@@ -835,8 +835,6 @@ def generate_escalation_response(state: AgentState) -> AgentState:
 
 
 def list_tickets_response(state: AgentState) -> AgentState:
-    import re as _re
-
     log = get_log(state["request_id"], "support_agent", "list_tickets_response")
     log.info("Fetching all tickets for user")
 

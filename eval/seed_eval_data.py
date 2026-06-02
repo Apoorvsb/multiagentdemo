@@ -9,12 +9,12 @@ Usage:
 """
 import sys
 import os
-import json
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import psycopg2
-import psycopg2.extras
-from config import config
+
+import psycopg2  # noqa: E402
+import psycopg2.extras  # noqa: E402
+from config import config  # noqa: E402
 
 
 def get_conn():
@@ -190,7 +190,8 @@ def seed():
 
             # 1. Create eval_user
             cur.execute(
-                "INSERT INTO users (user_id, created_at, metadata) VALUES (%s, NOW(), '{}') ON CONFLICT (user_id) DO NOTHING",
+                "INSERT INTO users (user_id, created_at, metadata) "
+                "VALUES (%s, NOW(), '{}') ON CONFLICT (user_id) DO NOTHING",
                 [EVAL_USER],
             )
 
@@ -199,7 +200,8 @@ def seed():
 
             # 3. Remove any existing eval_user orders
             cur.execute(
-                "DELETE FROM tracking_events WHERE tracking_number IN (SELECT tracking_number FROM orders WHERE user_id = %s)",
+                "DELETE FROM tracking_events WHERE tracking_number IN "
+                "(SELECT tracking_number FROM orders WHERE user_id = %s)",
                 [EVAL_USER],
             )
             cur.execute("DELETE FROM orders WHERE user_id = %s", [EVAL_USER])
@@ -241,15 +243,15 @@ def seed():
                         psycopg2.extras.Json(t["events"]),
                         t["days_real"], t["days_sched"],
                         t["delivery_status"], t["ship_date"],
-                        EVAL_ORDERS[[o["tracking_number"] for o in EVAL_ORDERS].index(tn)]["lat"] if tn in [o["tracking_number"] for o in EVAL_ORDERS] else 0.0,
-                        EVAL_ORDERS[[o["tracking_number"] for o in EVAL_ORDERS].index(tn)]["lon"] if tn in [o["tracking_number"] for o in EVAL_ORDERS] else 0.0,
+                        next((o["lat"] for o in EVAL_ORDERS if o["tracking_number"] == tn), 0.0),
+                        next((o["lon"] for o in EVAL_ORDERS if o["tracking_number"] == tn), 0.0),
                     ],
                 )
 
-    print(f"✅ eval_user created")
+    print("✅ eval_user created")
     print(f"✅ {len(EVAL_ORDERS)} orders seeded: {[o['order_id'] for o in EVAL_ORDERS]}")
     print(f"✅ {len(TRACKING_EVENTS)} tracking events seeded")
-    print(f"✅ Active sessions expired")
+    print("✅ Active sessions expired")
     print()
     print("Order summary:")
     for o in EVAL_ORDERS:
