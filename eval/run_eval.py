@@ -462,8 +462,13 @@ def run_evaluation():
     print(f"Mode: {'LIVE' if RUN_LIVE else 'MOCKED'}")
     print("=" * 60)
 
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-    mlflow.set_experiment(CONFIG["reporting"]["mlflow_experiment"])
+    _mlflow_enabled = False
+    try:
+        mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
+        mlflow.set_experiment(CONFIG["reporting"]["mlflow_experiment"])
+        _mlflow_enabled = True
+    except Exception as e:
+        print(f"⚠ MLflow unavailable, skipping tracking: {e}")
 
     dataset = load_dataset()
     mock_responses = load_mock_responses() if not RUN_LIVE else {}
@@ -478,15 +483,26 @@ def run_evaluation():
     results = []
     all_scores = {d: [] for d in DIMENSIONS}
 
-    with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}") as run:
-        mlflow.set_tags(
-            {
-                "eval_mode": "live" if RUN_LIVE else "mocked",
-                "dataset": "eval/dataset.json",
-                "commit_sha": commit_sha,
-                "branch": branch_name,
-            }
-        )
+    from contextlib import contextmanager, nullcontext
+
+    @contextmanager
+    def _mlflow_run():
+        if _mlflow_enabled:
+            with mlflow.start_run(run_name=f"eval_{datetime.now().strftime('%Y%m%d_%H%M%S')}") as run:
+                yield run
+        else:
+            yield None
+
+    with _mlflow_run() as run:
+        if _mlflow_enabled:
+            mlflow.set_tags(
+                {
+                    "eval_mode": "live" if RUN_LIVE else "mocked",
+                    "dataset": "eval/dataset.json",
+                    "commit_sha": commit_sha,
+                    "branch": branch_name,
+                }
+            )
 
         for sample in dataset:
             print(f"\n[{sample['id']}] {sample['input'][:60]}...")
@@ -531,14 +547,15 @@ def run_evaluation():
                 }
             )
 
-            mlflow.log_metrics(
-                {
-                    f"{sample['id']}_relevance": scores["relevance"],
-                    f"{sample['id']}_correctness": scores["correctness"],
-                    f"{sample['id']}_completeness": scores["completeness"],
-                    f"{sample['id']}_hallucination": scores["hallucination"],
-                }
-            )
+            if _mlflow_enabled:
+                mlflow.log_metrics(
+                    {
+                        f"{sample['id']}_relevance": scores["relevance"],
+                        f"{sample['id']}_correctness": scores["correctness"],
+                        f"{sample['id']}_completeness": scores["completeness"],
+                        f"{sample['id']}_hallucination": scores["hallucination"],
+                    }
+                )
 
         # Aggregates
         avgs = {dim: sum(all_scores[dim]) / len(all_scores[dim]) for dim in DIMENSIONS}
@@ -549,20 +566,21 @@ def run_evaluation():
         for r in results:
             agent_results.setdefault(r["agent"], []).append(r)
 
-        mlflow.log_metrics(
-            {
-                "avg_relevance": avgs["relevance"],
-                "avg_correctness": avgs["correctness"],
-                "avg_completeness": avgs["completeness"],
-                "avg_hallucination": avgs["hallucination"],
-                "overall_avg": overall_avg,
-                "total_samples": len(dataset),
-            }
-        )
-        for ag, ag_results in agent_results.items():
-            for dim in DIMENSIONS:
-                ag_avg = sum(r[dim] for r in ag_results) / len(ag_results)
-                mlflow.log_metric(f"{ag}_{dim}_avg", round(ag_avg, 3))
+        if _mlflow_enabled:
+            mlflow.log_metrics(
+                {
+                    "avg_relevance": avgs["relevance"],
+                    "avg_correctness": avgs["correctness"],
+                    "avg_completeness": avgs["completeness"],
+                    "avg_hallucination": avgs["hallucination"],
+                    "overall_avg": overall_avg,
+                    "total_samples": len(dataset),
+                }
+            )
+            for ag, ag_results in agent_results.items():
+                for dim in DIMENSIONS:
+                    ag_avg = sum(r[dim] for r in ag_results) / len(ag_results)
+                    mlflow.log_metric(f"{ag}_{dim}_avg", round(ag_avg, 3))
 
         print(f"\n{'─'*60}")
         for dim in DIMENSIONS:
@@ -577,8 +595,9 @@ def run_evaluation():
                 failures.append(f"{dim} {avgs[dim]:.3f} < {threshold}")
                 passed = False
 
-        mlflow.set_tag("eval_passed", str(passed))
-        mlflow.set_tag("eval_failures", "; ".join(failures) if failures else "none")
+        if _mlflow_enabled:
+            mlflow.set_tag("eval_passed", str(passed))
+            mlflow.set_tag("eval_failures", "; ".join(failures) if failures else "none")
 
         json_report = generate_json_report(results, avgs, overall_avg, passed, failures, commit_sha, branch_name)
         generate_html_report(results, json_report)
@@ -588,26 +607,25 @@ def run_evaluation():
         # Manually copy to artifact store
         # Get artifact path dynamically from MLflow run
         # Get artifact path dynamically from MLflow run
-        artifact_uri = run.info.artifact_uri
+        if _mlflow_enabled and run:
+            artifact_uri = run.info.artifact_uri
+            if artifact_uri.startswith("file://"):
+                artifact_dir = Path(artifact_uri.replace("file://", ""))
+            elif artifact_uri.startswith("/"):
+                artifact_dir = Path(artifact_uri)
+            else:
+                artifact_dir = BASE_DIR / "mlflow_artifacts" / "multiagent-ci-eval" / run.info.run_id / "artifacts"
+            artifact_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy(str(REPORTS_DIR / "eval_report.json"), str(artifact_dir))
+            shutil.copy(str(REPORTS_DIR / "eval_report.html"), str(artifact_dir))
+            print(f"Artifacts saved to: {artifact_dir}")
+            df = pd.DataFrame(results)
+            mlflow_dataset = mlflow.data.from_pandas(df, name="multiagent_eval_dataset", targets="expected")
+            mlflow.log_input(mlflow_dataset, context="evaluation")
 
-        if artifact_uri.startswith("file://"):
-            artifact_dir = Path(artifact_uri.replace("file://", ""))
-        elif artifact_uri.startswith("/"):
-            artifact_dir = Path(artifact_uri)
-        else:
-            artifact_dir = BASE_DIR / "mlflow_artifacts" / "multiagent-ci-eval" / run.info.run_id / "artifacts"
-
-        artifact_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(str(REPORTS_DIR / "eval_report.json"), str(artifact_dir))
-        shutil.copy(str(REPORTS_DIR / "eval_report.html"), str(artifact_dir))
-        print(f"Artifacts saved to: {artifact_dir}")
-
-        df = pd.DataFrame(results)
-        mlflow_dataset = mlflow.data.from_pandas(df, name="multiagent_eval_dataset", targets="expected")
-        mlflow.log_input(mlflow_dataset, context="evaluation")
-
-        run_id = run.info.run_id
-        print(f"\nMLflow Run: http://localhost:5000/#/experiments/multiagent-ci-eval/runs/{run_id}")
+        if _mlflow_enabled and run:
+            run_id = run.info.run_id
+            print(f"\nMLflow Run: http://localhost:5000/#/experiments/multiagent-ci-eval/runs/{run_id}")
 
     print(f"\n{'='*60}")
     if passed:
