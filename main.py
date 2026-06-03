@@ -199,9 +199,11 @@ ALLOWED_DOMAIN = "sigmoidanalytics.com"
 @app.post("/register")
 async def register(body: RegisterRequest):
     user_id = body.email
+    is_guest = not user_id.lower().endswith("@" + ALLOWED_DOMAIN)
 
-    if not user_id.lower().endswith("@" + ALLOWED_DOMAIN):
-        raise HTTPException(status_code=403, detail="Only @sigmoidanalytics.com accounts are allowed.")
+    # Guest users get a @guest.com user_id so agents can identify and restrict them
+    if is_guest:
+        user_id = body.email.split("@")[0] + "@guest.com"
 
     if user_exists(user_id):
         session_id = get_or_create_session(None, user_id)
@@ -211,17 +213,19 @@ async def register(body: RegisterRequest):
             "name": body.name,
             "message": "User already exists. Logged in successfully.",
             "existing_user": True,
+            "is_guest": is_guest,
         }
     get_or_create_user(user_id)
-    update_user_metadata(user_id, {"name": body.name, "email": body.email})
+    update_user_metadata(user_id, {"name": body.name, "email": body.email, "is_guest": is_guest})
     session_id = get_or_create_session(None, user_id)
 
     return {
         "user_id": user_id,
         "session_id": session_id,
         "name": body.name,
-        "message": "Registration successful.",
+        "message": "Registration successful." if not is_guest else "Guest account created. You can browse products only.",
         "existing_user": False,
+        "is_guest": is_guest,
     }
 
 
