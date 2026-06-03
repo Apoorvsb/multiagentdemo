@@ -60,8 +60,12 @@ def build_sliding_window(history: list) -> tuple[str, list]:
 
 
 # ── Prometheus metrics ─────────────────────────────────────
-REQUEST_COUNT = Counter("multiagent_requests_total", "Total requests", ["endpoint", "agent", "status"])
-REQUEST_LATENCY = Histogram("multiagent_request_latency_seconds", "Request latency in seconds", ["agent"])
+REQUEST_COUNT = Counter(
+    "multiagent_requests_total", "Total requests", ["endpoint", "agent", "status"]
+)
+REQUEST_LATENCY = Histogram(
+    "multiagent_request_latency_seconds", "Request latency in seconds", ["agent"]
+)
 TOKEN_USAGE = Counter("multiagent_tokens_total", "Total tokens used", ["agent"])
 ERROR_COUNT = Counter("multiagent_errors_total", "Total errors", ["agent"])
 
@@ -142,7 +146,10 @@ def get_session_row(session_id: str):
 def update_user_metadata(user_id: str, metadata: dict):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("UPDATE users SET metadata = %s WHERE user_id = %s", [psycopg2.extras.Json(metadata), user_id])
+            cur.execute(
+                "UPDATE users SET metadata = %s WHERE user_id = %s",
+                [psycopg2.extras.Json(metadata), user_id],
+            )
 
 
 def user_exists(user_id: str) -> bool:
@@ -216,14 +223,20 @@ async def register(body: RegisterRequest):
             "is_guest": is_guest,
         }
     get_or_create_user(user_id)
-    update_user_metadata(user_id, {"name": body.name, "email": body.email, "is_guest": is_guest})
+    update_user_metadata(
+        user_id, {"name": body.name, "email": body.email, "is_guest": is_guest}
+    )
     session_id = get_or_create_session(None, user_id)
 
     return {
         "user_id": user_id,
         "session_id": session_id,
         "name": body.name,
-        "message": "Registration successful." if not is_guest else "Guest account created. You can browse products only.",
+        "message": (
+            "Registration successful."
+            if not is_guest
+            else "Guest account created. You can browse products only."
+        ),
         "existing_user": False,
         "is_guest": is_guest,
     }
@@ -244,7 +257,9 @@ async def seed_orders(body: SeedOrdersRequest):
     from datetime import date, timedelta
 
     if not user_exists(body.user_id):
-        raise HTTPException(status_code=404, detail=f"User '{body.user_id}' not found. Register first.")
+        raise HTTPException(
+            status_code=404, detail=f"User '{body.user_id}' not found. Register first."
+        )
 
     TEMPLATES = [
         {
@@ -400,7 +415,9 @@ async def seed_orders(body: SeedOrdersRequest):
                             t["risk"],
                         ],
                     )
-                    tracking_number = t["carrier"][:2].upper() + "".join(random.choices(string.digits, k=8))
+                    tracking_number = t["carrier"][:2].upper() + "".join(
+                        random.choices(string.digits, k=8)
+                    )
                     cur.execute(
                         """
                         UPDATE orders SET tracking_number = %s WHERE order_id = %s
@@ -408,38 +425,55 @@ async def seed_orders(body: SeedOrdersRequest):
                         [tracking_number, order_id],
                     )
                     events = [
-                        {"time": str(today - timedelta(days=t["days_ago"])) + "T09:00:00Z", "status": "Order placed"},
                         {
-                            "time": str(today - timedelta(days=t["days_ago"] - 1)) + "T14:00:00Z",
+                            "time": str(today - timedelta(days=t["days_ago"]))
+                            + "T09:00:00Z",
+                            "status": "Order placed",
+                        },
+                        {
+                            "time": str(today - timedelta(days=t["days_ago"] - 1))
+                            + "T14:00:00Z",
                             "status": "Picked up from seller",
                         },
                     ]
                     if t["status"] not in ("PENDING",):
                         events.append(
                             {
-                                "time": str(today - timedelta(days=max(t["days_ago"] - 2, 0))) + "T06:00:00Z",
+                                "time": str(
+                                    today - timedelta(days=max(t["days_ago"] - 2, 0))
+                                )
+                                + "T06:00:00Z",
                                 "status": "In transit",
                             }
                         )
                     if t["status"] in ("OUT_FOR_DELIVERY", "DELIVERED"):
                         events.append(
                             {
-                                "time": str(today + timedelta(days=t["eta_offset"])) + "T08:00:00Z",
+                                "time": str(today + timedelta(days=t["eta_offset"]))
+                                + "T08:00:00Z",
                                 "status": "Out for delivery",
                             }
                         )
                     if t["status"] == "DELIVERED":
                         events.append(
-                            {"time": str(today + timedelta(days=t["eta_offset"])) + "T15:00:00Z", "status": "Delivered"}
+                            {
+                                "time": str(today + timedelta(days=t["eta_offset"]))
+                                + "T15:00:00Z",
+                                "status": "Delivered",
+                            }
                         )
                     if t["status"] == "DELAYED":
                         events.append(
-                            {"time": str(today - timedelta(days=1)) + "T10:00:00Z", "status": "Delivery delayed"}
+                            {
+                                "time": str(today - timedelta(days=1)) + "T10:00:00Z",
+                                "status": "Delivery delayed",
+                            }
                         )
                     if t["status"] == "RETURNED":
                         events.append(
                             {
-                                "time": str(today + timedelta(days=t["eta_offset"])) + "T11:00:00Z",
+                                "time": str(today + timedelta(days=t["eta_offset"]))
+                                + "T11:00:00Z",
                                 "status": "Return initiated",
                             }
                         )
@@ -486,7 +520,11 @@ async def login(body: LoginRequest):
     if not user_exists(body.user_id):
         raise HTTPException(
             status_code=404,
-            detail={"error": "User not found.", "action": "Please sign up first.", "signup_url": "/register"},
+            detail={
+                "error": "User not found.",
+                "action": "Please sign up first.",
+                "signup_url": "/register",
+            },
         )
 
     session_id = get_or_create_session(None, body.user_id)
@@ -615,7 +653,9 @@ async def chat(
             )
             state["mlflow_run_id"] = run_id
 
-            with mlflow.start_span(name="multi_agent_pipeline", span_type="CHAIN") as root_span:
+            with mlflow.start_span(
+                name="multi_agent_pipeline", span_type="CHAIN"
+            ) as root_span:
                 state["mlflow_trace_id"] = root_span.trace_id
                 state["mlflow_span_id"] = root_span.span_id
                 root_span.set_inputs({"message": body.message, "user_id": user_id})
@@ -656,7 +696,9 @@ async def chat(
                 traceback.print_exc()
                 log.error(f"Pipeline failed: {e}")
                 ERROR_COUNT.labels(agent="unknown").inc()
-                REQUEST_COUNT.labels(endpoint="/chat", agent="unknown", status="error").inc()
+                REQUEST_COUNT.labels(
+                    endpoint="/chat", agent="unknown", status="error"
+                ).inc()
                 raise HTTPException(status_code=500, detail=str(e))
 
     agent = result.get("intent", "unknown") if result else "unknown"

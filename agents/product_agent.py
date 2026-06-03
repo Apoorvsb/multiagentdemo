@@ -11,12 +11,6 @@ from config import config
 from logger import get_log
 from mlflow_helpers import calculate_cost, log_llm_span, log_tool_span
 from database import get_conn, save_message
-
-_log = logging.getLogger(__name__)
-
-llm = __import__("langchain_groq").ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
-
-# ── Module-level constants ─────────────────────────────────────────────────────
 from agents.product_constants import (
     _CATEGORY_NORM,
     BRAND_MAP,
@@ -32,6 +26,11 @@ from agents.product_constants import (
     _TYPE_SIGNATURES,
 )
 
+_log = logging.getLogger(__name__)
+
+llm = __import__("langchain_groq").ChatGroq(
+    model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY
+)
 
 # ── Database search ────────────────────────────────────────────────────────────
 
@@ -83,7 +82,9 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                         if not matched:
                             all_name_patterns.append(f"%{k}%")
 
-                    keyword_conditions = " OR ".join(["name ILIKE %s"] * len(all_name_patterns))
+                    keyword_conditions = " OR ".join(
+                        ["name ILIKE %s"] * len(all_name_patterns)
+                    )
                     conditions.append(f"({keyword_conditions})")
                     params.extend(all_name_patterns)
 
@@ -114,7 +115,10 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                         r
                         for r in results
                         if not any(
-                            re.search(rf"\b{re.escape(acc)}(?:e?s)?(?:[^a-zA-Z]|$)", r["name"].lower())
+                            re.search(
+                                rf"\b{re.escape(acc)}(?:e?s)?(?:[^a-zA-Z]|$)",
+                                r["name"].lower(),
+                            )
                             for acc in exclusions
                         )
                     ]
@@ -125,7 +129,11 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                 kw_joined = " ".join(prefs.get("keywords", [])).lower()
                 if "charger" in kw_joined:
                     no_irrelevant = [
-                        r for r in results if not any(kw in r["name"].lower() for kw in _CHARGER_EXCLUSIONS)
+                        r
+                        for r in results
+                        if not any(
+                            kw in r["name"].lower() for kw in _CHARGER_EXCLUSIONS
+                        )
                     ]
                     if no_irrelevant:
                         results = no_irrelevant
@@ -298,16 +306,28 @@ Rules:
     # Rating filter fallback
     msg_lower = msg.lower()
     if not prefs.get("min_rating"):
-        m = re.search(r"(?:above|over|minimum|at least|rated?\s+)(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?", msg_lower)
+        m = re.search(
+            r"(?:above|over|minimum|at least|rated?\s+)(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?",
+            msg_lower,
+        )
         if not m:
-            m = re.search(r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:above|over|plus|\+)", msg_lower)
+            m = re.search(
+                r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:above|over|plus|\+)",
+                msg_lower,
+            )
         if m:
             prefs["min_rating"] = float(m.group(1))
 
     if not prefs.get("max_rating"):
-        m = re.search(r"(?:below|under|less than|max(?:imum)?)\s+(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?", msg_lower)
+        m = re.search(
+            r"(?:below|under|less than|max(?:imum)?)\s+(\d+(?:\.\d+)?)\s*(?:star|rating|rated?)?",
+            msg_lower,
+        )
         if not m:
-            m = re.search(r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:below|under)", msg_lower)
+            m = re.search(
+                r"(\d+(?:\.\d+)?)\s*(?:star|rating)s?\s*(?:and\s+)?(?:below|under)",
+                msg_lower,
+            )
         if m:
             prefs["max_rating"] = float(m.group(1))
 
@@ -318,7 +338,9 @@ Rules:
             msg_lower,
         )
         if not m:
-            m = re.search(r"(?:below|under|less than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower)
+            m = re.search(
+                r"(?:below|under|less than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower
+            )
         if m:
             prefs["max_price"] = float(m.group(1).replace(",", ""))
 
@@ -328,7 +350,9 @@ Rules:
             msg_lower,
         )
         if not m:
-            m = re.search(r"(?:above|over|more than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower)
+            m = re.search(
+                r"(?:above|over|more than)\s+(\d{3,}(?:,\d+)*(?:\.\d+)?)\b", msg_lower
+            )
         if m:
             prefs["min_price"] = float(m.group(1).replace(",", ""))
 
@@ -343,7 +367,12 @@ Rules:
                 break
 
     # Follow-up carry-forward: pull brand/keyword from recent history for filter refinements
-    _has_filter = prefs.get("max_price") or prefs.get("min_price") or prefs.get("min_rating") or prefs.get("max_rating")
+    _has_filter = (
+        prefs.get("max_price")
+        or prefs.get("min_price")
+        or prefs.get("min_rating")
+        or prefs.get("max_rating")
+    )
     if _has_filter:
         for hist_m in reversed(recent_msgs):
             hist_content = (hist_m.get("content") or "").lower()
@@ -365,7 +394,11 @@ Rules:
     # Strip brand tokens from keywords to prevent duplicate/cross-brand SQL filters
     if prefs.get("brand"):
         brand_lower = prefs["brand"].lower()
-        prefs["keywords"] = [k for k in prefs["keywords"] if k.lower() != brand_lower and k.lower() not in BRAND_MAP]
+        prefs["keywords"] = [
+            k
+            for k in prefs["keywords"]
+            if k.lower() != brand_lower and k.lower() not in BRAND_MAP
+        ]
 
     log_tool_span(
         span_name="extract_preferences",
@@ -454,7 +487,10 @@ def rank_and_filter(state: AgentState) -> AgentState:
     pool = results[:pool_size]
 
     products_text = "\n".join(
-        [f"{i+1}. {p['name']} | Price: ₹{p['price']} | Rating: {p['rating']}" for i, p in enumerate(pool)]
+        [
+            f"{i+1}. {p['name']} | Price: ₹{p['price']} | Rating: {p['rating']}"
+            for i, p in enumerate(pool)
+        ]
     )
 
     prompt_template = mlflow.genai.load_prompt("prompts:/product_ranking_prompt/1")
@@ -584,7 +620,11 @@ def compute_score(state: AgentState) -> AgentState:
         price = float(p.get("price") or 9999)
         orig_price = float(p.get("original_price") or price)
         discount = ((orig_price - price) / orig_price * 100) if orig_price > 0 else 0
-        score = (rating / 5 * 40) + (min(review_count, 3) / 3 * 30) + (min(discount, 50) / 50 * 30)
+        score = (
+            (rating / 5 * 40)
+            + (min(review_count, 3) / 3 * 30)
+            + (min(discount, 50) / 50 * 30)
+        )
         scored.append({**p, "score": round(score, 2)})
 
     scored.sort(key=lambda x: x["score"], reverse=True)
@@ -646,7 +686,9 @@ def format_recommendations(state: AgentState) -> AgentState:
                 f"or **{top_rated['name'][:45]}** for the highest-rated option."
             )
         else:
-            lines.append(f"**{top_rated['name'][:60]}** offers the best mix of value and quality.")
+            lines.append(
+                f"**{top_rated['name'][:60]}** offers the best mix of value and quality."
+            )
 
     log.info("Recommendations formatted")
     return {
