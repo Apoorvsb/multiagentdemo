@@ -55,7 +55,7 @@ class TestValidateInput:
         state = make_state(user_id="anon@guest.com", current_input="where is my order")
         result = validate_input(state)
         assert result["response"] is not None
-        assert "Guest" in result["response"] or "guest" in result["response"].lower()
+        assert "access" in result["response"].lower() or "sign up" in result["response"].lower()
         assert result["order_id"] is None
 
     def test_explicit_ord_id_extracted(self):

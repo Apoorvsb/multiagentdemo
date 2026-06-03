@@ -280,7 +280,7 @@ def classify_issue(state: AgentState) -> AgentState:
 
     # ── Greetings / identity queries ──────────────────────
     _msg = state["current_input"].lower().strip()
-    _GREETINGS = {
+    _GREETINGS = [
         "hello",
         "hi",
         "hey",
@@ -291,8 +291,8 @@ def classify_issue(state: AgentState) -> AgentState:
         "what do you do",
         "introduce yourself",
         "who r you",
-    }
-    if any(g in _msg for g in _GREETINGS):
+    ]
+    if any(re.search(rf"\b{re.escape(g)}\b", _msg) for g in _GREETINGS):
         log.info("Greeting detected — returning intro response")
         return {
             **state,
