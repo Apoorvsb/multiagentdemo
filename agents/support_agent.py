@@ -278,13 +278,49 @@ def _fetch_user_tickets(user_id: str) -> list:
 def classify_issue(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "classify_issue")
 
+    # ── Greetings / identity queries ──────────────────────
+    _msg = state["current_input"].lower().strip()
+    _GREETINGS = {
+        "hello",
+        "hi",
+        "hey",
+        "who are you",
+        "what are you",
+        "what can you do",
+        "help",
+        "what do you do",
+        "introduce yourself",
+        "who r you",
+    }
+    if any(g in _msg for g in _GREETINGS):
+        log.info("Greeting detected — returning intro response")
+        return {
+            **state,
+            "issue_type": "greeting",
+            "response": (
+                "Hi! I'm your customer support assistant. I can help you with:\n\n"
+                "- **Order issues** — tracking, delays, missing items\n"
+                "- **Returns & refunds** — initiate or check status\n"
+                "- **Damaged or wrong items** — raise a complaint\n"
+                "- **Cancellations** — cancel an order\n"
+                "- **Warranty & product issues** — get support\n\n"
+                "Just tell me what's going on and I'll take care of it!"
+            ),
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
     # ── Block guest users ─────────────────────────────────
     user_id = state.get("user_id", "")
     if user_id.endswith("@guest.com"):
         return {
             **state,
             "issue_type": "guest_blocked",
-            "response": "Guest users can only ask about products. Please sign up or log in to access support.",
+            "response": (
+                "🚫 You don't have access to support features.\n\n"
+                "Please **sign up** at /register with your email to raise complaints, "
+                "request refunds, and track your support tickets."
+            ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
         }

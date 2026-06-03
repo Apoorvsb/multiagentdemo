@@ -33,11 +33,6 @@ def intent_router(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "router", "intent_router")
     log.info("Node entered")
 
-    # Guest users can only access the product agent
-    if state.get("user_id", "").endswith("@guest.com"):
-        log.info("Guest user — routing to product_agent")
-        return {**state, "intent": "product_query"}
-
     # If this session is waiting for a support order selection, skip LLM routing
     if state["session_id"] in _support_pending:
         log.info("Session awaiting support order selection — routing to support_agent")

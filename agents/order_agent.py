@@ -73,7 +73,11 @@ def validate_input(state: AgentState) -> AgentState:
         return {
             **state,
             "order_id": None,
-            "response": "Guest users cannot access order information. Please sign up or log in to track your orders.",
+            "response": (
+                "🚫 You don't have access to order information.\n\n"
+                "Please **sign up** at /register with your email to track orders, "
+                "view delivery status, and manage your purchases."
+            ),
         }
 
     msg_lower = state["current_input"].lower()
