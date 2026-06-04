@@ -142,6 +142,7 @@ _CARRY_PRODUCT_TYPES = [
     "microwave",
     "air fryer",
     "electric kettle",
+    "kettle",
     "rice cooker",
     "refrigerator",
     "pressure cooker",

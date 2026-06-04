@@ -17,6 +17,37 @@ _log = logging.getLogger(__name__)
 
 llm = __import__("langchain_groq").ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
+# ── Brand cache loaded from DB ────────────────────────────────────────────────
+# Keyed by lowercase brand name, value is display name.
+# Sorted longest-first so multi-word brands (e.g. "AO Smith") match before
+# single-word ones (e.g. "AO").
+_DB_BRANDS: dict[str, str] = {}
+
+
+def _get_catalog_brands() -> dict[str, str]:
+    """Return all brands from the products table, cached after first load."""
+    global _DB_BRANDS
+    if _DB_BRANDS:
+        return _DB_BRANDS
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT DISTINCT brand FROM products WHERE brand IS NOT NULL AND brand != '' AND availability = TRUE"
+                )
+                brands: dict[str, str] = {}
+                for (brand,) in cur.fetchall():
+                    b = brand.strip()
+                    if b and len(b) > 1:
+                        brands[b.lower()] = b
+        # Sort longest first so multi-word brands match before substrings
+        _DB_BRANDS = dict(sorted(brands.items(), key=lambda x: len(x[0]), reverse=True))
+        _log.info(f"Loaded {len(_DB_BRANDS)} brands from DB")
+    except Exception as e:
+        _log.warning(f"Could not load brands from DB, falling back to BRAND_MAP: {e}")
+        _DB_BRANDS = dict(BRAND_MAP)
+    return _DB_BRANDS
+
 
 # ── Database search (PostgreSQL full-text search) ─────────────────────────────
 
@@ -83,8 +114,16 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     order_clause = "created_at DESC NULLS LAST, rating DESC NULLS LAST"
                 else:
                     if search_query:
+                        # Boost products whose name doesn't look like an accessory:
+                        # "show me laptops" should rank actual laptops above laptop bags/stands.
                         order_clause = (
-                            "ts_rank(search_vector, plainto_tsquery('english', %s)) DESC, " "rating DESC NULLS LAST"
+                            "CASE WHEN lower(name) SIMILAR TO "
+                            "'%(bag|sleeve|case|stand|charger|cable|adapter|pouch|cover|holder|"
+                            "mount|dock|skin|protector|table|cooling|caddy|hub|dongle|"
+                            "speaker|keyboard|mouse|headphone|webcam|monitor|printer|scanner)%'"
+                            " THEN 0 ELSE 1 END DESC, "
+                            "ts_rank(search_vector, plainto_tsquery('english', %s)) DESC, "
+                            "rating DESC NULLS LAST"
                         )
                         order_params = [search_query]
                     else:
@@ -612,7 +651,7 @@ Return ONLY valid JSON."""
 
     # Brand fallback: scan message for known brands
     if not prefs.get("brand"):
-        for token, display in BRAND_MAP.items():
+        for token, display in _get_catalog_brands().items():
             if re.search(rf"\b{re.escape(token)}\b", msg_lower):
                 prefs["brand"] = display
                 break
@@ -626,35 +665,37 @@ Return ONLY valid JSON."""
     _is_refinement = _has_filter or len(msg.strip().split()) <= 4
 
     if _is_refinement and recent_msgs:
-        for hist_m in reversed(recent_msgs):
-            hist_content = (hist_m.get("content") or "").lower()
+        user_msgs = [m for m in recent_msgs if m.get("role") == "user"]
 
-            # Carry forward brand when not set in current turn.
-            # Only carry it when we're still in the same product context:
-            # check that at least one word from current search_query appears in the
-            # history message (prevents "find me a mouse" from inheriting Dell from
-            # a previous laptop search).
-            if not prefs.get("brand"):
+        # Brand carryforward: check USER messages only to avoid false matches
+        # from product descriptions in assistant responses (e.g. "instant noodles"
+        # matching the "instant" brand token before the real brand is found).
+        if not prefs.get("brand"):
+            for hist_m in reversed(user_msgs):
+                hist_content = (hist_m.get("content") or "").lower()
                 sq = prefs.get("search_query") or ""
                 sq_words = [w for w in sq.split() if len(w) > 2]
                 same_context = not sq_words or any(re.search(rf"\b{re.escape(w)}\b", hist_content) for w in sq_words)
                 if same_context:
-                    for token, display in BRAND_MAP.items():
+                    for token, display in _get_catalog_brands().items():
                         if re.search(rf"\b{re.escape(token)}\b", hist_content):
                             prefs["brand"] = display
                             log.info(f"Carried forward brand: {display}")
                             break
+                if prefs.get("brand"):
+                    break
 
-            # Carry forward search_query only when not already set
-            if not prefs.get("search_query"):
+        # search_query carryforward: check all messages (user + assistant)
+        if not prefs.get("search_query"):
+            for hist_m in reversed(recent_msgs):
+                hist_content = (hist_m.get("content") or "").lower()
                 for pt in _CARRY_PRODUCT_TYPES:
                     if re.search(rf"\b{re.escape(pt)}\b", hist_content):
                         prefs["search_query"] = pt
                         log.info(f"Carried forward search_query: {pt}")
                         break
-
-            if prefs.get("brand") and prefs.get("search_query"):
-                break
+                if prefs.get("search_query"):
+                    break
 
     log_tool_span(
         span_name="extract_preferences",
