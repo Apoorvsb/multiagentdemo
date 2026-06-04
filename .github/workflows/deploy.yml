@@ -191,7 +191,7 @@ jobs:
             --set secrets.groqApiKey=${{ secrets.GROQ_API_KEY }} \
             --set secrets.postgresPassword=${{ secrets.POSTGRES_PASSWORD }} \
             --set "mlflow.trackingUri=${MLFLOW_URI}" \
-            --wait --timeout 5m
+            --wait --timeout 10m
 
       - name: Smoke test — GET /health
         id: smoke
