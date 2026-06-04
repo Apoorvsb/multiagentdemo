@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Eval Report — 2026-05-31</title>
+<title>Eval Report — 2026-06-04</title>
 <style>
   body{font-family:system-ui,sans-serif;max-width:1200px;margin:0 auto;padding:32px;color:#111}
   h1{font-size:24px;margin-bottom:4px}
@@ -22,9 +22,9 @@
 <body>
 <h1>Multi-Agent Evaluation Report</h1>
 <div class="meta">
-  Run: 2026-05-31T09:38:55.385958+00:00 &nbsp;|&nbsp;
+  Run: 2026-06-04T09:31:26.141161+00:00 &nbsp;|&nbsp;
   Branch: main &nbsp;|&nbsp;
-  Commit: fd33858d &nbsp;|&nbsp;
+  Commit: 9beda382 &nbsp;|&nbsp;
   Mode: MOCKED &nbsp;|&nbsp;
   Samples: 51
 </div>
@@ -33,17 +33,17 @@
 
 <div class="cards">
   <div class="card">
-    <div class="card-val" style="color:#6366f1">0.79</div>
+    <div class="card-val" style="color:#6366f1">0.77</div>
     <div class="card-label">Relevance</div>
     <div class="card-threshold">threshold: 0.7</div>
   </div>
   <div class="card">
-    <div class="card-val" style="color:#0891b2">0.72</div>
+    <div class="card-val" style="color:#0891b2">0.71</div>
     <div class="card-label">Correctness</div>
     <div class="card-threshold">threshold: 0.7</div>
   </div>
   <div class="card">
-    <div class="card-val" style="color:#059669">0.80</div>
+    <div class="card-val" style="color:#059669">0.78</div>
     <div class="card-label">Completeness</div>
     <div class="card-threshold">threshold: 0.7</div>
   </div>
@@ -53,7 +53,7 @@
     <div class="card-threshold">threshold: 0.7</div>
   </div>
   <div class="card">
-    <div class="card-val" style="color:#22c55e">0.80</div>
+    <div class="card-val" style="color:#22c55e">0.79</div>
     <div class="card-label">Overall</div>
     <div class="card-threshold">&nbsp;</div>
   </div>
@@ -89,12 +89,12 @@
                 <span style='font-size:12px;color:#6b7280;font-weight:400'>(16 samples)</span>
               </div>
               <div style='display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px'>
-                <div>Relevance: <strong>0.65</strong></div>
-                <div>Correctness: <strong>0.57</strong></div>
-                <div>Completeness: <strong>0.57</strong></div>
+                <div>Relevance: <strong>0.58</strong></div>
+                <div>Correctness: <strong>0.53</strong></div>
+                <div>Completeness: <strong>0.53</strong></div>
                 <div>Hallucination: <strong>0.78</strong></div>
               </div>
-              <div style='margin-top:10px;font-size:14px'>Overall: <strong style='color:#ef4444'>0.65</strong></div>
+              <div style='margin-top:10px;font-size:14px'>Overall: <strong style='color:#ef4444'>0.60</strong></div>
             </div></div>
 
 <h2>Per Sample Results</h2>
@@ -176,7 +176,7 @@
         <tr style="background:#fff">
           <td>eval_007</td>
           <td>order_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">What are my orders in transit?</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">List all orders that are in transit</td>
           <td>1.00</td>
           <td>0.86</td>
           <td>1.00</td>
@@ -209,7 +209,7 @@
         <tr style="background:#fff">
           <td>eval_010</td>
           <td>order_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Which of my orders are pending?</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">List all pending orders</td>
           <td>1.00</td>
           <td>1.00</td>
           <td>1.00</td>
@@ -231,7 +231,7 @@
         <tr style="background:#fff">
           <td>eval_012</td>
           <td>order_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Show me all my delivered orders</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">List all delivered orders</td>
           <td>1.00</td>
           <td>1.00</td>
           <td>1.00</td>
@@ -275,7 +275,7 @@
         <tr style="background:#fff">
           <td>eval_016</td>
           <td>order_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Which of my orders are out for delivery?</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Show orders out for delivery</td>
           <td>1.00</td>
           <td>1.00</td>
           <td>1.00</td>
@@ -506,7 +506,7 @@
         <tr style="background:#fff">
           <td>eval_037</td>
           <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my laptop arrived with a cracked screen</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my Hard Drive arrived with physical damage, the casing is cracked</td>
           <td>0.70</td>
           <td>0.70</td>
           <td>0.70</td>
@@ -517,19 +517,8 @@
         <tr style="background:#fff">
           <td>eval_038</td>
           <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">I received a wrong product</td>
-          <td>0.87</td>
-          <td>0.70</td>
-          <td>0.70</td>
-          <td style="color:#22c55e;font-weight:600">1.00</td>
-          <td><strong>0.82</strong></td>
-          <td>✅</td>
-        </tr>
-        <tr style="background:#fff">
-          <td>eval_039</td>
-          <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">there is an item missing from my package</td>
-          <td>0.84</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">I received a wrong Smartphone, the model delivered is different from what I ordered</td>
+          <td>0.83</td>
           <td>0.70</td>
           <td>0.70</td>
           <td style="color:#22c55e;font-weight:600">1.00</td>
@@ -537,21 +526,32 @@
           <td>✅</td>
         </tr>
         <tr style="background:#fff">
-          <td>eval_040</td>
+          <td>eval_039</td>
           <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">I want to raise a warranty claim</td>
-          <td>1.00</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">the Smartphone I received is missing accessories from the package</td>
+          <td>0.73</td>
           <td>0.70</td>
           <td>0.70</td>
           <td style="color:#22c55e;font-weight:600">1.00</td>
-          <td><strong>0.85</strong></td>
+          <td><strong>0.78</strong></td>
+          <td>✅</td>
+        </tr>
+        <tr style="background:#fff">
+          <td>eval_040</td>
+          <td>support_agent</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">I want to raise a warranty claim for my Hard Drive, it stopped working</td>
+          <td>0.97</td>
+          <td>0.70</td>
+          <td>0.70</td>
+          <td style="color:#22c55e;font-weight:600">1.00</td>
+          <td><strong>0.84</strong></td>
           <td>✅</td>
         </tr>
         <tr style="background:#fff">
           <td>eval_041</td>
           <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my product is not working as described</td>
-          <td>1.00</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my Smartphone is not working as described, the battery life is much worse than advertised</td>
+          <td>0.98</td>
           <td>0.70</td>
           <td>0.75</td>
           <td style="color:#22c55e;font-weight:600">1.00</td>
@@ -595,11 +595,11 @@
           <td>eval_045</td>
           <td>support_agent</td>
           <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">I want to return my product</td>
-          <td>0.80</td>
-          <td>0.80</td>
-          <td>0.75</td>
+          <td>0.00</td>
+          <td>0.00</td>
+          <td>0.00</td>
           <td style="color:#ef4444;font-weight:600">0.00</td>
-          <td><strong>0.59</strong></td>
+          <td><strong>0.00</strong></td>
           <td>❌</td>
         </tr>
         <tr style="background:#fff">
@@ -660,12 +660,12 @@
         <tr style="background:#fff">
           <td>eval_051</td>
           <td>support_agent</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my item arrived damaged and I also want a refund</td>
-          <td>0.83</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">my Hard Drive arrived damaged and I also want a refund</td>
+          <td>0.71</td>
           <td>0.70</td>
           <td>0.70</td>
           <td style="color:#22c55e;font-weight:600">1.00</td>
-          <td><strong>0.81</strong></td>
+          <td><strong>0.78</strong></td>
           <td>✅</td>
         </tr></tbody>
 </table>
@@ -680,7 +680,7 @@
 • 1 Pending
 
 Reply with 'show all orders' for a full list or an Order ID for details.</div>
-          <div style="margin-top:6px"><strong>Expected:</strong> You have 6 orders in total — 2 delivered, 2 in transit, 1 out for delivery, and 1 pending.</div>
+          <div style="margin-top:6px"><strong>Expected:</strong> 6 orders total. DELIVERED: 2, IN_TRANSIT: 2, OUT_FOR_DELIVERY: 1, PENDING: 1.</div>
           <div style="margin-top:6px;color:#6b7280">
             Relevance: 0.0 |
             Correctness: 0.0 |
@@ -760,9 +760,9 @@ Which order is this about?
 Type the number or Order ID:</div>
           <div style="margin-top:6px"><strong>Expected:</strong> Agent asks which order the return is for, presenting a list of the user's delivered orders to select from.</div>
           <div style="margin-top:6px;color:#6b7280">
-            Relevance: 0.8 |
-            Correctness: 0.8 |
-            Completeness: 0.75 |
+            Relevance: 0.0 |
+            Correctness: 0.0 |
+            Completeness: 0.0 |
             Hallucination: 0.0
           </div>
         </div>

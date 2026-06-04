@@ -932,7 +932,8 @@ def list_tickets_response(state: AgentState) -> AgentState:
 
 
 def classify_issue_edge(state: AgentState) -> str:
-    if state.get("issue_type") == "guest_blocked":
+    if state.get("response"):
+        # greeting, guest_blocked, or any pre-filled response — skip the full support flow
         return "save_to_db"
     if state.get("issue_type") == "show_tickets":
         return "list_tickets_response"

@@ -1,6 +1,9 @@
 import re
+import json as _json
+import calendar
 import mlflow
 import psycopg2.extras
+from datetime import date as _date, timedelta as _td
 from database import get_conn, save_message
 from langchain_groq import ChatGroq
 from state import AgentState
@@ -11,8 +14,6 @@ from agents.shipment_subgraph import build_shipment_subgraph
 from langgraph.graph import StateGraph, END
 
 llm = ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
-
-print(" CONFIG MODEL =", config.LLM_MODEL)
 
 # ─────────────────────────────────────────────
 # HELPER
@@ -67,6 +68,35 @@ def validate_input(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "order_agent", "validate_input")
     log.info("Node entered")
 
+    msg_lower = state["current_input"].lower()
+    msg_upper = state["current_input"].upper()
+
+    # ── Greetings / identity queries (no DB needed) ───────
+    _GREETING_PATTERNS = [
+        r"^hi\b",
+        r"^hello\b",
+        r"^hey\b",
+        r"\bwho are you\b",
+        r"\bwhat can you do\b",
+        r"\bwhat do you do\b",
+        r"\bintroduce yourself\b",
+    ]
+    if any(re.search(p, msg_lower) for p in _GREETING_PATTERNS):
+        log.info("Greeting detected — returning order assistant intro")
+        return {
+            **state,
+            "order_id": None,
+            "response": (
+                "Hi! I'm your order assistant. I can help you:\n\n"
+                "- **Track an order** — share your Order ID (e.g. ORD12345)\n"
+                "- **View order status** — pending, in-transit, delivered, delayed\n"
+                "- **Browse all your orders** — filter by carrier, product, price, or date\n\n"
+                "What would you like to know about your orders?"
+            ),
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
     # ── Block guest users ─────────────────────────────────
     user_id = state.get("user_id", "")
     if user_id.endswith("@guest.com"):
@@ -79,9 +109,6 @@ def validate_input(state: AgentState) -> AgentState:
                 "view delivery status, and manage your purchases."
             ),
         }
-
-    msg_lower = state["current_input"].lower()
-    msg_upper = state["current_input"].upper()
 
     # ── Check explicit order ID first (no LLM needed) ────
     match = re.search(r"(ORD\d+)", msg_upper)
@@ -197,8 +224,6 @@ def validate_input(state: AgentState) -> AgentState:
                 }
 
     # ── Fetch product names for LLM context only ─────────
-    import json as _json
-
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
@@ -282,7 +307,7 @@ Rules:
 
 Return ONLY valid JSON. No explanation."""
 
-    print(f"[DEBUG VALIDATE] Calling LLM for: {state['current_input']}")
+    log.debug(f"Calling LLM for: {state['current_input']}")
 
     try:
         response = llm.invoke(extraction_prompt)
@@ -337,6 +362,21 @@ Return ONLY valid JSON. No explanation."""
     else:
         final_limit = extracted.get("limit", 10)
 
+    # ── Regex fallback for special_query ─────────────────
+    # LLM misses synonyms like "costliest", so catch them here.
+    if not extracted.get("special_query"):
+        _SQ_PATTERNS = [
+            (r"\b(costliest|most\s+expensive|highest\s+(?:price|value|cost)|priciest)\b", "most_expensive"),
+            (r"\b(cheapest|lowest\s+(?:price|cost)|most\s+affordable|least\s+expensive)\b", "cheapest"),
+            (r"\b(late\s+risk|might\s+be\s+late|at\s+risk|delay\s+risk)\b", "late_risk"),
+            (r"\b(upcoming|yet\s+to\s+(?:come|arrive|deliver)|not\s+yet\s+delivered)\b", "upcoming"),
+            (r"\b(oldest|earliest|first\s+(?:order|purchase))\b", "oldest"),
+        ]
+        for _pat, _sq in _SQ_PATTERNS:
+            if re.search(_pat, msg_lower):
+                extracted["special_query"] = _sq
+                break
+
     # ── Regex fallback for status_filter ─────────────────
     _STATUS_PATTERNS = [
         (r"\bpending\b", "PENDING"),
@@ -354,16 +394,12 @@ Return ONLY valid JSON. No explanation."""
                 break
 
     # ── Relative date shortcuts ───────────────────────────────────────
-    from datetime import date as _date
-
     _today = _date.today()
     if re.search(r"\bthis\s+month\b", msg_lower):
         extracted["month_filter"] = _today.month
         extracted["year_filter"] = _today.year
     elif re.search(r"\blast\s+month\b", msg_lower):
         _first = _today.replace(day=1)
-        from datetime import timedelta as _td
-
         _prev = _first - _td(days=1)
         extracted["month_filter"] = _prev.month
         extracted["year_filter"] = _prev.year
@@ -374,8 +410,6 @@ Return ONLY valid JSON. No explanation."""
     elif re.search(r"\btoday\b", msg_lower):
         extracted["date_filter"] = str(_today)
     elif re.search(r"\byesterday\b", msg_lower):
-        from datetime import timedelta as _td
-
         extracted["date_filter"] = str(_today - _td(days=1))
 
     # ── Date/month/year — regex-only, LLM values discarded ───────────
@@ -448,6 +482,15 @@ Return ONLY valid JSON. No explanation."""
     if not extracted["date_filter"] and not extracted["year_filter"]:
         m = re.search(r"\b(20\d{2})\b", msg_lower)
         extracted["year_filter"] = int(m.group(1)) if m else None
+
+    # ── Date takes priority over time-based special queries ───────────
+    # "orders in June 2026" must not fall into special_query="recent"
+    # "orders this month" must not fall into special_query="recent"
+    _TIME_SQ = {"recent", "last_week", "last_month", "oldest"}
+    if extracted.get("special_query") in _TIME_SQ and (
+        extracted.get("date_filter") or extracted.get("month_filter") or extracted.get("year_filter")
+    ):
+        extracted["special_query"] = None
 
     # ── Regex fallback for product_keyword ───────────────
     # Catches cases where LLM skips product_keyword because the item
@@ -679,38 +722,43 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
             "response": f"You have {total}{filter_desc} orders{' ' + suffix if suffix else ''}.\n\nBreakdown:\n{breakdown_lines}",
         }
 
-    elif special_query == "cheapest":
+    elif special_query in ("cheapest", "most_expensive"):
+        _conds = ["user_id = %s"]
+        _params: list = [user_id]
+        if date_filter:
+            _conds.append("order_date::date = %s")
+            _params.append(date_filter)
+        elif month_filter and year_filter:
+            _conds.append(
+                "EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s"
+            )
+            _params.extend([month_filter, year_filter])
+        elif month_filter:
+            _conds.append("EXTRACT(MONTH FROM order_date::date) = %s")
+            _params.append(month_filter)
+        elif year_filter:
+            _conds.append("EXTRACT(YEAR FROM order_date::date) = %s")
+            _params.append(year_filter)
+        _order = "ASC" if special_query == "cheapest" else "DESC"
+        _label = "cheapest" if special_query == "cheapest" else "most expensive"
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
-                    "SELECT order_id, status, carrier, items, sales_per_customer FROM orders WHERE user_id = %s ORDER BY sales_per_customer ASC LIMIT 5",
-                    [user_id],
+                    f"SELECT order_id, status, carrier, items, sales_per_customer, order_date "
+                    f"FROM orders WHERE {' AND '.join(_conds)} "
+                    f"ORDER BY sales_per_customer {_order} NULLS LAST LIMIT 5",
+                    _params,
                 )
                 orders = [dict(r) for r in cur.fetchall()]
+        if not orders:
+            return {**state, "order_data": None, "response": f"No orders found for that filter."}
         lines = "\n".join(
             [f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders]
         )
         return {
             **state,
             "order_data": None,
-            "response": f"Here are your cheapest orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
-        }
-
-    elif special_query == "most_expensive":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, items, sales_per_customer FROM orders WHERE user_id = %s ORDER BY sales_per_customer DESC LIMIT 5",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
-        lines = "\n".join(
-            [f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your most expensive orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
+            "response": f"Here are your {_label} orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
         }
 
     elif special_query == "last_week":
@@ -933,8 +981,6 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
         elif date_filter:
             return {**state, "order_data": None, "response": f"You have no orders placed on {date_filter}."}
         elif month_filter and year_filter:
-            import calendar
-
             month_name = calendar.month_name[month_filter]
             return {
                 **state,
@@ -942,8 +988,6 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
                 "response": f"You have no orders placed in {month_name} {year_filter}.",
             }
         elif month_filter:
-            import calendar
-
             month_name = calendar.month_name[month_filter]
             return {**state, "order_data": None, "response": f"You have no orders placed in {month_name}."}
         elif year_filter:

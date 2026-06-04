@@ -234,6 +234,22 @@ async def register(body: RegisterRequest):
     }
 
 
+@app.post("/login")
+async def login(body: LoginRequest):
+    if not user_exists(body.user_id):
+        raise HTTPException(status_code=404, detail="User not found. Please sign up first.")
+    session_id = get_or_create_session(None, body.user_id)
+    return {"user_id": body.user_id, "session_id": session_id}
+
+
+@app.post("/new-session")
+async def new_session_endpoint(body: LoginRequest):
+    if not user_exists(body.user_id):
+        raise HTTPException(status_code=404, detail="User not found. Please register first.")
+    session_id = get_or_create_session(None, body.user_id)
+    return {"session_id": session_id}
+
+
 # ── Admin: manually seed demo orders for any user ────────────────
 class SeedOrdersRequest(BaseModel):
     user_id: str
@@ -495,39 +511,7 @@ async def seed_orders(body: SeedOrdersRequest):
     }
 
 
-@app.post("/login")
-async def login(body: LoginRequest):
-    if not user_exists(body.user_id):
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error": "User not found.",
-                "action": "Please sign up first.",
-                "signup_url": "/register",
-            },
-        )
 
-    session_id = get_or_create_session(None, body.user_id)
-
-    with get_conn() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(
-                """SELECT role, content, agent_name
-                FROM messages
-                WHERE session_id = %s
-                ORDER BY created_at ASC
-                LIMIT 20""",
-                [session_id],
-            )
-            messages = [dict(r) for r in cur.fetchall()]  # ← must be inside with block
-
-    return {
-        "user_id": body.user_id,
-        "session_id": session_id,
-        "message": "Login successful.",
-        "next_step": "Use session_id in X-Session-ID header for /chat.",
-        "messages": messages,
-    }
 
 
 @app.post("/chat", response_model=ChatResponse)

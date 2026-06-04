@@ -539,14 +539,16 @@ function doLogout() {
 async function newChat() {
   historyRendered = false
   try {
-    const res  = await post('/login', { user_id: userId })
+    const res  = await post('/new-session', { user_id: userId })
     const data = await res.json()
-    if (data.session_id) {
+    if (res.ok && data.session_id) {
       sessionId = data.session_id
       localStorage.setItem('session_id', sessionId)
       document.getElementById('sess-badge').textContent = sessionId.slice(0,8)+'...'
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Could not create new session:', e)
+  }
   const msgs = document.getElementById('messages')
   msgs.innerHTML = ''
   msgs.appendChild(createWelcome())
