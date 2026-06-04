@@ -84,8 +84,7 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                 else:
                     if search_query:
                         order_clause = (
-                            "ts_rank(search_vector, plainto_tsquery('english', %s)) DESC, "
-                            "rating DESC NULLS LAST"
+                            "ts_rank(search_vector, plainto_tsquery('english', %s)) DESC, " "rating DESC NULLS LAST"
                         )
                         order_params = [search_query]
                     else:
@@ -158,11 +157,13 @@ def _handle_comparison(state: AgentState) -> AgentState:
 
     if not parts:
         return {
-            **state, "search_preferences": None, "search_retry": 0,
+            **state,
+            "search_preferences": None,
+            "search_retry": 0,
             "response": (
                 "I'd love to help you compare! Please phrase it like:\n\n"
-                "*\"Compare Sony WH-1000XM5 vs Bose QC45\"*\n"
-                "*\"Samsung Galaxy S24 vs iPhone 15 — which is better?\"*"
+                '*"Compare Sony WH-1000XM5 vs Bose QC45"*\n'
+                '*"Samsung Galaxy S24 vs iPhone 15 — which is better?"*'
             ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -170,6 +171,7 @@ def _handle_comparison(state: AgentState) -> AgentState:
 
     # Clean up filler words
     _FILLER = {"compare", "the", "a", "an", "show", "me", "which", "is", "better", "between"}
+
     def _clean(s):
         return " ".join(w for w in s.strip().split() if w not in _FILLER)
 
@@ -178,27 +180,31 @@ def _handle_comparison(state: AgentState) -> AgentState:
 
     if not p1 and not p2:
         return {
-            **state, "search_preferences": None, "search_retry": 0,
+            **state,
+            "search_preferences": None,
+            "search_retry": 0,
             "response": f"I couldn't find **{q1}** or **{q2}** in our catalog.",
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
         }
     if not p1:
         return {
-            **state, "search_preferences": None, "search_retry": 0,
+            **state,
+            "search_preferences": None,
+            "search_retry": 0,
             "response": (
-                f"I couldn't find **{q1}** in our catalog.\n\n"
-                f"Did you mean to search for **{p2['name']}** instead?"
+                f"I couldn't find **{q1}** in our catalog.\n\n" f"Did you mean to search for **{p2['name']}** instead?"
             ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
         }
     if not p2:
         return {
-            **state, "search_preferences": None, "search_retry": 0,
+            **state,
+            "search_preferences": None,
+            "search_retry": 0,
             "response": (
-                f"I couldn't find **{q2}** in our catalog.\n\n"
-                f"Did you mean to search for **{p1['name']}** instead?"
+                f"I couldn't find **{q2}** in our catalog.\n\n" f"Did you mean to search for **{p1['name']}** instead?"
             ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -213,7 +219,7 @@ def _handle_comparison(state: AgentState) -> AgentState:
         f"**Product 2:** {p2['name']}\n"
         f"- Price: ₹{p2.get('price', 'N/A')} | Rating: {p2.get('rating', 'N/A')}/5 ({p2.get('rating_count', 'N/A')} reviews)\n"
         f"- {(p2.get('description') or '')[:250]}\n\n"
-        f"User asked: \"{msg}\"\n\n"
+        f'User asked: "{msg}"\n\n'
         f"Format your response exactly like this:\n"
         f"**{p1['name'][:50]}**\n• [2-3 key strengths]\n\n"
         f"**{p2['name'][:50]}**\n• [2-3 key strengths]\n\n"
@@ -240,7 +246,9 @@ def _handle_comparison(state: AgentState) -> AgentState:
 
     log.info(f"Compared: {p1['name'][:30]} vs {p2['name'][:30]}")
     return {
-        **state, "search_preferences": None, "search_retry": 0,
+        **state,
+        "search_preferences": None,
+        "search_retry": 0,
         "response": response,
         "total_tokens": state.get("total_tokens", 0) + in_tok + out_tok,
         "total_cost_usd": state.get("total_cost_usd", 0.0) + cost,
@@ -269,7 +277,9 @@ def _handle_brands_listing(state: AgentState) -> AgentState:
 
     if not rows:
         return {
-            **state, "search_preferences": None, "search_retry": 0,
+            **state,
+            "search_preferences": None,
+            "search_retry": 0,
             "response": "I couldn't fetch the brand list right now. Please try again.",
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -289,7 +299,9 @@ def _handle_brands_listing(state: AgentState) -> AgentState:
     lines.append("Which brand are you interested in? I can show their products!")
 
     return {
-        **state, "search_preferences": None, "search_retry": 0,
+        **state,
+        "search_preferences": None,
+        "search_retry": 0,
         "response": "\n".join(lines),
         "total_tokens": state.get("total_tokens", 0),
         "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -308,9 +320,13 @@ def extract_preferences(state: AgentState) -> AgentState:
 
     # ── Greetings ─────────────────────────────────────────
     _GREETING_PATTERNS = [
-        r"^hi\b", r"^hello\b", r"^hey\b",
-        r"\bwho are you\b", r"\bwhat can you do\b",
-        r"\bwhat do you do\b", r"\bintroduce yourself\b",
+        r"^hi\b",
+        r"^hello\b",
+        r"^hey\b",
+        r"\bwho are you\b",
+        r"\bwhat can you do\b",
+        r"\bwhat do you do\b",
+        r"\bintroduce yourself\b",
     ]
     if any(re.search(p, msg_lower) for p in _GREETING_PATTERNS):
         log.info("Greeting detected")
@@ -324,7 +340,7 @@ def extract_preferences(state: AgentState) -> AgentState:
                 "- **Computers & Accessories** — laptops, keyboards, mice, monitors\n"
                 "- **Home & Kitchen** — mixer grinders, air fryers, pressure cookers\n\n"
                 "Tell me what you're looking for!\n"
-                "Example: *\"Sony wireless headphones under ₹5000\"*"
+                'Example: *"Sony wireless headphones under ₹5000"*'
             ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -355,9 +371,9 @@ def extract_preferences(state: AgentState) -> AgentState:
                 "Microwaves, Water Purifiers\n\n"
                 "Popular brands: Apple, Samsung, Sony, Dell, Lenovo, HP, boAt, Logitech, Prestige and more.\n\n"
                 "Just tell me what you need! Examples:\n"
-                "- *\"Sony headphones under ₹5000\"*\n"
-                "- *\"Cheapest laptop under ₹40000\"*\n"
-                "- *\"Best rated mixer grinder\"*"
+                '- *"Sony headphones under ₹5000"*\n'
+                '- *"Cheapest laptop under ₹40000"*\n'
+                '- *"Best rated mixer grinder"*'
             ),
             "total_tokens": state.get("total_tokens", 0),
             "total_cost_usd": state.get("total_cost_usd", 0.0),
@@ -460,9 +476,15 @@ Return ONLY valid JSON."""
     except Exception as e:
         log.error(f"LLM extraction failed: {e}")
         extracted = {
-            "search_query": None, "brand": None, "category": None,
-            "max_price": None, "min_price": None, "min_rating": None,
-            "max_rating": None, "sort_by": "relevance", "limit": 5,
+            "search_query": None,
+            "brand": None,
+            "category": None,
+            "max_price": None,
+            "min_price": None,
+            "min_rating": None,
+            "max_rating": None,
+            "sort_by": "relevance",
+            "limit": 5,
         }
         input_tokens = 0
         output_tokens = 0
@@ -600,10 +622,7 @@ Return ONLY valid JSON."""
     # Two trigger conditions:
     #   1. Has a price/rating filter but no product type (e.g. "above 40000")
     #   2. Is a short modifier message ≤4 words (e.g. "only hp", "just Samsung")
-    _has_filter = (
-        prefs.get("max_price") or prefs.get("min_price")
-        or prefs.get("min_rating") or prefs.get("max_rating")
-    )
+    _has_filter = prefs.get("max_price") or prefs.get("min_price") or prefs.get("min_rating") or prefs.get("max_rating")
     _is_refinement = _has_filter or len(msg.strip().split()) <= 4
 
     if _is_refinement and recent_msgs:
@@ -618,9 +637,7 @@ Return ONLY valid JSON."""
             if not prefs.get("brand"):
                 sq = prefs.get("search_query") or ""
                 sq_words = [w for w in sq.split() if len(w) > 2]
-                same_context = not sq_words or any(
-                    re.search(rf"\b{re.escape(w)}\b", hist_content) for w in sq_words
-                )
+                same_context = not sq_words or any(re.search(rf"\b{re.escape(w)}\b", hist_content) for w in sq_words)
                 if same_context:
                     for token, display in BRAND_MAP.items():
                         if re.search(rf"\b{re.escape(token)}\b", hist_content):
@@ -668,7 +685,7 @@ Return ONLY valid JSON."""
                 "- **What product** are you looking for? (e.g. laptop, headphones, TV)\n"
                 "- Your **budget**? (optional)\n"
                 "- Any **brand** preference? (optional)\n\n"
-                "Example: *\"Show me Sony headphones under ₹5000\"*"
+                'Example: *"Show me Sony headphones under ₹5000"*'
             ),
             "total_tokens": state.get("total_tokens", 0) + input_tokens + output_tokens,
             "total_cost_usd": state.get("total_cost_usd", 0.0) + cost,
@@ -757,8 +774,8 @@ def no_results_response(state: AgentState) -> AgentState:
     if original_brand and sq:
         response = (
             f"**{original_brand}** doesn't carry **{sq}** in our catalog.\n\n"
-            f"Try *\"show me {sq}\"* to see options from all brands, "
-            f"or *\"show me {original_brand} products\"* to browse what {original_brand} offers."
+            f'Try *"show me {sq}"* to see options from all brands, '
+            f'or *"show me {original_brand} products"* to browse what {original_brand} offers.'
         )
     elif sq:
         response = (

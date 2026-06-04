@@ -729,9 +729,7 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
             _conds.append("order_date::date = %s")
             _params.append(date_filter)
         elif month_filter and year_filter:
-            _conds.append(
-                "EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s"
-            )
+            _conds.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
             _params.extend([month_filter, year_filter])
         elif month_filter:
             _conds.append("EXTRACT(MONTH FROM order_date::date) = %s")

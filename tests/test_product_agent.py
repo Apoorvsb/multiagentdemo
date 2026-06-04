@@ -9,7 +9,7 @@ from helpers import make_state, mock_db
 
 
 class TestMockProductApiCall:
-    """Tests for the DB-backed product search."""
+    """Tests for the FTS-based product search."""
 
     def _run(self, prefs, rows):
         from agents.product_agent import mock_product_api_call
@@ -37,7 +37,7 @@ class TestMockProductApiCall:
         assert len(result) == 1
         assert result[0]["name"] == "HP Laptop 15"
 
-    def test_price_inflation_on_retry(self):
+    def test_price_passed_as_is(self):
         """mock_product_api_call uses max_price as-is; inflation is handled by broaden_search."""
         from agents.product_agent import mock_product_api_call
 
@@ -93,8 +93,9 @@ class TestExtractPreferences:
     def test_basic_extraction(self):
         state = make_state(current_input="find me a laptop under 50000")
         llm_json = (
-            '{"keywords": ["laptop"], "max_price": 50000, "min_price": null, '
-            '"category": "laptops", "brand": null, "min_rating": null, "max_rating": null}'
+            '{"search_query": "laptop", "max_price": 50000, "min_price": null, '
+            '"category": "Computers&Accessories", "brand": null, "min_rating": null, '
+            '"max_rating": null, "sort_by": "relevance", "limit": 5}'
         )
         with patch("agents.product_agent.llm") as mock_llm:
             mock_llm.invoke.return_value = self._mock_llm(llm_json)
@@ -102,13 +103,14 @@ class TestExtractPreferences:
 
         prefs = result["search_preferences"]
         assert prefs["max_price"] == 50000
-        assert "laptop" in prefs.get("keywords", []) or prefs.get("category") == "laptops"
+        assert prefs.get("search_query") or prefs.get("category")
 
     def test_regex_fallback_extracts_price_when_llm_misses(self):
         state = make_state(current_input="show me headphones below 1500")
         llm_json = (
-            '{"keywords": ["headphones"], "max_price": null, "min_price": null, '
-            '"category": null, "brand": null, "min_rating": null, "max_rating": null}'
+            '{"search_query": "headphone", "max_price": null, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
         )
         with patch("agents.product_agent.llm") as mock_llm:
             mock_llm.invoke.return_value = self._mock_llm(llm_json)
@@ -126,11 +128,19 @@ class TestExtractPreferences:
             ],
         )
         llm_json = (
-            '{"keywords": null, "max_price": 70000, "min_price": null, '
-            '"category": null, "brand": null, "min_rating": null, "max_rating": null}'
+            '{"search_query": null, "max_price": 70000, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
         )
+        fallback_resp = MagicMock()
+        fallback_resp.content = "none"
+        fallback_resp.usage_metadata = {"input_tokens": 20, "output_tokens": 2}
+
         with patch("agents.product_agent.llm") as mock_llm:
-            mock_llm.invoke.return_value = self._mock_llm(llm_json)
+            mock_llm.invoke.side_effect = [
+                self._mock_llm(llm_json),  # primary extraction call
+                fallback_resp,  # fallback search_query call
+            ]
             result = self._run(state)
 
         prefs = result["search_preferences"]
@@ -145,15 +155,14 @@ class TestExtractPreferences:
             result = self._run(state)
 
         prefs = result.get("search_preferences") or {}
-        # Should not crash; preferences may be empty/default
         assert isinstance(prefs, dict)
 
     def test_rating_regex_fallback(self):
-        # Pattern "4 stars and above" matches the fallback regex in extract_preferences
         state = make_state(current_input="show me phones 4 stars and above")
         llm_json = (
-            '{"keywords": ["phone"], "max_price": null, "min_price": null, '
-            '"category": null, "brand": null, "min_rating": null, "max_rating": null}'
+            '{"search_query": "phone", "max_price": null, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
         )
         with patch("agents.product_agent.llm") as mock_llm:
             mock_llm.invoke.return_value = self._mock_llm(llm_json)
@@ -165,8 +174,9 @@ class TestExtractPreferences:
     def test_min_price_regex_fallback(self):
         state = make_state(current_input="show me laptops above 40000 rupees")
         llm_json = (
-            '{"keywords": ["laptop"], "max_price": null, "min_price": null, '
-            '"category": null, "brand": null, "min_rating": null, "max_rating": null}'
+            '{"search_query": "laptop", "max_price": null, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
         )
         with patch("agents.product_agent.llm") as mock_llm:
             mock_llm.invoke.return_value = self._mock_llm(llm_json)
@@ -174,6 +184,39 @@ class TestExtractPreferences:
 
         prefs = result["search_preferences"]
         assert prefs.get("min_price") == 40000.0, f"Expected 40000 min_price but got: {prefs.get('min_price')}"
+
+    def test_price_and_rating_both_use_above_keyword(self):
+        """'kettle above 2000 and above 4.5 ratings' must not confuse price with rating."""
+        state = make_state(current_input="kettle above 2000 and above 4.5 ratings")
+        # LLM misses both filters to force regex fallbacks
+        llm_json = (
+            '{"search_query": "electric kettle", "max_price": null, "min_price": null, '
+            '"category": "Home&Kitchen", "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
+        )
+        with patch("agents.product_agent.llm") as mock_llm:
+            mock_llm.invoke.return_value = self._mock_llm(llm_json)
+            result = self._run(state)
+
+        prefs = result["search_preferences"]
+        assert prefs.get("min_price") == 2000.0, f"Expected min_price=2000 but got {prefs.get('min_price')}"
+        assert prefs.get("min_rating") == 4.5, f"Expected min_rating=4.5 but got {prefs.get('min_rating')}"
+        # min_rating must never be set to a price-like value
+        assert (prefs.get("min_rating") or 0) <= 5, "min_rating was set to a price value"
+
+    def test_sort_by_price_asc_for_cheapest(self):
+        state = make_state(current_input="cheapest laptop")
+        llm_json = (
+            '{"search_query": "laptop", "max_price": null, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "price_asc", "limit": 5}'
+        )
+        with patch("agents.product_agent.llm") as mock_llm:
+            mock_llm.invoke.return_value = self._mock_llm(llm_json)
+            result = self._run(state)
+
+        prefs = result["search_preferences"]
+        assert prefs.get("sort_by") == "price_asc"
 
 
 # ─── mlflow_helpers.calculate_cost ───────────────────────────────────────────
@@ -243,7 +286,7 @@ class TestSearchProducts:
 
     def test_search_products_stores_results(self):
         search_products, _, _, _ = self._import()
-        prefs = {"category": "laptop", "max_price": 50000}
+        prefs = {"search_query": "laptop", "max_price": 50000}
         state = make_state(search_preferences=prefs, search_retry=0)
         rows = [
             {
@@ -281,23 +324,63 @@ class TestSearchProducts:
 
     def test_broaden_search_inflates_price(self):
         _, _, broaden_search, _ = self._import()
-        state = make_state(search_preferences={"max_price": 1000, "category": "laptop"}, search_retry=1)
+        state = make_state(
+            search_preferences={"search_query": "laptop", "max_price": 1000, "category": "Computers&Accessories"},
+            search_retry=1,
+        )
         result = broaden_search(state)
         assert result["search_preferences"]["max_price"] == 1500.0
         assert result["search_retry"] == 2
 
     def test_broaden_search_drops_category_on_second_retry(self):
         _, _, broaden_search, _ = self._import()
-        state = make_state(search_preferences={"max_price": None, "category": "laptop"}, search_retry=1)
+        state = make_state(
+            search_preferences={"search_query": "laptop", "max_price": None, "category": "Computers&Accessories"},
+            search_retry=1,
+        )
         result = broaden_search(state)
         assert result["search_preferences"]["category"] is None
         assert result["search_retry"] == 2
+
+    def test_broaden_search_simplifies_query_on_second_retry(self):
+        _, _, broaden_search, _ = self._import()
+        state = make_state(
+            search_preferences={"search_query": "wireless mouse", "max_price": None, "category": None},
+            search_retry=1,
+        )
+        result = broaden_search(state)
+        # Last word of "wireless mouse" is "mouse"
+        assert result["search_preferences"]["search_query"] == "mouse"
 
     def test_no_results_response_message(self):
         _, _, _, no_results_response = self._import()
         state = make_state()
         result = no_results_response(state)
-        assert "could not find" in result["response"].lower()
+        assert "find" in result["response"].lower()
+
+    def test_no_results_response_names_brand_and_product(self):
+        _, _, _, no_results_response = self._import()
+        state = make_state(
+            current_input="HP brand bags",
+            search_preferences={"search_query": "bags", "brand": None},  # brand stripped by broaden
+        )
+        result = no_results_response(state)
+        assert "HP" in result["response"]
+        assert "bags" in result["response"].lower()
+
+    def test_no_results_search_query_never_cleared_on_retry2(self):
+        """retry >= 2 must not clear search_query and return unrelated products."""
+        from agents.product_agent import mock_product_api_call
+
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = []
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            mock_product_api_call({"search_query": "bags", "brand": "HP"}, retry=2)
+
+        sql = cur.execute.call_args[0][0]
+        assert "plainto_tsquery" in sql, "search_query must still be used at retry=2"
 
 
 # ─── rank_and_filter node ─────────────────────────────────────────────────────
@@ -345,11 +428,11 @@ class TestRankAndFilter:
         assert result["ranked_products"] == products
 
 
-# ─── mock_product_api_call with keywords ─────────────────────────────────────
+# ─── mock_product_api_call with search_query ─────────────────────────────────
 
 
-class TestMockProductApiCallKeywords:
-    def test_phone_keyword_uses_phone_patterns(self):
+class TestMockProductApiCallSearchQuery:
+    def test_search_query_builds_fts_condition(self):
         from agents.product_agent import mock_product_api_call
 
         rows = [
@@ -357,7 +440,7 @@ class TestMockProductApiCallKeywords:
                 "product_id": "P5",
                 "name": "Samsung Galaxy S24",
                 "brand": "Samsung",
-                "category": "smartphones",
+                "category": "Electronics",
                 "price": 75000.0,
                 "rating": 4.6,
                 "availability": True,
@@ -366,10 +449,10 @@ class TestMockProductApiCallKeywords:
         ]
         with patch("agents.product_agent.get_conn") as mock_gc:
             mock_db(mock_gc, fetchall=rows)
-            result = mock_product_api_call({"keywords": ["phone"]})
+            result = mock_product_api_call({"search_query": "phone"})
         assert len(result) == 1
 
-    def test_laptop_keyword_excludes_accessories(self):
+    def test_search_query_sql_contains_tsquery(self):
         from agents.product_agent import mock_product_api_call
 
         with patch("agents.product_agent.get_conn") as mock_gc:
@@ -377,6 +460,229 @@ class TestMockProductApiCallKeywords:
             cur.fetchall.return_value = []
             conn = mock_gc.return_value.__enter__.return_value
             conn.cursor.return_value.__enter__.return_value = cur
-            mock_product_api_call({"keywords": ["laptop"]})
-        # Just verify the call doesn't crash and SQL is built
+            mock_product_api_call({"search_query": "wireless mouse"})
+
         assert cur.execute.called
+        sql_called = cur.execute.call_args[0][0]
+        assert "plainto_tsquery" in sql_called
+
+    def test_sort_by_price_asc_uses_price_order(self):
+        from agents.product_agent import mock_product_api_call
+
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = []
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            mock_product_api_call({"search_query": "laptop", "sort_by": "price_asc"})
+
+        sql_called = cur.execute.call_args[0][0]
+        assert "price ASC" in sql_called
+
+    def test_retry_simplifies_search_query(self):
+        from agents.product_agent import mock_product_api_call
+
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = []
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            # retry=1 → "wireless mouse" becomes "mouse"
+            mock_product_api_call({"search_query": "wireless mouse"}, retry=1)
+
+        params = cur.execute.call_args[0][1]
+        assert "mouse" in params, f"Expected simplified query 'mouse' in params: {params}"
+
+
+# ─── comparison & brands helpers ────────────────────────────────────────────
+
+
+class TestHandleComparison:
+    def test_comparison_detected_and_routed(self):
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="compare Sony WH-1000XM5 vs Bose QC45")
+        p1 = {
+            "product_id": "p1",
+            "name": "Sony WH-1000XM5",
+            "brand": "Sony",
+            "price": 24999,
+            "rating": 4.7,
+            "description": "Sony ANC headphone",
+            "category": "Electronics",
+            "original_price": 29999,
+            "discount_pct": "17%",
+            "rating_count": "5000",
+            "availability": True,
+        }
+        p2 = {
+            "product_id": "p2",
+            "name": "Bose QC45",
+            "brand": "Bose",
+            "price": 29999,
+            "rating": 4.6,
+            "description": "Bose noise cancelling",
+            "category": "Electronics",
+            "original_price": 34999,
+            "discount_pct": "14%",
+            "rating_count": "3000",
+            "availability": True,
+        }
+
+        mock_resp = MagicMock()
+        mock_resp.content = (
+            "**Sony WH-1000XM5**\n• Better value\n\n**Bose QC45**\n• Premium build\n\n"
+            "**Our Pick: Sony WH-1000XM5** — better price."
+        )
+        mock_resp.usage_metadata = {"input_tokens": 200, "output_tokens": 50}
+
+        with patch("agents.product_agent.get_conn") as mock_gc, patch("agents.product_agent.llm") as mock_llm:
+            cur = MagicMock()
+            cur.fetchone.side_effect = [p1, p2]
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            mock_llm.invoke.return_value = mock_resp
+            result = extract_preferences(state)
+
+        assert result.get("response") is not None
+        assert result.get("search_preferences") is None
+
+    def test_comparison_clarification_when_unparseable(self):
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="compare something")
+        with patch("agents.product_agent.get_conn"):
+            result = extract_preferences(state)
+
+        assert result.get("response") is not None
+        assert "compare" in result["response"].lower() or "phrase" in result["response"].lower()
+
+    def test_comparison_one_product_not_found(self):
+        from agents.product_agent import _handle_comparison
+
+        state = make_state(current_input="compare wireless mouse vs gaming keyboard")
+        p1 = {
+            "product_id": "p1",
+            "name": "Logitech G102 Gaming Mouse",
+            "brand": "Logitech",
+            "price": 1495,
+            "rating": 4.5,
+            "description": "Gaming mouse",
+            "category": "Computers&Accessories",
+            "original_price": 1795,
+            "discount_pct": "17%",
+            "rating_count": "10000",
+            "availability": True,
+        }
+
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchone.side_effect = [p1, None]
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            result = _handle_comparison(state)
+
+        assert result.get("response") is not None
+        assert "couldn't find" in result["response"].lower() or "catalog" in result["response"].lower()
+
+    def test_comparison_both_not_found(self):
+        from agents.product_agent import _handle_comparison
+
+        state = make_state(current_input="compare drone vs jetpack")
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchone.return_value = None
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            result = _handle_comparison(state)
+
+        assert "couldn't find" in result["response"].lower()
+
+
+class TestHandleBrandsListing:
+    def test_brands_query_detected(self):
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="what brands do you have")
+        rows = [
+            {"brand": "Sony", "category": "Electronics", "cnt": 10},
+            {"brand": "Dell", "category": "Computers&Accessories", "cnt": 8},
+            {"brand": "Prestige", "category": "Home&Kitchen", "cnt": 5},
+        ]
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = rows
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            result = extract_preferences(state)
+
+        assert result.get("response") is not None
+        assert "Sony" in result["response"]
+        assert "Dell" in result["response"]
+
+    def test_brands_listing_no_db_results(self):
+        from agents.product_agent import _handle_brands_listing
+
+        state = make_state(current_input="what brands do you have")
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = []
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            result = _handle_brands_listing(state)
+
+        assert result.get("response") is not None
+
+
+# ─── new arrivals (sort_by "new") ────────────────────────────────────────────
+
+
+class TestNewArrivals:
+    def test_sort_by_new_regex_for_latest(self):
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="show me the latest laptops")
+        llm_json = (
+            '{"search_query": "laptop", "max_price": null, "min_price": null, '
+            '"category": null, "brand": null, "min_rating": null, "max_rating": null, '
+            '"sort_by": "relevance", "limit": 5}'
+        )
+        mock_resp = MagicMock()
+        mock_resp.content = llm_json
+        mock_resp.usage_metadata = {"input_tokens": 50, "output_tokens": 10}
+        with patch("agents.product_agent.llm") as mock_llm:
+            mock_llm.invoke.return_value = mock_resp
+            result = extract_preferences(state)
+
+        assert result["search_preferences"]["sort_by"] == "new"
+
+    def test_sort_by_new_uses_created_at_order(self):
+        from agents.product_agent import mock_product_api_call
+
+        with patch("agents.product_agent.get_conn") as mock_gc:
+            cur = MagicMock()
+            cur.fetchall.return_value = []
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            mock_product_api_call({"search_query": "laptop", "sort_by": "new"})
+
+        sql = cur.execute.call_args[0][0]
+        assert "created_at" in sql.lower()
+
+    def test_new_arrivals_pattern_detection(self):
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="new arrivals in electronics")
+        llm_json = (
+            '{"search_query": null, "max_price": null, "min_price": null, '
+            '"category": "Electronics", "brand": null, "min_rating": null, '
+            '"max_rating": null, "sort_by": "relevance", "limit": 5}'
+        )
+        mock_resp = MagicMock()
+        mock_resp.content = llm_json
+        mock_resp.usage_metadata = {"input_tokens": 50, "output_tokens": 10}
+        with patch("agents.product_agent.llm") as mock_llm:
+            mock_llm.invoke.return_value = mock_resp
+            result = extract_preferences(state)
+
+        assert result["search_preferences"]["sort_by"] == "new"

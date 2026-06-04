@@ -148,3 +148,21 @@ class TestChat:
                 headers={"X-Session-ID": "sess-exp"},
             )
         assert resp.status_code == 400
+
+
+# ─── /new-session ─────────────────────────────────────────────────────────────
+
+
+class TestNewSession:
+    def test_valid_user_creates_new_session(self, client):
+        with patch("main.user_exists", return_value=True), patch("main.get_or_create_session", return_value="sess-new"):
+            resp = client.post("/new-session", json={"user_id": "alice@sigmoidanalytics.com"})
+
+        assert resp.status_code == 200
+        assert resp.json()["session_id"] == "sess-new"
+
+    def test_unknown_user_returns_404(self, client):
+        with patch("main.user_exists", return_value=False):
+            resp = client.post("/new-session", json={"user_id": "ghost@example.com"})
+
+        assert resp.status_code == 404

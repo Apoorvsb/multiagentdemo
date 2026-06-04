@@ -378,3 +378,145 @@ class TestSaveToDb:
         mock_save.assert_called_once()
         call_kwargs = mock_save.call_args
         assert call_kwargs.kwargs.get("role") == "assistant" or (call_kwargs.args and "assistant" in call_kwargs.args)
+
+
+# ─── validate_input — date / special_query fixes ────────────────────────────
+
+
+class TestValidateInputDateAndSpecialQuery:
+    """Covers the regex fallbacks and date-priority logic added to validate_input."""
+
+    def _run(self, msg, llm_json=None):
+        from agents.order_agent import validate_input
+
+        state = make_state(current_input=msg)
+        mock_resp = MagicMock()
+        mock_resp.content = llm_json or (
+            '{"order_id":null,"status_filter":null,"product_keyword":null,'
+            '"special_query":null,"carrier_filter":null,"shipping_mode":null,'
+            '"city_filter":null,"min_price":null,"max_price":null,"limit":10}'
+        )
+        mock_resp.usage_metadata = {"input_tokens": 50, "output_tokens": 10}
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            mock_db(mock_gc, fetchall=[])
+            mock_llm.invoke.return_value = mock_resp
+            return validate_input(state)
+
+    def test_greeting_returns_intro_without_db(self):
+        from agents.order_agent import validate_input
+
+        state = make_state(current_input="hi")
+        result = validate_input(state)
+        assert result["response"] is not None
+        assert "order" in result["response"].lower()
+
+    def test_this_month_sets_month_and_year_filter(self):
+        import datetime
+
+        result = self._run("what are my orders this month")
+        today = datetime.date.today()
+        assert result["month_filter"] == today.month
+        assert result["year_filter"] == today.year
+
+    def test_last_month_sets_correct_month_year(self):
+        import datetime
+
+        result = self._run("show my orders from last month")
+        today = datetime.date.today()
+        first = today.replace(day=1)
+        prev = first - datetime.timedelta(days=1)
+        assert result["month_filter"] == prev.month
+        assert result["year_filter"] == prev.year
+
+    def test_june_2026_sets_month_6_year_2026(self):
+        result = self._run("what are my orders in June 2026")
+        assert result["month_filter"] == 6
+        assert result["year_filter"] == 2026
+
+    def test_jan_2026_sets_month_1_year_2026(self):
+        result = self._run("show orders from jan 2026")
+        assert result["month_filter"] == 1
+        assert result["year_filter"] == 2026
+
+    def test_date_filter_clears_recent_special_query(self):
+        llm_json = (
+            '{"order_id":null,"status_filter":null,"product_keyword":null,'
+            '"special_query":"recent","carrier_filter":null,"shipping_mode":null,'
+            '"city_filter":null,"min_price":null,"max_price":null,"limit":10,'
+            '"month_filter":null,"year_filter":null,"date_filter":null}'
+        )
+        result = self._run("what are my orders in June 2026", llm_json)
+        assert result["special_query"] is None
+        assert result["month_filter"] == 6
+
+    def test_this_month_clears_recent_special_query(self):
+        llm_json = (
+            '{"order_id":null,"status_filter":null,"product_keyword":null,'
+            '"special_query":"recent","carrier_filter":null,"shipping_mode":null,'
+            '"city_filter":null,"min_price":null,"max_price":null,"limit":10,'
+            '"month_filter":null,"year_filter":null,"date_filter":null}'
+        )
+        result = self._run("what are my orders this month", llm_json)
+        assert result["special_query"] is None
+
+    def test_costliest_regex_sets_most_expensive(self):
+        result = self._run("show my costliest orders")
+        assert result["special_query"] == "most_expensive"
+
+    def test_most_expensive_regex_sets_most_expensive(self):
+        result = self._run("show most expensive orders")
+        assert result["special_query"] == "most_expensive"
+
+    def test_oldest_regex_sets_oldest(self):
+        result = self._run("show me my oldest orders")
+        assert result["special_query"] == "oldest"
+
+
+class TestFetchOrderDataImplDateFilters:
+    """Covers cheapest/most_expensive with month/year filters."""
+
+    def _log(self):
+        return MagicMock()
+
+    def _order_rows(self):
+        return [
+            {
+                "order_id": "ORD010",
+                "status": "DELIVERED",
+                "carrier": "FedEx",
+                "estimated_delivery": "2026-06-15",
+                "sales_per_customer": 1200,
+                "items": '["Keyboard"]',
+                "order_date": "2026-06-01",
+            }
+        ]
+
+    def test_cheapest_with_month_year_filter(self):
+        state = make_state(
+            special_query="cheapest",
+            order_id=None,
+            month_filter=6,
+            year_filter=2026,
+        )
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=self._order_rows())
+            result = _fetch_order_data_impl(state, self._log())
+        assert "cheapest" in result["response"].lower()
+
+    def test_most_expensive_with_year_filter(self):
+        state = make_state(
+            special_query="most_expensive",
+            order_id=None,
+            year_filter=2026,
+        )
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=self._order_rows())
+            result = _fetch_order_data_impl(state, self._log())
+        assert "expensive" in result["response"].lower()
+
+    def test_cheapest_no_results(self):
+        state = make_state(special_query="cheapest", order_id=None, month_filter=1, year_filter=2020)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[])
+            result = _fetch_order_data_impl(state, self._log())
+        assert result["response"] is not None

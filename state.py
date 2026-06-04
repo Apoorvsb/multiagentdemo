@@ -14,9 +14,6 @@ class AgentState(TypedDict):
     tracking_info: Optional[dict]
     response: Optional[str]
     error: Optional[str]
-    mlflow_run_id: Optional[str]
-    total_tokens: int
-    total_cost_usd: float
     search_preferences: Optional[dict]
     search_retry: Optional[int]
     search_results: Optional[list]
@@ -29,8 +26,6 @@ class AgentState(TypedDict):
     ticket_id: Optional[str]
     ticket_count: Optional[int]
     previous_tickets: Optional[list]
-    response: Optional[str]
-    error: Optional[str]
 
     conversation_summary: Optional[str]
 

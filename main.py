@@ -511,9 +511,6 @@ async def seed_orders(body: SeedOrdersRequest):
     }
 
 
-
-
-
 @app.post("/chat", response_model=ChatResponse)
 async def chat(
     body: ChatRequest,
