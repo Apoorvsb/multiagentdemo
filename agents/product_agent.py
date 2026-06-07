@@ -1347,7 +1347,7 @@ def search_products(state: AgentState) -> AgentState:
             }
         ],
     )
-    tool_result = product_search_tool_node.invoke({"messages": [ai_msg]})
+    tool_result = product_search_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
     results = _json.loads(tool_result["messages"][-1].content)
 
     log_tool_span(
@@ -1586,7 +1586,7 @@ def fetch_reviews(state: AgentState) -> AgentState:
             {"name": "get_product_reviews", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}
         ],
     )
-    result = product_enrichment_tool_node.invoke({"messages": [ai_msg]})
+    result = product_enrichment_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
     reviews_by_id = _json.loads(result["messages"][-1].content)
 
     enriched = [{**p, "reviews": reviews_by_id.get(p["product_id"], [])} for p in products]
@@ -1618,7 +1618,7 @@ def fetch_specs(state: AgentState) -> AgentState:
             {"name": "get_product_specs", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}
         ],
     )
-    result = product_enrichment_tool_node.invoke({"messages": [ai_msg]})
+    result = product_enrichment_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
     specs_by_id = _json.loads(result["messages"][-1].content)
 
     enriched = [{**p, "specs": specs_by_id.get(p["product_id"], {})} for p in products]

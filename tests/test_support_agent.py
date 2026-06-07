@@ -164,6 +164,9 @@ class TestSeverityEdge:
 
 class TestLookupPolicy:
     def test_policy_found_for_issue_type(self):
+        import json
+        from langchain_core.messages import ToolMessage
+
         state = make_state(
             issue_type="damaged_goods",
             severity="HIGH",
@@ -174,25 +177,26 @@ class TestLookupPolicy:
             "sla_hours": 24,
             "resolution": "Replace or refund",
         }
-        with patch("agents.support_agent.get_conn") as mock_gc:
-            mock_db(mock_gc, fetchone=policy_row)
+        tool_msg = ToolMessage(content=json.dumps(policy_row), tool_call_id="call_1")
+        with patch("agents.support_agent.support_tool_node") as mock_tn:
+            mock_tn.invoke.return_value = {"messages": [tool_msg]}
             result = lookup_policy(state)
 
         assert result["policy"] == policy_row
 
     def test_no_policy_falls_back_to_general(self):
+        import json
+        from langchain_core.messages import ToolMessage
+
         state = make_state(
             issue_type="unknown_issue",
             severity="LOW",
             order_id="ORD002",
         )
         fallback_policy = {"issue_type": "general_complaint", "sla_hours": 48}
-
-        with patch("agents.support_agent.get_conn") as mock_gc:
-            cur = MagicMock()
-            cur.fetchone.side_effect = [None, fallback_policy]
-            conn = mock_gc.return_value.__enter__.return_value
-            conn.cursor.return_value.__enter__.return_value = cur
+        tool_msg = ToolMessage(content=json.dumps(fallback_policy), tool_call_id="call_1")
+        with patch("agents.support_agent.support_tool_node") as mock_tn:
+            mock_tn.invoke.return_value = {"messages": [tool_msg]}
             result = lookup_policy(state)
 
         assert result["policy"] == fallback_policy
@@ -305,14 +309,19 @@ class TestAssignPriority:
 
 class TestCreateTicket:
     def test_ticket_created_and_id_returned(self):
+        import json
+        from langchain_core.messages import ToolMessage
+
         state = make_state(
             issue_type="damaged_goods",
             severity="HIGH",
             priority="PRIORITY_2",
             order_id="ORD001",
         )
-        with patch("agents.support_agent.get_conn") as mock_gc:
-            mock_db(mock_gc)
+        ticket_payload = {"ticket_id": "TKT_TEST_001", "status": "Open"}
+        tool_msg = ToolMessage(content=json.dumps(ticket_payload), tool_call_id="call_1")
+        with patch("agents.support_agent.support_tool_node") as mock_tn:
+            mock_tn.invoke.return_value = {"messages": [tool_msg]}
             result = create_ticket(state)
         assert result["ticket_id"] is not None
         assert result["ticket_id"] != "TKT_ERROR"
@@ -323,8 +332,8 @@ class TestCreateTicket:
             severity="MEDIUM",
             priority="PRIORITY_3",
         )
-        with patch("agents.support_agent.get_conn") as mock_gc:
-            mock_gc.side_effect = Exception("DB unavailable")
+        with patch("agents.support_agent.support_tool_node") as mock_tn:
+            mock_tn.invoke.side_effect = Exception("DB unavailable")
             result = create_ticket(state)
         assert result["ticket_id"] == "TKT_ERROR"
 

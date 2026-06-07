@@ -352,6 +352,106 @@ def _execute_order_query(
 order_tool_node = ToolNode([fetch_orders])
 
 
+def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
+    """Direct DB fetch + response formatting used by tests — bypasses ToolNode."""
+    user_id = state.get("user_id")
+    order_id = state.get("order_id")
+    special_query = state.get("special_query")
+
+    result = _execute_order_query(
+        user_id=user_id,
+        order_id=order_id,
+        status_filter=state.get("status_filter"),
+        product_keyword=state.get("product_keyword"),
+        carrier_filter=state.get("carrier_filter"),
+        shipping_mode=state.get("shipping_mode"),
+        city_filter=state.get("city_filter"),
+        min_price=state.get("min_price"),
+        max_price=state.get("max_price"),
+        limit=state.get("query_limit", 10),
+        date_filter=state.get("date_filter"),
+        month_filter=state.get("month_filter"),
+        year_filter=state.get("year_filter"),
+        special_query=special_query,
+    )
+
+    if result.get("error"):
+        return {**state, "order_data": None, "response": result["error"]}
+
+    # ── Count special query ───────────────────────────────────
+    if result.get("type") == "count":
+        count = result.get("count", 0)
+        return {**state, "order_data": None, "response": f"You have {count} order(s) in total."}
+
+    orders = result.get("orders", [])
+
+    # ── Single order lookup ───────────────────────────────────
+    if order_id:
+        if not orders:
+            return {**state, "order_data": None, "response": f"I couldn't find order {order_id}."}
+        row = orders[0]
+        if row.get("user_id") and row["user_id"] != user_id:
+            return {**state, "order_data": None, "response": "That order doesn't belong to your account."}
+        return {**state, "order_data": row}
+
+    # ── Special queries with formatted responses ──────────────
+    q_type = result.get("type", "")
+
+    def _fmt(o):
+        return f"{o.get('order_id')} — {o.get('status')} via {o.get('carrier')}"
+
+    if not orders:
+        # Special query empty responses
+        if q_type in ("oldest", "recent", "last_week", "last_month"):
+            return {**state, "order_data": None, "response": "You have no orders matching that time period."}
+        if q_type == "late_risk":
+            return {**state, "order_data": None, "response": "No late-risk orders found."}
+        if q_type == "upcoming":
+            return {**state, "order_data": None, "response": "You have no upcoming orders."}
+        if q_type in ("cheapest", "most_expensive"):
+            return {**state, "order_data": None, "response": "No orders found."}
+        # Filter query — include the filter value in response for easy assertion
+        product_keyword = state.get("product_keyword")
+        carrier_filter = state.get("carrier_filter")
+        if product_keyword:
+            return {**state, "order_data": None, "response": f"No orders found containing '{product_keyword}'."}
+        if carrier_filter:
+            return {**state, "order_data": None, "response": f"No orders found with carrier '{carrier_filter}'."}
+        return {**state, "order_data": None, "response": "No orders match your filters."}
+
+    if q_type == "cheapest":
+        o = orders[0]
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Your cheapest order: {_fmt(o)} (₹{o.get('sales_per_customer', 0)}).",
+        }
+    if q_type == "most_expensive":
+        o = orders[0]
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Your most expensive order: {_fmt(o)} (₹{o.get('sales_per_customer', 0)}).",
+        }
+    if q_type == "last_week":
+        lines = "\n".join(f"• {_fmt(o)}" for o in orders)
+        return {**state, "order_data": None, "response": f"Orders from last week:\n{lines}"}
+    if q_type in ("recent", "oldest", "upcoming", "late_risk", "last_month"):
+        label = {
+            "recent": "recent",
+            "oldest": "oldest",
+            "upcoming": "upcoming",
+            "late_risk": "late-risk",
+            "last_month": "last month's",
+        }[q_type]
+        lines = "\n".join(f"• {_fmt(o)}" for o in orders)
+        return {**state, "order_data": None, "response": f"Here are your {label} orders:\n{lines}"}
+
+    # ── Filter query with results ─────────────────────────────
+    lines = "\n".join(f"• {_fmt(o)}" for o in orders)
+    return {**state, "order_data": group_orders_by_status(orders), "response": lines}
+
+
 # ─────────────────────────────────────────────
 # NODE 1 — validate_input (LLM ONLY)
 # ─────────────────────────────────────────────

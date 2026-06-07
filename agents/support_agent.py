@@ -784,7 +784,7 @@ def lookup_policy(state: AgentState) -> AgentState:
             {"name": "get_support_policy", "args": {"issue_type": issue_type}, "id": call_id, "type": "tool_call"}
         ],
     )
-    result = support_tool_node.invoke({"messages": [ai_msg]})
+    result = support_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
     policy = _json.loads(result["messages"][-1].content) or None
 
     log_tool_span(
@@ -853,7 +853,7 @@ def check_history(state: AgentState) -> AgentState:
         content="",
         tool_calls=[{"name": "get_ticket_history", "args": {"user_id": user_id}, "id": call_id, "type": "tool_call"}],
     )
-    result = support_tool_node.invoke({"messages": [ai_msg]})
+    result = support_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
     previous_tickets = _json.loads(result["messages"][-1].content)
     ticket_count = len(previous_tickets)
 
@@ -955,9 +955,13 @@ def create_ticket(state: AgentState) -> AgentState:
             }
         ],
     )
-    result = support_tool_node.invoke({"messages": [ai_msg]})
-    data = _json.loads(result["messages"][-1].content)
-    ticket_id = data.get("ticket_id", "TKT_ERROR")
+    try:
+        result = support_tool_node.invoke({"messages": [ai_msg]}, config={"configurable": {}})
+        data = _json.loads(result["messages"][-1].content)
+        ticket_id = data.get("ticket_id", "TKT_ERROR")
+    except Exception as err:
+        log.error(f"Ticket creation failed: {err}")
+        ticket_id = "TKT_ERROR"
     log.info(f"Ticket created: {ticket_id}")
 
     log_tool_span(

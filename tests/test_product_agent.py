@@ -285,6 +285,9 @@ class TestSearchProducts:
         return search_products, results_found_edge, broaden_search, no_results_response
 
     def test_search_products_stores_results(self):
+        import json
+        from langchain_core.messages import ToolMessage
+
         search_products, _, _, _ = self._import()
         prefs = {"search_query": "laptop", "max_price": 50000}
         state = make_state(search_preferences=prefs, search_retry=0)
@@ -300,9 +303,9 @@ class TestSearchProducts:
                 "description": "Good",
             }
         ]
-
-        with patch("agents.product_agent.get_conn") as mock_gc:
-            mock_db(mock_gc, fetchall=rows)
+        tool_msg = ToolMessage(content=json.dumps(rows), tool_call_id="call_1")
+        with patch("agents.product_agent.product_search_tool_node") as mock_tn:
+            mock_tn.invoke.return_value = {"messages": [tool_msg]}
             result = search_products(state)
 
         assert len(result["search_results"]) == 1

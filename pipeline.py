@@ -41,7 +41,8 @@ def intent_router(state: AgentState) -> AgentState:
     # Checked first so "bye" never falls to out_of_scope.
     _CONVERSATIONAL_FASTPATH = [
         r"^(?:bye|goodbye|good\s*bye|see\s+you|see\s+ya|cya|ttyl|take\s+care|good\s+night|adios|cheers)[\s!.]*$",
-        r"^(?:hi+|hello+|hey+|hiya|howdy|greetings|good\s+(?:morning|afternoon|evening))[\s!.]*$",
+        r"^(?:hi+|hello+|hey+|hiya|howdy|greetings|good\s+(?:morning|afternoon|evening))"
+        r"(?:\s+(?:there|friend|everyone|all|sir|ma'?am))?[\s!.]*$",
         r"^(?:thanks?|thank\s+you|thank\s+u|thx|ty|appreciate)[\s!.]*$",
         r"^how\s+(?:are\s+you|r\s+u|is\s+it\s+going)",
         r"^(?:who|what)\s+are\s+you\b",
@@ -60,6 +61,9 @@ def intent_router(state: AgentState) -> AgentState:
         r"my\s+(?:package|parcel|item)\s+is\s+(?:missing|lost|not\s+arrived)|"
         r"order\s+came\s+(?:broken|damaged|wrong)|"
         r"received\s+(?:wrong|damaged|broken)|"
+        r"arrived\s+(?:damaged|broken|wrong|defective)|"
+        r"\w+\s+arrived\s+(?:damaged|broken|wrong|defective)|"
+        r"warranty\s+claim|raise\s+a\s+warranty|warranty\s+issue|"
         r"my\s+order\s+(?:hasn(?:'t|t)\s+arrived|is\s+missing|never\s+arrived)|"
         r"(?:i\s+(?:want|need|would\s+like)\s+(?:a\s+)?|give\s+me\s+(?:a\s+)?|initiate\s+(?:a\s+)?)"
         r"(?:refund|return|replacement|cancellation)|"
@@ -88,7 +92,7 @@ def intent_router(state: AgentState) -> AgentState:
         r"\bshow\s+(?!(?:my\s+)?(?:ticket|refund|complaint))\w",
         r"\bfind\s+(?:me\s+)?(a\s+)?(?:good|best|cheap|top|nice|affordable|something)\b",
         r"\bi\s+(?:need|want|am\s+looking\s+for)\s+(?:a\s+|some\s+)?"
-        r"(?!(?:refund|return|replacement|cancellation|cancel))\w",
+        r"(?!(?:refund|return|replacement|cancellation|cancel|warranty|raise|complaint|ticket))\w",
         r"\blooking\s+for\s+(?:a\s+|some\s+)?\w",
         r"\bsomething\s+(?:good|nice|cheap|affordable|best|top|for)\b",
         r"\brecommend\b",  # "recommend a good TV"
@@ -185,7 +189,7 @@ Return only the intent label. Nothing else."""
         intent = result.intent
     except Exception as e:
         log.error(f"Router failed: {e}")
-        intent = "product_query"
+        intent = "order_query"
 
     log.info(f"Intent classified: {intent}")
     return {**state, "intent": intent}

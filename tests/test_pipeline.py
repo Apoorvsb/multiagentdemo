@@ -99,3 +99,54 @@ class TestIntentRouterLLM:
             result = intent_router(state)
 
         assert result["intent"] == "order_query"
+
+    def test_greeting_routes_to_product_without_llm(self):
+        state = make_state(current_input="hi")
+        with patch("pipeline._support_pending", {}), patch("pipeline.llm") as mock_llm:
+            result = intent_router(state)
+        mock_llm.with_structured_output.assert_not_called()
+        assert result["intent"] == "product_query"
+
+    def test_hello_routes_to_product_without_llm(self):
+        state = make_state(current_input="hello there")
+        with patch("pipeline._support_pending", {}):
+            result = intent_router(state)
+        assert result["intent"] == "product_query"
+
+
+# ─── agent runner wrappers ───────────────────────────────────────────────────
+
+
+class TestAgentRunners:
+    def test_run_order_agent_invokes_order_agent(self):
+        from pipeline import run_order_agent
+
+        state = make_state(current_input="where is my order")
+        mock_result = {**state, "response": "Your order is delivered."}
+        with patch("pipeline.order_agent") as mock_agent:
+            mock_agent.invoke.return_value = mock_result
+            result = run_order_agent(state)
+        mock_agent.invoke.assert_called_once_with(state)
+        assert result["response"] == "Your order is delivered."
+
+    def test_run_product_agent_invokes_product_agent(self):
+        from pipeline import run_product_agent
+
+        state = make_state(current_input="find me a laptop")
+        mock_result = {**state, "response": "Here are top laptops."}
+        with patch("pipeline.product_agent") as mock_agent:
+            mock_agent.invoke.return_value = mock_result
+            result = run_product_agent(state)
+        mock_agent.invoke.assert_called_once_with(state)
+        assert result["response"] == "Here are top laptops."
+
+    def test_run_support_agent_invokes_support_agent(self):
+        from pipeline import run_support_agent
+
+        state = make_state(current_input="my order arrived damaged")
+        mock_result = {**state, "response": "We have raised a ticket."}
+        with patch("pipeline.support_agent") as mock_agent:
+            mock_agent.invoke.return_value = mock_result
+            result = run_support_agent(state)
+        mock_agent.invoke.assert_called_once_with(state)
+        assert result["response"] == "We have raised a ticket."
