@@ -23,8 +23,8 @@ BRAND_MAP = {
     "asus": "ASUS",
     "acer": "Acer",
     "mi": "Mi",
-    "xiaomi": "Redmi",   # Xiaomi phones sold as Redmi/Mi in India
-    "xioami": "Redmi",   # common typo
+    "xiaomi": "Redmi",  # Xiaomi phones sold as Redmi/Mi in India
+    "xioami": "Redmi",  # common typo
     "realme": "Realme",
     "redmi": "Redmi",
     "motorola": "Motorola",
