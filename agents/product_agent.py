@@ -30,6 +30,7 @@ def _get_redis():
     if _redis_client is None:
         try:
             import redis as _redis
+
             client = _redis.Redis(
                 host=getattr(config, "REDIS_HOST", "redis"),
                 port=int(getattr(config, "REDIS_PORT", 6379)),
@@ -56,6 +57,7 @@ def _get_fastembed_model():
     if _fastembed_model is None:
         try:
             from fastembed import TextEmbedding
+
             _fastembed_model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
             _log.info("fastembed model loaded: all-MiniLM-L6-v2 (ONNX)")
         except Exception as e:
@@ -73,6 +75,7 @@ def _embed(text: str) -> list | None:
     except Exception as e:
         _log.warning(f"Embedding failed: {e}")
         return None
+
 
 llm = __import__("langchain_groq").ChatGroq(model=config.LLM_MODEL, temperature=0, api_key=config.GROQ_API_KEY)
 
@@ -151,9 +154,7 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
     search_query = prefs.get("search_query") or ""
 
     # ── Redis cache lookup ────────────────────────────────────────────────────
-    cache_key = "psearch:" + hashlib.md5(
-        _json.dumps({**prefs, "retry": retry}, sort_keys=True).encode()
-    ).hexdigest()
+    cache_key = "psearch:" + hashlib.md5(_json.dumps({**prefs, "retry": retry}, sort_keys=True).encode()).hexdigest()
     redis = _get_redis()
     if redis:
         try:
@@ -204,20 +205,53 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     "keypad mobile|keypad phone|feature phone|bar phone|button phone)%%"
                 )
                 _ACCESSORY_TERMS = {
-                    'charger', 'adapter', 'cable', 'sleeve', 'bag', 'case', 'stand',
-                    'pouch', 'cover', 'holder', 'mount', 'dock', 'hub', 'dongle',
-                    'keyboard', 'mouse', 'mice', 'headphone', 'headphones',
-                    'earphone', 'earphones', 'earbud', 'earbuds',
-                    'neckband', 'neckbands', 'webcam', 'stylus', 'gamepad', 'controller',
-                    'watch', 'smartwatch', 'fitness', 'tracker',
-                    'remote', 'remote control', 'firestick',
-                    'power', 'powerbank',  # power bank
-                    'boiler', 'egg boiler', 'egg cooker', 'egg poacher',  # so egg-boiler searches bypass exclusion
+                    "charger",
+                    "adapter",
+                    "cable",
+                    "sleeve",
+                    "bag",
+                    "case",
+                    "stand",
+                    "pouch",
+                    "cover",
+                    "holder",
+                    "mount",
+                    "dock",
+                    "hub",
+                    "dongle",
+                    "keyboard",
+                    "mouse",
+                    "mice",
+                    "headphone",
+                    "headphones",
+                    "earphone",
+                    "earphones",
+                    "earbud",
+                    "earbuds",
+                    "neckband",
+                    "neckbands",
+                    "webcam",
+                    "stylus",
+                    "gamepad",
+                    "controller",
+                    "watch",
+                    "smartwatch",
+                    "fitness",
+                    "tracker",
+                    "remote",
+                    "remote control",
+                    "firestick",
+                    "power",
+                    "powerbank",  # power bank
+                    "boiler",
+                    "egg boiler",
+                    "egg cooker",
+                    "egg poacher",  # so egg-boiler searches bypass exclusion
                 }
 
                 if search_query:
-                    sq_words_norm = {w.lower().rstrip('s') for w in search_query.split()}
-                    terms_norm = {t.rstrip('s') for t in _ACCESSORY_TERMS}
+                    sq_words_norm = {w.lower().rstrip("s") for w in search_query.split()}
+                    terms_norm = {t.rstrip("s") for t in _ACCESSORY_TERMS}
                     _is_accessory_search = bool(sq_words_norm & terms_norm)
 
                     if _query_vec:
@@ -235,9 +269,9 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                             _sq_norm = re.sub(r"[^a-z0-9]", "", search_query.lower())
                             _br_norm = re.sub(r"[^a-z0-9]", "", (prefs.get("brand") or "").lower())
                             _sq_is_brand = (
-                                _sq_norm and _br_norm and
-                                (_sq_norm in _br_norm or _br_norm in _sq_norm or
-                                 _sq_norm[:6] == _br_norm[:6])
+                                _sq_norm
+                                and _br_norm
+                                and (_sq_norm in _br_norm or _br_norm in _sq_norm or _sq_norm[:6] == _br_norm[:6])
                             )
                             # Also skip FTS guard for short single-word generic queries
                             # (e.g. "phones", "laptops") — brands like Apple use "iPhone"
@@ -287,9 +321,7 @@ def mock_product_api_call(prefs: dict, retry: int = 0) -> list:
                     where_params.append(float(prefs["max_rating"]))
 
                 if prefs.get("min_discount"):
-                    conditions.append(
-                        "CAST(TRIM(TRAILING '%' FROM COALESCE(discount_pct, '0')) AS INTEGER) >= %s"
-                    )
+                    conditions.append("CAST(TRIM(TRAILING '%' FROM COALESCE(discount_pct, '0')) AS INTEGER) >= %s")
                     where_params.append(int(prefs["min_discount"]))
 
                 if prefs.get("brand"):
@@ -587,8 +619,14 @@ def extract_preferences(state: AgentState) -> AgentState:
 
     # ── Greetings / conversational messages ──────────────
     _GOODBYE_PATTERNS = [
-        r"\bbye\b", r"\bgoodbye\b", r"\bsee you\b", r"\bsee ya\b",
-        r"\bcya\b", r"\bttyl\b", r"\btake care\b", r"\bgood night\b",
+        r"\bbye\b",
+        r"\bgoodbye\b",
+        r"\bsee you\b",
+        r"\bsee ya\b",
+        r"\bcya\b",
+        r"\bttyl\b",
+        r"\btake care\b",
+        r"\bgood night\b",
     ]
     if any(re.search(p, msg_lower) for p in _GOODBYE_PATTERNS):
         log.info("Goodbye detected")
@@ -602,8 +640,11 @@ def extract_preferences(state: AgentState) -> AgentState:
         }
 
     _THANKS_PATTERNS = [
-        r"\bthank(?:s| you| u)\b", r"\bthx\b", r"\bty\b",
-        r"\bcheers\b", r"\bappreciate\b",
+        r"\bthank(?:s| you| u)\b",
+        r"\bthx\b",
+        r"\bty\b",
+        r"\bcheers\b",
+        r"\bappreciate\b",
     ]
     if any(re.search(p, msg_lower) for p in _THANKS_PATTERNS):
         log.info("Thanks detected")
@@ -617,9 +658,14 @@ def extract_preferences(state: AgentState) -> AgentState:
         }
 
     _HOW_ARE_YOU_PATTERNS = [
-        r"\bhow are you\b", r"\bhow r u\b", r"\bhow(?:'s| is) it going\b",
-        r"\bhow(?:'re| are) you doing\b", r"\bhow have you been\b",
-        r"\bhow do you do\b", r"\bwhat'?s up\b", r"\bwassup\b",
+        r"\bhow are you\b",
+        r"\bhow r u\b",
+        r"\bhow(?:'s| is) it going\b",
+        r"\bhow(?:'re| are) you doing\b",
+        r"\bhow have you been\b",
+        r"\bhow do you do\b",
+        r"\bwhat'?s up\b",
+        r"\bwassup\b",
     ]
     if any(re.search(p, msg_lower) for p in _HOW_ARE_YOU_PATTERNS):
         log.info("How-are-you detected")
@@ -640,12 +686,24 @@ def extract_preferences(state: AgentState) -> AgentState:
         }
 
     _GREETING_PATTERNS = [
-        r"\bhi+\b", r"\bhel+o+\b", r"\bhe+y+\b", r"\bhiya\b", r"\bhowdy\b",
-        r"\byo\b", r"\bhola\b", r"\bsup\b", r"\bwassup\b", r"\bwhat'?s\s+up\b",
-        r"\bnamaste\b", r"\bvanakkam\b",
-        r"\bgreetings\b", r"\bgood\s+(?:morning|afternoon|evening|day)\b",
-        r"\bwho are you\b", r"\bwhat are you\b",
-        r"\bwhat can you do\b", r"\bwhat do you do\b",
+        r"\bhi+\b",
+        r"\bhel+o+\b",
+        r"\bhe+y+\b",
+        r"\bhiya\b",
+        r"\bhowdy\b",
+        r"\byo\b",
+        r"\bhola\b",
+        r"\bsup\b",
+        r"\bwassup\b",
+        r"\bwhat'?s\s+up\b",
+        r"\bnamaste\b",
+        r"\bvanakkam\b",
+        r"\bgreetings\b",
+        r"\bgood\s+(?:morning|afternoon|evening|day)\b",
+        r"\bwho are you\b",
+        r"\bwhat are you\b",
+        r"\bwhat can you do\b",
+        r"\bwhat do you do\b",
         r"\bintroduce yourself\b",
     ]
     if any(re.search(p, msg_lower) for p in _GREETING_PATTERNS):
@@ -1030,14 +1088,14 @@ Return ONLY valid JSON."""
     # Multi-word / variant aliases that DB token scan can't handle (checked first).
     _BRAND_ALIASES = [
         (r"\bamazon\s+basics?\b", "AmazonBasics"),
-        (r"\bamazonbasics\b",     "AmazonBasics"),
-        (r"\bao\s+smith\b",       "AO Smith"),
-        (r"\btp[\s-]link\b",      "TP-Link"),
+        (r"\bamazonbasics\b", "AmazonBasics"),
+        (r"\bao\s+smith\b", "AO Smith"),
+        (r"\btp[\s-]link\b", "TP-Link"),
         # Typo variants
-        (r"\bxioami\b",           "Xiaomi"),
-        (r"\bxaomi\b",            "Xiaomi"),
-        (r"\bsamsumg\b",          "Samsung"),
-        (r"\bphlips\b",           "Philips"),
+        (r"\bxioami\b", "Xiaomi"),
+        (r"\bxaomi\b", "Xiaomi"),
+        (r"\bsamsumg\b", "Samsung"),
+        (r"\bphlips\b", "Philips"),
     ]
     if not prefs.get("brand"):
         for pattern, canonical in _BRAND_ALIASES:
@@ -1071,9 +1129,30 @@ Return ONLY valid JSON."""
         sq_lower = prefs["search_query"].lower()
         brand_lower = prefs["brand"].lower()
         _BROWSE_NOISE = {
-            "products", "product", "items", "item", "show", "me", "all", "best", "good", "top",
+            "products",
+            "product",
+            "items",
+            "item",
+            "show",
+            "me",
+            "all",
+            "best",
+            "good",
+            "top",
             # prepositions/articles that LLMs sometimes leave in extracted queries
-            "for", "by", "from", "of", "in", "with", "to", "at", "a", "an", "the", "and", "or",
+            "for",
+            "by",
+            "from",
+            "of",
+            "in",
+            "with",
+            "to",
+            "at",
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
         }
         sq_meaningful_words = [w for w in sq_lower.split() if w not in _BROWSE_NOISE and w != brand_lower]
         sq_meaningful = " ".join(sq_meaningful_words)
@@ -1081,9 +1160,14 @@ Return ONLY valid JSON."""
         _sq_norm2 = re.sub(r"[^a-z0-9]", "", sq_meaningful)
         _br_norm2 = re.sub(r"[^a-z0-9]", "", brand_lower)
         _is_brand_typo = (
-            _sq_norm2 and _br_norm2 and len(_sq_norm2) >= 4 and
-            (_sq_norm2 in _br_norm2 or _br_norm2 in _sq_norm2 or
-             (_sq_norm2[:6] == _br_norm2[:6] if len(_sq_norm2) >= 6 and len(_br_norm2) >= 6 else False))
+            _sq_norm2
+            and _br_norm2
+            and len(_sq_norm2) >= 4
+            and (
+                _sq_norm2 in _br_norm2
+                or _br_norm2 in _sq_norm2
+                or (_sq_norm2[:6] == _br_norm2[:6] if len(_sq_norm2) >= 6 and len(_br_norm2) >= 6 else False)
+            )
         )
         if not sq_meaningful or sq_meaningful in brand_lower or _is_brand_typo:
             prefs["search_query"] = None
@@ -1141,9 +1225,7 @@ Return ONLY valid JSON."""
         # search_query carryforward: skip when user is asking to browse a brand's full
         # catalog (e.g. "show JIALTO products", "show HP products") — carrying forward
         # a product type from history would incorrectly filter to that type only.
-        _brand_browse = bool(prefs.get("brand")) and re.search(
-            r"\bproducts?\b|\bshow\b|\bbrowse\b|\ball\b", msg_lower
-        )
+        _brand_browse = bool(prefs.get("brand")) and re.search(r"\bproducts?\b|\bshow\b|\bbrowse\b|\ball\b", msg_lower)
         if not prefs.get("search_query") and not _brand_browse:
             # Primary (dynamic): extract what the previous response was actually about
             # from the "Here are the top **X** recommendations" header — works for any
@@ -1152,29 +1234,28 @@ Return ONLY valid JSON."""
             # Search recent messages first, then fall back to conversation summary
             # (summary covers older turns pushed out of the sliding window — this is
             # what breaks "show HP mouse" → "only hp" after several more exchanges).
-            _header_sources = (
-                [(hist_m.get("content") or "") for hist_m in reversed(recent_msgs)
-                 if hist_m.get("role") == "assistant"]
-                + ([conv_summary] if conv_summary else [])
-            )
+            _header_sources = [
+                (hist_m.get("content") or "") for hist_m in reversed(recent_msgs) if hist_m.get("role") == "assistant"
+            ] + ([conv_summary] if conv_summary else [])
             for content in _header_sources:
                 m_sq = re.search(r"Here are (?:the )?top \*\*(.+?)\*\* recommendations", content)
                 if m_sq:
                     sq_candidate = m_sq.group(1).strip()
                     sq_cand_lower = sq_candidate.lower()
                     # Skip brand-only headers (e.g. "Dell products") and generic words
-                    if (sq_cand_lower not in _GENERIC_WORDS
-                            and sq_cand_lower not in catalog_brands_lower
-                            and not sq_cand_lower.endswith(" products")):
+                    if (
+                        sq_cand_lower not in _GENERIC_WORDS
+                        and sq_cand_lower not in catalog_brands_lower
+                        and not sq_cand_lower.endswith(" products")
+                    ):
                         prefs["search_query"] = sq_candidate
                         log.info(f"Carried forward search_query from response: {sq_candidate}")
                         break
 
             # Fallback: scan history + summary for known product types
             if not prefs.get("search_query"):
-                _text_sources = (
-                    [(hist_m.get("content") or "").lower() for hist_m in reversed(recent_msgs)]
-                    + ([conv_summary.lower()] if conv_summary else [])
+                _text_sources = [(hist_m.get("content") or "").lower() for hist_m in reversed(recent_msgs)] + (
+                    [conv_summary.lower()] if conv_summary else []
                 )
                 for hist_content in _text_sources:
                     for pt in _CARRY_PRODUCT_TYPES:
@@ -1316,8 +1397,13 @@ def broaden_search(state: AgentState) -> AgentState:
         prefs = {**prefs, "category": None}
 
     log.info(f"Broadening search (retry {retry + 1}): {prefs}")
-    return {**state, "search_preferences": prefs, "search_retry": retry + 1, "dropped_brand": dropped_brand,
-            "search_broadened": True}
+    return {
+        **state,
+        "search_preferences": prefs,
+        "search_retry": retry + 1,
+        "dropped_brand": dropped_brand,
+        "search_broadened": True,
+    }
 
 
 def no_results_response(state: AgentState) -> AgentState:
@@ -1346,7 +1432,7 @@ def no_results_response(state: AgentState) -> AgentState:
     elif original_brand:
         response = (
             f"I couldn't find any products from **{original_brand}** in our catalog.\n\n"
-            f'Try a different brand or search for a specific product type.'
+            f"Try a different brand or search for a specific product type."
         )
     elif sq:
         response = (
@@ -1496,16 +1582,21 @@ def fetch_reviews(state: AgentState) -> AgentState:
     call_id = str(uuid.uuid4())[:8]
     ai_msg = AIMessage(
         content="",
-        tool_calls=[{"name": "get_product_reviews", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}],
+        tool_calls=[
+            {"name": "get_product_reviews", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}
+        ],
     )
     result = product_enrichment_tool_node.invoke({"messages": [ai_msg]})
     reviews_by_id = _json.loads(result["messages"][-1].content)
 
     enriched = [{**p, "reviews": reviews_by_id.get(p["product_id"], [])} for p in products]
     log_tool_span(
-        span_name="fetch_reviews", tool_name="reviews_table",
-        tool_input={"product_count": len(products)}, tool_output={"enriched_count": len(enriched)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        span_name="fetch_reviews",
+        tool_name="reviews_table",
+        tool_input={"product_count": len(products)},
+        tool_output={"enriched_count": len(enriched)},
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
     log.info(f"Fetched reviews for {len(enriched)} products")
     return {**state, "enriched_products": enriched}
@@ -1523,16 +1614,21 @@ def fetch_specs(state: AgentState) -> AgentState:
     call_id = str(uuid.uuid4())[:8]
     ai_msg = AIMessage(
         content="",
-        tool_calls=[{"name": "get_product_specs", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}],
+        tool_calls=[
+            {"name": "get_product_specs", "args": {"product_ids": product_ids}, "id": call_id, "type": "tool_call"}
+        ],
     )
     result = product_enrichment_tool_node.invoke({"messages": [ai_msg]})
     specs_by_id = _json.loads(result["messages"][-1].content)
 
     enriched = [{**p, "specs": specs_by_id.get(p["product_id"], {})} for p in products]
     log_tool_span(
-        span_name="fetch_specs", tool_name="products_specs",
-        tool_input={"product_count": len(products)}, tool_output={"enriched_count": len(enriched)},
-        trace_id=state.get("mlflow_trace_id"), parent_id=state.get("mlflow_span_id"),
+        span_name="fetch_specs",
+        tool_name="products_specs",
+        tool_input={"product_count": len(products)},
+        tool_output={"enriched_count": len(enriched)},
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
     )
     log.info(f"Fetched specs for {len(enriched)} products")
     return {**state, "enriched_products": enriched}
@@ -1589,9 +1685,7 @@ def format_recommendations(state: AgentState) -> AgentState:
         return {**state, "response": "No products found matching your criteria."}
 
     _brand = search_prefs.get("brand")
-    search_query = search_prefs.get("search_query") or (
-        f"{_brand} products" if _brand else "product"
-    )
+    search_query = search_prefs.get("search_query") or (f"{_brand} products" if _brand else "product")
     dropped_brand = state.get("dropped_brand")
     search_broadened = state.get("search_broadened", False)
     if dropped_brand:
@@ -1601,8 +1695,7 @@ def format_recommendations(state: AgentState) -> AgentState:
         ]
     elif search_broadened:
         lines = [
-            f"I couldn't find an exact match for **{search_query}**, "
-            f"but here are the closest options available:\n"
+            f"I couldn't find an exact match for **{search_query}**, " f"but here are the closest options available:\n"
         ]
     else:
         lines = [f"Here are the top **{search_query}** recommendations:\n"]
@@ -1673,8 +1766,8 @@ def build_product_agent():
     graph = StateGraph(AgentState)
 
     graph.add_node("extract_preferences", extract_preferences)
-    graph.add_node("search_products", search_products)          # calls product_search_tool_node internally
-    graph.add_node("product_search_tools", product_search_tool_node)       # ToolNode — search_product_catalog
+    graph.add_node("search_products", search_products)  # calls product_search_tool_node internally
+    graph.add_node("product_search_tools", product_search_tool_node)  # ToolNode — search_product_catalog
     graph.add_node("product_enrichment_tools", product_enrichment_tool_node)  # ToolNode — reviews + specs
     graph.add_node("broaden_search", broaden_search)
     graph.add_node("rank_and_filter", rank_and_filter)

@@ -168,18 +168,17 @@ def _execute_order_query(
 
     # ── Shared date condition builder ────────────────────────
     import re as _re
+
     def _date_conds(conds, params):
         nonlocal month_filter, year_filter
         # Detect partial date like "2026-06" (YYYY-MM) — treat as month+year filter
-        if date_filter and _re.match(r'^\d{4}-\d{2}$', str(date_filter)):
-            _y, _m = str(date_filter).split('-')
+        if date_filter and _re.match(r"^\d{4}-\d{2}$", str(date_filter)):
+            _y, _m = str(date_filter).split("-")
             month_filter = int(_m)
-            year_filter  = int(_y)
+            year_filter = int(_y)
         # If month_filter is set, use it (even if date_filter also set — LLM sometimes sets both).
         if month_filter and year_filter:
-            conds.append(
-                "EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s"
-            )
+            conds.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
             params.extend([month_filter, year_filter])
         elif month_filter and not date_filter:
             conds.append("EXTRACT(MONTH FROM order_date::date) = %s")
@@ -367,8 +366,14 @@ def validate_input(state: AgentState) -> AgentState:
 
     # ── Greetings / conversational messages (no DB needed) ────
     _GOODBYE_PATTERNS = [
-        r"\bbye\b", r"\bgoodbye\b", r"\bsee you\b", r"\bsee ya\b",
-        r"\bcya\b", r"\bttyl\b", r"\btake care\b", r"\bgood night\b",
+        r"\bbye\b",
+        r"\bgoodbye\b",
+        r"\bsee you\b",
+        r"\bsee ya\b",
+        r"\bcya\b",
+        r"\bttyl\b",
+        r"\btake care\b",
+        r"\bgood night\b",
     ]
     if any(re.search(p, msg_lower) for p in _GOODBYE_PATTERNS):
         log.info("Goodbye detected")
@@ -381,8 +386,11 @@ def validate_input(state: AgentState) -> AgentState:
         }
 
     _THANKS_PATTERNS = [
-        r"\bthank(?:s| you| u)\b", r"\bthx\b", r"\bty\b",
-        r"\bcheers\b", r"\bappreciate\b",
+        r"\bthank(?:s| you| u)\b",
+        r"\bthx\b",
+        r"\bty\b",
+        r"\bcheers\b",
+        r"\bappreciate\b",
     ]
     if any(re.search(p, msg_lower) for p in _THANKS_PATTERNS):
         log.info("Thanks detected")
@@ -395,9 +403,14 @@ def validate_input(state: AgentState) -> AgentState:
         }
 
     _HOW_ARE_YOU_PATTERNS = [
-        r"\bhow are you\b", r"\bhow r u\b", r"\bhow(?:'s| is) it going\b",
-        r"\bhow(?:'re| are) you doing\b", r"\bhow have you been\b",
-        r"\bhow do you do\b", r"\bwhat'?s up\b", r"\bwassup\b",
+        r"\bhow are you\b",
+        r"\bhow r u\b",
+        r"\bhow(?:'s| is) it going\b",
+        r"\bhow(?:'re| are) you doing\b",
+        r"\bhow have you been\b",
+        r"\bhow do you do\b",
+        r"\bwhat'?s up\b",
+        r"\bwassup\b",
     ]
     if any(re.search(p, msg_lower) for p in _HOW_ARE_YOU_PATTERNS):
         log.info("How-are-you detected")
@@ -415,10 +428,17 @@ def validate_input(state: AgentState) -> AgentState:
         }
 
     _GREETING_PATTERNS = [
-        r"\bhi\b", r"\bhello\b", r"\bhey\b", r"\bhiya\b", r"\bhowdy\b",
-        r"\bgreetings\b", r"\bgood\s+(?:morning|afternoon|evening)\b",
-        r"\bwho are you\b", r"\bwhat are you\b",
-        r"\bwhat can you do\b", r"\bwhat do you do\b",
+        r"\bhi\b",
+        r"\bhello\b",
+        r"\bhey\b",
+        r"\bhiya\b",
+        r"\bhowdy\b",
+        r"\bgreetings\b",
+        r"\bgood\s+(?:morning|afternoon|evening)\b",
+        r"\bwho are you\b",
+        r"\bwhat are you\b",
+        r"\bwhat can you do\b",
+        r"\bwhat do you do\b",
         r"\bintroduce yourself\b",
     ]
     if any(re.search(p, msg_lower) for p in _GREETING_PATTERNS):
@@ -815,9 +835,17 @@ Return ONLY valid JSON. No explanation."""
     # Convert to month_filter + year_filter so all orders in that month are returned.
     _df = extracted.get("date_filter") or ""
     if _df and _df.endswith("-01"):
-        _has_day_in_msg = bool(re.search(r"\b(?:1st|01|first)\b", msg_lower) or
-                               re.search(r"\b1\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b", msg_lower) or
-                               re.search(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\s+1\b", msg_lower))
+        _has_day_in_msg = bool(
+            re.search(r"\b(?:1st|01|first)\b", msg_lower)
+            or re.search(
+                r"\b1\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b",
+                msg_lower,
+            )
+            or re.search(
+                r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\s+1\b",
+                msg_lower,
+            )
+        )
         _has_month_name = any(re.search(r"\b" + n + r"\b", msg_lower) for n in _MONTH_NAMES)
         if _has_month_name and not _has_day_in_msg:
             # User said "may 2026" not "1 may 2026" — treat as full-month query
@@ -876,17 +904,63 @@ Return ONLY valid JSON. No explanation."""
     # Clear product_keyword if it's only time/stop words (e.g. LLM returns
     # "orders in" for "what are my orders in june 2026").
     _TIME_STOP = {
-        "in", "on", "at", "for", "from", "by", "of", "the", "my", "i",
-        "orders", "order", "all", "recent", "what", "are", "show", "give",
+        "in",
+        "on",
+        "at",
+        "for",
+        "from",
+        "by",
+        "of",
+        "the",
+        "my",
+        "i",
+        "orders",
+        "order",
+        "all",
+        "recent",
+        "what",
+        "are",
+        "show",
+        "give",
         # price prepositions — must never become product_keyword
-        "above", "below", "under", "over", "within", "upto",
+        "above",
+        "below",
+        "under",
+        "over",
+        "within",
+        "upto",
         # status words — must never become product_keyword
-        "pending", "delivered", "delayed", "returned", "transit",
-        "cancelled", "intransit",
+        "pending",
+        "delivered",
+        "delayed",
+        "returned",
+        "transit",
+        "cancelled",
+        "intransit",
         # month names
-        "january", "february", "march", "april", "may", "june",
-        "july", "august", "september", "october", "november", "december",
-        "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
     }
     _pk = extracted.get("product_keyword") or ""
     # Strip trailing noise words from product_keyword ("sunglasses orders" → "sunglasses")
@@ -1081,7 +1155,11 @@ def fetch_order_data(state: AgentState) -> AgentState:
     result_type = data.get("type")
 
     if result_type == "not_found":
-        return {**state, "order_data": None, "response": f"Sorry, I could not find order #{order_id}. Please check the order ID and try again."}
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Sorry, I could not find order #{order_id}. Please check the order ID and try again.",
+        }
 
     if result_type == "unauthorized":
         return {**state, "order_data": None, "response": f"Sorry, order #{order_id} does not belong to your account."}
@@ -1092,60 +1170,128 @@ def fetch_order_data(state: AgentState) -> AgentState:
     if result_type == "count":
         breakdown_lines = "\n".join([f"  • {b['status']}: {b['count']}" for b in data["breakdown"]])
         filters = data.get("filters", {})
-        filter_parts = [v for v in [filters.get("product_keyword"), filters.get("carrier_filter"), filters.get("status_filter"), filters.get("shipping_mode")] if v]
+        filter_parts = [
+            v
+            for v in [
+                filters.get("product_keyword"),
+                filters.get("carrier_filter"),
+                filters.get("status_filter"),
+                filters.get("shipping_mode"),
+            ]
+            if v
+        ]
         filter_desc = " " + " ".join(filter_parts) if filter_parts else ""
         suffix = "in total" if not filter_parts else ""
-        return {**state, "order_data": None, "response": f"You have {data['total']}{filter_desc} orders{' ' + suffix if suffix else ''}.\n\nBreakdown:\n{breakdown_lines}"}
+        return {
+            **state,
+            "order_data": None,
+            "response": f"You have {data['total']}{filter_desc} orders{' ' + suffix if suffix else ''}.\n\nBreakdown:\n{breakdown_lines}",
+        }
 
     if result_type in ("cheapest", "most_expensive"):
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "No orders found for that filter."}
         label = "cheapest" if result_type == "cheapest" else "most expensive"
-        lines = "\n".join([f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders])
-        return {**state, "order_data": None, "response": f"Here are your {label} orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
+        lines = "\n".join(
+            [f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your {label} orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
+        }
 
     if result_type == "last_week":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders from the last week."}
-        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
-        return {**state, "order_data": None, "response": f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
+        lines = "\n".join(
+            [
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
+        }
 
     if result_type == "last_month":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders from the last month."}
-        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
-        return {**state, "order_data": None, "response": f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
+        lines = "\n".join(
+            [
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
+        }
 
     if result_type == "late_risk":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "None of your orders have a late delivery risk."}
-        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Delivery: {o['estimated_delivery']}) — Items: {o['items']}" for o in orders])
-        return {**state, "order_data": None, "response": f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details."}
+        lines = "\n".join(
+            [
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Delivery: {o['estimated_delivery']}) — Items: {o['items']}"
+                for o in orders
+            ]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details.",
+        }
 
     if result_type == "upcoming":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "All your orders have been delivered."}
         grouped = group_orders_by_status(orders)
-        return {**state, "order_data": None, "response": f"Here are your upcoming orders:\n\n{grouped}\n\nReply with an Order ID for full details."}
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your upcoming orders:\n\n{grouped}\n\nReply with an Order ID for full details.",
+        }
 
     if result_type == "recent":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders in our system yet."}
-        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
-        return {**state, "order_data": None, "response": f"Here are your most recent orders:\n\n{lines}\n\nReply with an Order ID for full details."}
+        lines = "\n".join(
+            [
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your most recent orders:\n\n{lines}\n\nReply with an Order ID for full details.",
+        }
 
     if result_type == "oldest":
         orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders in our system yet."}
-        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
-        return {**state, "order_data": None, "response": f"Here are your oldest orders:\n\n{lines}\n\nReply with an Order ID for full details."}
+        lines = "\n".join(
+            [
+                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
+                for o in orders
+            ]
+        )
+        return {
+            **state,
+            "order_data": None,
+            "response": f"Here are your oldest orders:\n\n{lines}\n\nReply with an Order ID for full details.",
+        }
 
     # ── General filter result ─────────────────────────────────
     orders = data.get("orders", [])
@@ -1163,17 +1309,33 @@ def fetch_order_data(state: AgentState) -> AgentState:
         if sm:
             return {**state, "order_data": None, "response": f"I could not find any {sm} orders in your account."}
         elif pk:
-            return {**state, "order_data": None, "response": f"I could not find any orders containing '{pk}'. Would you like to see all your recent orders instead?"}
+            return {
+                **state,
+                "order_data": None,
+                "response": f"I could not find any orders containing '{pk}'. Would you like to see all your recent orders instead?",
+            }
         elif cf:
-            return {**state, "order_data": None, "response": f"I could not find any orders shipped via '{cf}' in your account."}
+            return {
+                **state,
+                "order_data": None,
+                "response": f"I could not find any orders shipped via '{cf}' in your account.",
+            }
         elif cy:
-            return {**state, "order_data": None, "response": f"I could not find any orders from '{cy}' in your account."}
+            return {
+                **state,
+                "order_data": None,
+                "response": f"I could not find any orders from '{cy}' in your account.",
+            }
         elif mn or mx:
             return {**state, "order_data": None, "response": "I could not find any orders matching that price range."}
         elif df:
             return {**state, "order_data": None, "response": f"You have no orders placed on {df}."}
         elif mf and yf:
-            return {**state, "order_data": None, "response": f"You have no orders placed in {calendar.month_name[mf]} {yf}."}
+            return {
+                **state,
+                "order_data": None,
+                "response": f"You have no orders placed in {calendar.month_name[mf]} {yf}.",
+            }
         elif mf:
             return {**state, "order_data": None, "response": f"You have no orders placed in {calendar.month_name[mf]}."}
         elif yf:
@@ -1191,7 +1353,11 @@ def fetch_order_data(state: AgentState) -> AgentState:
                     return {**state, "order_data": dict(row)}
 
     grouped = group_orders_by_status(orders)
-    return {**state, "order_data": None, "response": f"Here are your matching orders:\n\n{grouped}\n\nWhich order would you like to track? Reply with the Order ID (e.g. ORD2001)."}
+    return {
+        **state,
+        "order_data": None,
+        "response": f"Here are your matching orders:\n\n{grouped}\n\nWhich order would you like to track? Reply with the Order ID (e.g. ORD2001).",
+    }
 
 
 # ─────────────────────────────────────────────

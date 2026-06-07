@@ -55,7 +55,7 @@ def main():
     products = cur.fetchall()
 
     for i in range(0, len(products), BATCH_SIZE):
-        batch = products[i:i + BATCH_SIZE]
+        batch = products[i : i + BATCH_SIZE]
         texts = [
             f"{p['name']} {p['category'] or ''} {p['brand'] or ''} {(p['description'] or '')[:200]}" for p in batch
         ]
