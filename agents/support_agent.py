@@ -26,9 +26,7 @@ def _clean_response(text: str) -> str:
         r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE
     )
     # Remove duplicate trailing signatures the LLM sometimes appends after [Your Name] substitution
-    text = re.sub(
-        r"\n+Customer Support (?:Agent|Representative|Team|Staff)\s*$", "", text, flags=re.IGNORECASE
-    )
+    text = re.sub(r"\n+Customer Support (?:Agent|Representative|Team|Staff)\s*$", "", text, flags=re.IGNORECASE)
     return text.strip()
 
 
@@ -58,17 +56,45 @@ _VALID_ISSUE_TYPES = {
 
 # ── Sentiment triggers — escalate to P1 immediately ────────────────────────
 _ANGRY_SIGNALS = [
-    "unacceptable", "outrageous", "disgusting", "terrible", "worst", "horrible",
-    "fraud", "cheated", "scam", "lied", "lawsuit", "consumer court", "legal action",
-    "never again", "pathetic", "useless", "fed up", "furious", "appalling",
-    "extremely disappointed", "very angry", "absolutely ridiculous",
+    "unacceptable",
+    "outrageous",
+    "disgusting",
+    "terrible",
+    "worst",
+    "horrible",
+    "fraud",
+    "cheated",
+    "scam",
+    "lied",
+    "lawsuit",
+    "consumer court",
+    "legal action",
+    "never again",
+    "pathetic",
+    "useless",
+    "fed up",
+    "furious",
+    "appalling",
+    "extremely disappointed",
+    "very angry",
+    "absolutely ridiculous",
 ]
 
 # ── Ticket re-open triggers ─────────────────────────────────────────────────
 _REOPEN_SIGNALS = [
-    "still not resolved", "issue persists", "not fixed", "problem still exists",
-    "still broken", "still wrong", "still not received", "not satisfied",
-    "same problem again", "reopen", "re-open", "issue came back", "happening again",
+    "still not resolved",
+    "issue persists",
+    "not fixed",
+    "problem still exists",
+    "still broken",
+    "still wrong",
+    "still not received",
+    "not satisfied",
+    "same problem again",
+    "reopen",
+    "re-open",
+    "issue came back",
+    "happening again",
 ]
 
 _KEYWORD_OVERRIDES = {
@@ -323,8 +349,14 @@ def classify_issue(state: AgentState) -> AgentState:
     _msg = state["current_input"].lower().strip()
 
     _GOODBYE_PATTERNS = [
-        r"\bbye\b", r"\bgoodbye\b", r"\bsee you\b", r"\bsee ya\b",
-        r"\bcya\b", r"\bttyl\b", r"\btake care\b", r"\bgood night\b",
+        r"\bbye\b",
+        r"\bgoodbye\b",
+        r"\bsee you\b",
+        r"\bsee ya\b",
+        r"\bcya\b",
+        r"\bttyl\b",
+        r"\btake care\b",
+        r"\bgood night\b",
     ]
     if any(re.search(p, _msg) for p in _GOODBYE_PATTERNS):
         log.info("Goodbye detected")
@@ -337,8 +369,11 @@ def classify_issue(state: AgentState) -> AgentState:
         }
 
     _THANKS_PATTERNS = [
-        r"\bthank(?:s| you| u)\b", r"\bthx\b", r"\bty\b",
-        r"\bcheers\b", r"\bappreciate\b",
+        r"\bthank(?:s| you| u)\b",
+        r"\bthx\b",
+        r"\bty\b",
+        r"\bcheers\b",
+        r"\bappreciate\b",
     ]
     if any(re.search(p, _msg) for p in _THANKS_PATTERNS):
         log.info("Thanks detected")
@@ -351,9 +386,14 @@ def classify_issue(state: AgentState) -> AgentState:
         }
 
     _HOW_ARE_YOU_PATTERNS = [
-        r"\bhow are you\b", r"\bhow r u\b", r"\bhow(?:'s| is) it going\b",
-        r"\bhow(?:'re| are) you doing\b", r"\bhow have you been\b",
-        r"\bhow do you do\b", r"\bwhat'?s up\b", r"\bwassup\b",
+        r"\bhow are you\b",
+        r"\bhow r u\b",
+        r"\bhow(?:'s| is) it going\b",
+        r"\bhow(?:'re| are) you doing\b",
+        r"\bhow have you been\b",
+        r"\bhow do you do\b",
+        r"\bwhat'?s up\b",
+        r"\bwassup\b",
     ]
     if any(re.search(p, _msg) for p in _HOW_ARE_YOU_PATTERNS):
         log.info("How-are-you detected")
@@ -373,11 +413,20 @@ def classify_issue(state: AgentState) -> AgentState:
         }
 
     _GREETING_PATTERNS = [
-        r"\bhi\b", r"\bhello\b", r"\bhey\b", r"\bhiya\b", r"\bhowdy\b",
-        r"\bgreetings\b", r"\bgood\s+(?:morning|afternoon|evening)\b",
-        r"\bwho are you\b", r"\bwhat are you\b",
-        r"\bwhat can you do\b", r"\bwhat do you do\b",
-        r"\bintroduce yourself\b", r"\bwho r you\b", r"\bhelp\b",
+        r"\bhi\b",
+        r"\bhello\b",
+        r"\bhey\b",
+        r"\bhiya\b",
+        r"\bhowdy\b",
+        r"\bgreetings\b",
+        r"\bgood\s+(?:morning|afternoon|evening)\b",
+        r"\bwho are you\b",
+        r"\bwhat are you\b",
+        r"\bwhat can you do\b",
+        r"\bwhat do you do\b",
+        r"\bintroduce yourself\b",
+        r"\bwho r you\b",
+        r"\bhelp\b",
     ]
     if any(re.search(p, _msg) for p in _GREETING_PATTERNS):
         log.info("Greeting detected — returning intro response")
@@ -649,7 +698,7 @@ def get_support_policy(issue_type: str) -> str:
                     cur.execute("SELECT * FROM policies WHERE issue_type = 'general_complaint'")
                     row = cur.fetchone()
         return _json.dumps(dict(row) if row else {}, default=str)
-    except Exception as e:
+    except Exception:
         return _json.dumps({})
 
 
@@ -698,11 +747,13 @@ def create_support_ticket(
                     )
                     existing = cur.fetchone()
                     if existing:
-                        return _json.dumps({
-                            "ticket_id": existing["ticket_id"],
-                            "status": "already_open",
-                            "message": f"An open ticket {existing['ticket_id']} already exists for this order and issue.",
-                        })
+                        return _json.dumps(
+                            {
+                                "ticket_id": existing["ticket_id"],
+                                "status": "already_open",
+                                "message": f"An open ticket {existing['ticket_id']} already exists for this order and issue.",
+                            }
+                        )
 
                 cur.execute(
                     """INSERT INTO tickets
@@ -729,7 +780,9 @@ def lookup_policy(state: AgentState) -> AgentState:
     call_id = str(uuid.uuid4())[:8]
     ai_msg = AIMessage(
         content="",
-        tool_calls=[{"name": "get_support_policy", "args": {"issue_type": issue_type}, "id": call_id, "type": "tool_call"}],
+        tool_calls=[
+            {"name": "get_support_policy", "args": {"issue_type": issue_type}, "id": call_id, "type": "tool_call"}
+        ],
     )
     result = support_tool_node.invoke({"messages": [ai_msg]})
     policy = _json.loads(result["messages"][-1].content) or None
@@ -1266,8 +1319,8 @@ def build_support_agent():
 
     graph.add_node("classify_issue", classify_issue)
     graph.add_node("assess_severity", assess_severity)
-    graph.add_node("lookup_policy", lookup_policy)            # calls support_tool_node internally
-    graph.add_node("support_tools", support_tool_node)        # ToolNode — policy, history, ticket
+    graph.add_node("lookup_policy", lookup_policy)  # calls support_tool_node internally
+    graph.add_node("support_tools", support_tool_node)  # ToolNode — policy, history, ticket
     graph.add_node("escalation_handler", build_escalation_subgraph())
     graph.add_node("draft_resolution", draft_resolution)
     graph.add_node("generate_escalation_response", generate_escalation_response)

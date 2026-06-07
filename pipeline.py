@@ -82,31 +82,33 @@ def intent_router(state: AgentState) -> AgentState:
         r"recent\s+orders?|tickets?)\b"
     )
     _PRODUCT_FASTPATH = [
-        r"\bbest\s+\w",                          # "best headphones", "best laptop under 50k"
-        r"\bshow\s+best\b",                       # "show best headphones"
+        r"\bbest\s+\w",  # "best headphones", "best laptop under 50k"
+        r"\bshow\s+best\b",  # "show best headphones"
         r"\bshow\s+me\b(?!\s+(?:my\s+)?(?:ticket|refund|order|complaint))",
         r"\bshow\s+(?!(?:my\s+)?(?:ticket|refund|complaint))\w",
         r"\bfind\s+(?:me\s+)?(a\s+)?(?:good|best|cheap|top|nice|affordable|something)\b",
-        r"\bi\s+(?:need|want|am\s+looking\s+for)\s+(?:a\s+|some\s+)?(?!(?:refund|return|replacement|cancellation|cancel))\w",
+        r"\bi\s+(?:need|want|am\s+looking\s+for)\s+(?:a\s+|some\s+)?"
+        r"(?!(?:refund|return|replacement|cancellation|cancel))\w",
         r"\blooking\s+for\s+(?:a\s+|some\s+)?\w",
         r"\bsomething\s+(?:good|nice|cheap|affordable|best|top|for)\b",
-        r"\brecommend\b",                         # "recommend a good TV"
-        r"\bcompare\b",                           # "compare Sony vs Bose"
-        r"\btop[\s-]rated\b",                     # "top rated phones"
-        r"\bunder\s+(?:rs\.?|₹)?\d+",            # "headphones under 5000"
-        r"\bcheapest\b",                          # "cheapest earbuds"
+        r"\brecommend\b",  # "recommend a good TV"
+        r"\bcompare\b",  # "compare Sony vs Bose"
+        r"\btop[\s-]rated\b",  # "top rated phones"
+        r"\bunder\s+(?:rs\.?|₹)?\d+",  # "headphones under 5000"
+        r"\bcheapest\b",  # "cheapest earbuds"
         r"\bshow\s+(?:me\s+)?(?:all\s+)?\w+\s+products?\b",  # "show HP products"
-        r"\bshow\s+(?:me\s+)?(?:all\s+)?\w+\s+(?:laptops?|phones?|tvs?|headphones?|earbuds?|speakers?|keyboards?|mice|mouse|monitors?|tablets?|cameras?)\b",
-        r"\bwhat\s+brands?\b",                   # "what brands do you have"
+        r"\bshow\s+(?:me\s+)?(?:all\s+)?\w+\s+"
+        r"(?:laptops?|phones?|tvs?|headphones?|earbuds?|speakers?|keyboards?|mice|mouse|monitors?|tablets?|cameras?)\b",
+        r"\bwhat\s+brands?\b",  # "what brands do you have"
         r"\bwhat\s+(?:products?|do\s+you\s+(?:have|sell))\b",
-        r"^only\s+\w",                           # "only hawkins", "only samsung"
-        r"^just\s+\w",                           # "just boAt", "just hp"
-        r"^\w+\s+only$",                         # "samsung only", "hp only"
-        r"\babove\s+\d",                         # "above 4 stars", "above 1000"
-        r"\bbelow\s+\d",                         # "below 2000"
-        r"\bbetween\s+\d",                       # "between 500 and 2000"
+        r"^only\s+\w",  # "only hawkins", "only samsung"
+        r"^just\s+\w",  # "just boAt", "just hp"
+        r"^\w+\s+only$",  # "samsung only", "hp only"
+        r"\babove\s+\d",  # "above 4 stars", "above 1000"
+        r"\bbelow\s+\d",  # "below 2000"
+        r"\bbetween\s+\d",  # "between 500 and 2000"
         r"\d+\s*(?:star|rating)s?\s+(?:and\s+)?(?:above|below|over)",  # "4 stars and above"
-        r"(?:highest|most)\s+(?:discount|rated|reviewed)",             # sort refinements
+        r"(?:highest|most)\s+(?:discount|rated|reviewed)",  # sort refinements
         r"^(?:cheapest|budget|premium|latest|newest|highest[\s-]rated|top[\s-]rated)$",
     ]
     if not _ORDER_INTENT.search(_msg_lower) and any(re.search(p, _msg_lower) for p in _PRODUCT_FASTPATH):
