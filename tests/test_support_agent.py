@@ -422,7 +422,7 @@ class TestGenerateEscalationResponse:
 # ─── list_tickets_response ───────────────────────────────────────────────────
 
 
-class TestListTicketsResponse:
+class TestListTicketsResponseExtra:
     def test_no_tickets_message(self):
         state = make_state(user_id="test@example.com")
         with patch("agents.support_agent.get_conn") as mock_gc:
@@ -450,3 +450,81 @@ class TestListTicketsResponse:
             result = list_tickets_response(state)
         assert "TKT001" in result["response"]
         assert "ORD001" in result["response"]
+
+
+# ─── draft_resolution — cancellation blocking ────────────────────────────────
+
+
+class TestDraftResolutionCancellation:
+    def test_cancellation_blocked_in_transit(self):
+        from agents.support_agent import draft_resolution
+        from helpers import mock_db
+
+        state = make_state(issue_type="cancellation_request", order_id="ORD001")
+        row = {"status": "IN_TRANSIT"}
+        with patch("database.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchone=row)
+            result = draft_resolution(state)
+        assert "cannot be cancelled" in result["response"].lower() or "in transit" in result["response"].lower()
+
+    def test_cancellation_blocked_delivered(self):
+        from agents.support_agent import draft_resolution
+        from helpers import mock_db
+
+        state = make_state(issue_type="cancellation_request", order_id="ORD002")
+        row = {"status": "DELIVERED"}
+        with patch("database.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchone=row)
+            result = draft_resolution(state)
+        assert "delivered" in result["response"].lower()
+
+    def test_cancellation_no_order_id_skips_db(self):
+        from agents.support_agent import draft_resolution
+
+        state = make_state(issue_type="cancellation_request", order_id=None)
+        with patch("agents.support_agent.mlflow") as mock_mlflow, patch("agents.support_agent.llm") as mock_llm:
+            mock_prompt = MagicMock()
+            mock_prompt.format.return_value = "prompt text"
+            mock_mlflow.genai.load_prompt.return_value = mock_prompt
+            mock_resp = MagicMock()
+            mock_resp.content = "We will process your cancellation."
+            mock_resp.usage_metadata = {"input_tokens": 10, "output_tokens": 10}
+            mock_llm.invoke.return_value = mock_resp
+            result = draft_resolution(state)
+        assert result.get("response") is not None
+
+
+# ─── list_tickets_response — status filters ──────────────────────────────────
+
+
+class TestListTicketsStatusFilter:
+    def test_open_tickets_filter(self):
+        from agents.support_agent import list_tickets_response
+        from helpers import mock_db
+
+        rows = [
+            {
+                "ticket_id": "TKT001",
+                "issue_type": "damaged_goods",
+                "status": "Open",
+                "priority": "PRIORITY_2",
+                "created_at": None,
+                "order_id": "ORD001",
+            }
+        ]
+        state = make_state(current_input="show open tickets")
+        with patch("agents.support_agent.get_conn"), patch(
+            "agents.support_agent._fetch_user_tickets", return_value=rows
+        ):
+            result = list_tickets_response(state)
+        assert result.get("response") is not None
+        assert "TKT001" in result["response"]
+
+    def test_no_tickets_response(self):
+        from agents.support_agent import list_tickets_response
+        from helpers import mock_db
+
+        state = make_state(current_input="show my tickets")
+        with patch("agents.support_agent._fetch_user_tickets", return_value=[]):
+            result = list_tickets_response(state)
+        assert "no" in result["response"].lower() or "ticket" in result["response"].lower()

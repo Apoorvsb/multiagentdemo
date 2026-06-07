@@ -689,3 +689,259 @@ class TestNewArrivals:
             result = extract_preferences(state)
 
         assert result["search_preferences"]["sort_by"] == "new"
+
+
+# ─── extract_preferences — new features ─────────────────────────────────────
+
+
+class TestExtractPreferencesNewFeatures:
+    """Tests for between-price, discount, context-bias override, brand typo."""
+
+    def _extract(self, msg, llm_override=None):
+        from agents.product_agent import extract_preferences
+        import json
+
+        state = make_state(current_input=msg)
+        base = {
+            "search_query": None,
+            "brand": None,
+            "category": None,
+            "max_price": None,
+            "min_price": None,
+            "min_rating": None,
+            "max_rating": None,
+            "min_discount": None,
+            "sort_by": "relevance",
+            "limit": 5,
+        }
+        if llm_override:
+            base.update(llm_override)
+        mock_resp = MagicMock()
+        mock_resp.content = json.dumps(base)
+        mock_resp.usage_metadata = {"input_tokens": 10, "output_tokens": 10}
+        with patch("agents.product_agent.llm") as mock_llm, patch(
+            "agents.product_agent._get_catalog_brands", return_value={"xiaomi": "Redmi", "redmi": "Redmi"}
+        ):
+            mock_llm.invoke.return_value = mock_resp
+            result = extract_preferences(state)
+        return result["search_preferences"]
+
+    def test_between_price_range(self):
+        prefs = self._extract("laptops between 30000 and 60000")
+        assert prefs["min_price"] == 30000
+        assert prefs["max_price"] == 60000
+
+    def test_discount_filter(self):
+        prefs = self._extract("laptops with 50% off")
+        assert prefs["min_discount"] == 50
+
+    def test_discount_sort_highest_discount(self):
+        prefs = self._extract("most discounted laptops")
+        assert prefs["sort_by"] == "discount"
+
+    def test_discount_sort_best_deal(self):
+        prefs = self._extract("best deals on headphones")
+        assert prefs["sort_by"] == "discount"
+
+    def test_context_bias_override_smartphone(self):
+        prefs = self._extract("show best smart phones", llm_override={"search_query": "water purifier"})
+        assert prefs["search_query"] == "smartphone"
+
+    def test_context_bias_override_laptop(self):
+        prefs = self._extract("i need a laptop", llm_override={"search_query": "water purifier"})
+        assert prefs["search_query"] == "laptop"
+
+    def test_rating_contradiction_cleared(self):
+        prefs = self._extract(
+            "above 4.2 rating and below 1000",
+            llm_override={"min_rating": 4.2, "max_rating": 4.2},
+        )
+        assert prefs["max_rating"] is None
+
+    def test_price_contradiction_cleared(self):
+        prefs = self._extract("below 1000", llm_override={"min_price": 1000, "max_price": 1000})
+        assert prefs["min_price"] is None
+
+    def test_xiaomi_maps_to_redmi(self):
+        prefs = self._extract("show xiaomi phones", llm_override={"search_query": "phones"})
+        assert prefs["brand"] == "Redmi"
+
+
+# ─── broaden_search ──────────────────────────────────────────────────────────
+
+
+class TestBroadenSearch:
+    def _run(self, prefs, retry=0, dropped_brand=None):
+        from agents.product_agent import broaden_search
+
+        state = make_state(search_preferences=prefs, search_retry=retry)
+        if dropped_brand:
+            state["dropped_brand"] = dropped_brand
+        return broaden_search(state)
+
+    def test_retry0_drops_brand(self):
+        prefs = {"search_query": "laptop", "brand": "HP", "max_price": 50000}
+        result = self._run(prefs, retry=0)
+        assert result["search_preferences"]["brand"] is None
+        assert result["search_retry"] == 1
+
+    def test_retry0_brand_only_jumps_to_2(self):
+        prefs = {"search_query": None, "brand": "HP"}
+        result = self._run(prefs, retry=0)
+        assert result["search_retry"] == 2
+
+    def test_retry1_simplifies_query(self):
+        prefs = {"search_query": "gaming laptop", "brand": None, "max_price": 60000}
+        result = self._run(prefs, retry=1)
+        assert result["search_preferences"]["search_query"] == "laptop"
+        assert result["search_retry"] == 2
+
+    def test_retry1_expands_price(self):
+        prefs = {"search_query": "laptop", "brand": None, "max_price": 60000}
+        result = self._run(prefs, retry=1)
+        assert result["search_preferences"]["max_price"] == 90000.0
+
+    def test_retry1_clears_category(self):
+        prefs = {"search_query": "laptop", "brand": None, "category": "Computers&Accessories"}
+        result = self._run(prefs, retry=1)
+        assert result["search_preferences"]["category"] is None
+
+
+# ─── no_results_response ─────────────────────────────────────────────────────
+
+
+class TestNoResultsResponse:
+    def _run(self, prefs, original_brand=None):
+        from agents.product_agent import no_results_response
+
+        state = make_state(search_preferences=prefs, current_input="show me laptops")
+        if original_brand:
+            state["dropped_brand"] = original_brand
+        return no_results_response(state)
+
+    def test_with_search_query_returns_message(self):
+        result = self._run({"search_query": "laptop"})
+        assert "laptop" in result["response"].lower()
+
+    def test_with_brand_and_sq(self):
+        result = self._run({"search_query": "laptop"}, original_brand="HP")
+        assert "HP" in result["response"] or "laptop" in result["response"].lower()
+
+    def test_no_sq_no_brand_generic_message(self):
+        result = self._run({"search_query": None})
+        assert result["response"] is not None
+
+    def test_llm_response_with_code_block_json(self):
+        """Covers code-block JSON parsing in extract_preferences (lines 854-858)."""
+        import json
+        from agents.product_agent import extract_preferences
+
+        state = make_state(current_input="show me laptops")
+        prefs_dict = {
+            "search_query": "laptops",
+            "brand": None,
+            "category": "Computers&Accessories",
+            "max_price": None,
+            "min_price": None,
+            "min_rating": None,
+            "max_rating": None,
+            "min_discount": None,
+            "sort_by": "relevance",
+            "limit": 5,
+        }
+        mock_resp = MagicMock()
+        mock_resp.content = f"```json\n{json.dumps(prefs_dict)}\n```"
+        mock_resp.usage_metadata = {"input_tokens": 20, "output_tokens": 10}
+        with patch("agents.product_agent.llm") as mock_llm, patch(
+            "agents.product_agent._get_catalog_brands", return_value={}
+        ):
+            mock_llm.invoke.return_value = mock_resp
+            result = extract_preferences(state)
+        assert result["search_preferences"]["search_query"] == "laptops"
+
+
+def test_max_rating_pattern_b():
+    """Covers max_rating Pattern B regex: 'under 4.5 stars'."""
+    from agents.product_agent import extract_preferences
+    import json
+
+    state = make_state(current_input="headphones rated under 4.5 stars")
+    base = {
+        "search_query": "headphones",
+        "brand": None,
+        "category": None,
+        "max_price": None,
+        "min_price": None,
+        "min_rating": None,
+        "max_rating": None,
+        "min_discount": None,
+        "sort_by": "relevance",
+        "limit": 5,
+    }
+    mock_resp = MagicMock()
+    mock_resp.content = json.dumps(base)
+    mock_resp.usage_metadata = {"input_tokens": 10, "output_tokens": 10}
+    with patch("agents.product_agent.llm") as mock_llm, patch(
+        "agents.product_agent._get_catalog_brands", return_value={}
+    ):
+        mock_llm.invoke.return_value = mock_resp
+        result = extract_preferences(state)
+    assert result["search_preferences"]["max_rating"] == 4.5
+
+
+def test_price_asc_sort():
+    """Covers price_asc sort regex: 'cheapest laptops'."""
+    from agents.product_agent import extract_preferences
+    import json
+
+    state = make_state(current_input="cheapest laptops")
+    base = {
+        "search_query": "laptops",
+        "brand": None,
+        "category": None,
+        "max_price": None,
+        "min_price": None,
+        "min_rating": None,
+        "max_rating": None,
+        "min_discount": None,
+        "sort_by": "relevance",
+        "limit": 5,
+    }
+    mock_resp = MagicMock()
+    mock_resp.content = json.dumps(base)
+    mock_resp.usage_metadata = {"input_tokens": 10, "output_tokens": 10}
+    with patch("agents.product_agent.llm") as mock_llm, patch(
+        "agents.product_agent._get_catalog_brands", return_value={}
+    ):
+        mock_llm.invoke.return_value = mock_resp
+        result = extract_preferences(state)
+    assert result["search_preferences"]["sort_by"] == "price_asc"
+
+
+def test_price_desc_sort():
+    """Covers price_desc sort regex: 'most expensive phones'."""
+    from agents.product_agent import extract_preferences
+    import json
+
+    state = make_state(current_input="most expensive phones")
+    base = {
+        "search_query": "phones",
+        "brand": None,
+        "category": None,
+        "max_price": None,
+        "min_price": None,
+        "min_rating": None,
+        "max_rating": None,
+        "min_discount": None,
+        "sort_by": "relevance",
+        "limit": 5,
+    }
+    mock_resp = MagicMock()
+    mock_resp.content = json.dumps(base)
+    mock_resp.usage_metadata = {"input_tokens": 10, "output_tokens": 10}
+    with patch("agents.product_agent.llm") as mock_llm, patch(
+        "agents.product_agent._get_catalog_brands", return_value={}
+    ):
+        mock_llm.invoke.return_value = mock_resp
+        result = extract_preferences(state)
+    assert result["search_preferences"]["sort_by"] == "price_desc"

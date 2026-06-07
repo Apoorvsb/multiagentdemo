@@ -1039,7 +1039,7 @@ Return ONLY valid JSON."""
     if prefs.get("sort_by", "relevance") == "relevance":
         if re.search(
             r"\b(?:max(?:imum)?\s+discount|most\s+discounted|highest\s+discount|"
-            r"best\s+(?:deal|offer|price\s+drop)|biggest\s+discount|on\s+sale)\b",
+            r"best\s+(?:deals?|offer|price\s+drop)|biggest\s+discount|on\s+sale)\b",
             msg_lower,
         ):
             prefs["sort_by"] = "discount"

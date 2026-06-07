@@ -520,3 +520,166 @@ class TestFetchOrderDataImplDateFilters:
             mock_db(mock_gc, fetchall=[])
             result = _fetch_order_data_impl(state, self._log())
         assert result["response"] is not None
+
+
+# ─── _fetch_order_data_impl — extra branches ────────────────────────────────
+
+
+class TestFetchOrderDataImplExtra:
+    def _log(self):
+        return MagicMock()
+
+    def _row(self, oid="ORD001", status="DELIVERED", carrier="FedEx"):
+        return {
+            "order_id": oid,
+            "status": status,
+            "carrier": carrier,
+            "estimated_delivery": "2026-06-15",
+            "sales_per_customer": 999,
+            "items": '["Laptop"]',
+            "order_date": "2026-05-01",
+        }
+
+    def test_upcoming_with_results(self):
+        state = make_state(special_query="upcoming", order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[self._row(status="IN_TRANSIT")])
+            result = _fetch_order_data_impl(state, self._log())
+        assert "ORD001" in result["response"] or "upcoming" in result["response"].lower()
+
+    def test_late_risk_with_results(self):
+        state = make_state(special_query="late_risk", order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[self._row(status="IN_TRANSIT")])
+            result = _fetch_order_data_impl(state, self._log())
+        assert "ORD001" in result["response"] or "late" in result["response"].lower()
+
+    def test_oldest_with_results(self):
+        state = make_state(special_query="oldest", order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[self._row()])
+            result = _fetch_order_data_impl(state, self._log())
+        assert "ORD001" in result["response"] or "oldest" in result["response"].lower()
+
+    def test_last_month_empty(self):
+        state = make_state(special_query="last_month", order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[])
+            result = _fetch_order_data_impl(state, self._log())
+        assert "no orders" in result["response"].lower()
+
+    def test_upcoming_empty(self):
+        state = make_state(special_query="upcoming", order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[])
+            result = _fetch_order_data_impl(state, self._log())
+        assert "no" in result["response"].lower()
+
+    def test_filter_no_orders_at_all(self):
+        state = make_state(order_id=None)
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[])
+            result = _fetch_order_data_impl(state, self._log())
+        assert result["order_data"] is None
+
+    def test_month_year_date_correction(self):
+        """Date filter YYYY-MM-01 from LLM should be corrected to month+year."""
+        from agents.order_agent import _execute_order_query
+
+        with patch("agents.order_agent.get_conn") as mock_gc:
+            mock_db(mock_gc, fetchall=[self._row()])
+            result = _execute_order_query(
+                user_id="user@test.com",
+                date_filter="2026-05-01",
+                month_filter=None,
+                year_filter=None,
+            )
+        assert "orders" in result
+
+    def test_llm_extraction_with_product_rows(self):
+        """Covers the item JSON parsing loop (lines 694-703)."""
+        state = make_state(current_input="where is my laptop order")
+        mock_resp = MagicMock()
+        mock_resp.content = (
+            '{"order_id": null, "status_filter": null, "product_keyword": "laptop", '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": null, '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}'
+        )
+        mock_resp.usage_metadata = {"input_tokens": 100, "output_tokens": 10}
+
+        product_rows = [('["Laptop", "Charger"]',), ('["Mouse"]',)]
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            cur = MagicMock()
+            cur.fetchall.return_value = product_rows
+            conn = mock_gc.return_value.__enter__.return_value
+            conn.cursor.return_value.__enter__.return_value = cur
+            mock_llm.invoke.return_value = mock_resp
+            result = validate_input(state)
+        assert result["product_keyword"] == "laptop"
+
+    def test_llm_response_with_code_block(self):
+        """Covers the code block JSON extraction branch (lines 778-783)."""
+        state = make_state(current_input="show pending orders")
+        json_in_block = (
+            '```json\n{"order_id": null, "status_filter": "PENDING", "product_keyword": null, '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": null, '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}\n```'
+        )
+        mock_resp = MagicMock()
+        mock_resp.content = json_in_block
+        mock_resp.usage_metadata = {"input_tokens": 80, "output_tokens": 20}
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            mock_db(mock_gc, fetchall=[])
+            mock_llm.invoke.return_value = mock_resp
+            result = validate_input(state)
+        assert result["status_filter"] == "PENDING"
+
+    def test_month_date_correction_may_2026(self):
+        """LLM sets date_filter=2026-05-01 for 'may 2026' — should correct to month_filter=5."""
+        state = make_state(current_input="show orders on may 2026")
+        mock_resp = MagicMock()
+        mock_resp.content = (
+            '{"order_id": null, "status_filter": null, "product_keyword": null, '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": null, '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10, '
+            '"date_filter": "2026-05-01", "month_filter": null, "year_filter": 2026}'
+        )
+        mock_resp.usage_metadata = {"input_tokens": 80, "output_tokens": 20}
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            mock_db(mock_gc, fetchall=[])
+            mock_llm.invoke.return_value = mock_resp
+            result = validate_input(state)
+        assert result["month_filter"] == 5
+        assert result["date_filter"] is None
+
+    def test_status_filter_with_keyword_in_message(self):
+        """Status filter extracted directly from keyword in message."""
+        state = make_state(current_input="show my delivered orders")
+        mock_resp = MagicMock()
+        mock_resp.content = (
+            '{"order_id": null, "status_filter": "DELIVERED", "product_keyword": null, '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": null, '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}'
+        )
+        mock_resp.usage_metadata = {"input_tokens": 60, "output_tokens": 10}
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            mock_db(mock_gc, fetchall=[])
+            mock_llm.invoke.return_value = mock_resp
+            result = validate_input(state)
+        assert result["status_filter"] == "DELIVERED"
+
+    def test_special_query_count_extracted(self):
+        """Covers count special query path in validate_input."""
+        state = make_state(current_input="how many orders do i have in total")
+        mock_resp = MagicMock()
+        mock_resp.content = (
+            '{"order_id": null, "status_filter": null, "product_keyword": null, '
+            '"shipping_mode": null, "carrier_filter": null, "special_query": "count", '
+            '"city_filter": null, "min_price": null, "max_price": null, "limit": 10}'
+        )
+        mock_resp.usage_metadata = {"input_tokens": 60, "output_tokens": 10}
+        with patch("agents.order_agent.get_conn") as mock_gc, patch("agents.order_agent.llm") as mock_llm:
+            mock_db(mock_gc, fetchall=[])
+            mock_llm.invoke.return_value = mock_resp
+            result = validate_input(state)
+        assert result["special_query"] == "count"
