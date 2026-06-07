@@ -355,5 +355,456 @@
     "input": "my Hard Drive arrived damaged and I also want a refund",
     "expected": "Issue classified as damaged_goods (HIGH severity wins over refund request), ticket created, replacement or refund options mentioned.",
     "context": "Issue type: damaged_goods (HIGH) takes priority over refund_request (MEDIUM) when both are mentioned. Order ORD1401 Hard Drive. Ticket created with HIGH priority. Policy: damaged goods eligible for replacement or full refund within 7 days."
+  },
+
+  {
+    "id": "eval_052",
+    "agent": "order_agent",
+    "input": "Do I have any orders with Ekart?",
+    "expected": "One order with Ekart: ORD1401 containing a Hard Drive, delivered on 2024-01-06.",
+    "context": "Ekart orders: ORD1401 DELIVERED Ekart Hard Drive 2024-01-06."
+  },
+  {
+    "id": "eval_053",
+    "agent": "order_agent",
+    "input": "Which of my orders has the latest expected delivery?",
+    "expected": "ORD1437 containing RAM and SSD has the latest estimated delivery date of 2024-06-08, currently PENDING via Delhivery.",
+    "context": "All orders with ETAs: ORD1437 PENDING 2024-06-08, ORD1491 IN_TRANSIT 2024-05-28, ORD1473 OUT_FOR_DELIVERY 2024-04-23, ORD1419 IN_TRANSIT 2024-04-11."
+  },
+  {
+    "id": "eval_054",
+    "agent": "order_agent",
+    "input": "Has my Books order arrived?",
+    "expected": "ORD1473 containing Books is out for delivery with Delhivery, expected by 2024-04-23. It has not yet been delivered.",
+    "context": "Order ORD1473. Status: OUT_FOR_DELIVERY. Carrier: Delhivery. Items: Books. ETA: 2024-04-23."
+  },
+  {
+    "id": "eval_055",
+    "agent": "order_agent",
+    "input": "Show me orders that haven't been delivered yet",
+    "expected": "Three orders not yet delivered: ORD1437 PENDING (RAM, SSD), ORD1491 IN_TRANSIT (Motherboard), ORD1473 OUT_FOR_DELIVERY (Books), and ORD1419 IN_TRANSIT (Laptop Bag).",
+    "context": "Undelivered orders: ORD1437 PENDING Delhivery RAM SSD 2024-06-08, ORD1491 IN_TRANSIT Delhivery Motherboard 2024-05-28, ORD1473 OUT_FOR_DELIVERY Delhivery Books 2024-04-23, ORD1419 IN_TRANSIT FedEx Laptop Bag 2024-04-11."
+  },
+  {
+    "id": "eval_056",
+    "agent": "order_agent",
+    "input": "Where is my Laptop Bag?",
+    "expected": "ORD1419 containing a Laptop Bag is currently in transit with FedEx, expected by 2024-04-11.",
+    "context": "Order ORD1419. Status: IN_TRANSIT. Carrier: FedEx. Items: Laptop Bag. ETA: 2024-04-11."
+  },
+  {
+    "id": "eval_057",
+    "agent": "order_agent",
+    "input": "Which orders are being shipped by Delhivery?",
+    "expected": "Four orders shipped via Delhivery: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1455 DELIVERED.",
+    "context": "Delhivery orders: ORD1437 PENDING RAM SSD 2024-06-08, ORD1491 IN_TRANSIT Motherboard 2024-05-28, ORD1473 OUT_FOR_DELIVERY Books 2024-04-23, ORD1455 DELIVERED Smartphone 2024-03-05."
+  },
+  {
+    "id": "eval_058",
+    "agent": "order_agent",
+    "input": "When was my Smartphone delivered?",
+    "expected": "ORD1455 containing a Smartphone was delivered via Delhivery on 2024-03-05.",
+    "context": "Order ORD1455. Status: DELIVERED. Carrier: Delhivery. Items: Smartphone. ETA: 2024-03-05."
+  },
+  {
+    "id": "eval_059",
+    "agent": "order_agent",
+    "input": "What is in my pending orders?",
+    "expected": "One pending order: ORD1437 with RAM and SSD, expected via Delhivery by 2024-06-08.",
+    "context": "Pending orders: ORD1437 PENDING Delhivery Items: RAM, SSD ETA: 2024-06-08."
+  },
+  {
+    "id": "eval_060",
+    "agent": "order_agent",
+    "input": "Is my SSD order on the way?",
+    "expected": "ORD1437 containing SSD (and RAM) is currently PENDING with Delhivery. Estimated delivery is 2024-06-08.",
+    "context": "Order ORD1437. Status: PENDING. Carrier: Delhivery. Items: RAM, SSD. ETA: 2024-06-08."
+  },
+  {
+    "id": "eval_061",
+    "agent": "order_agent",
+    "input": "How many orders do I have with Delhivery?",
+    "expected": "Four orders are with Delhivery: ORD1437 (PENDING), ORD1491 (IN_TRANSIT), ORD1473 (OUT_FOR_DELIVERY), and ORD1455 (DELIVERED).",
+    "context": "Delhivery orders: ORD1437, ORD1491, ORD1473, ORD1455."
+  },
+  {
+    "id": "eval_062",
+    "agent": "order_agent",
+    "input": "Show my orders arriving this month",
+    "expected": "Orders with upcoming delivery: ORD1491 (Motherboard, 2024-05-28 via Delhivery) and ORD1437 (RAM+SSD, 2024-06-08 via Delhivery).",
+    "context": "Current month context. Orders with pending/in-transit status: ORD1491 ETA 2024-05-28, ORD1437 ETA 2024-06-08."
+  },
+  {
+    "id": "eval_063",
+    "agent": "order_agent",
+    "input": "show my recent orders",
+    "expected": "Recent orders listed with status, carrier, items, and ETAs. Should include all or most recent orders.",
+    "context": "All user orders listed by most recent first: ORD1437 PENDING, ORD1491 IN_TRANSIT, ORD1473 OUT_FOR_DELIVERY, ORD1419 IN_TRANSIT, ORD1455 DELIVERED, ORD1401 DELIVERED."
+  },
+  {
+    "id": "eval_064",
+    "agent": "order_agent",
+    "input": "my order is missing",
+    "expected": "Agent asks which order the user is referring to and presents a list of recent orders to select from.",
+    "context": "Issue type: item_not_received. User has multiple orders. Agent should route to support flow and ask which order is missing."
+  },
+
+  {
+    "id": "eval_065",
+    "agent": "product_agent",
+    "input": "Show me Logitech mouse under 2000",
+    "expected": "Logitech mouse recommendations under ₹2000 with price, rating, and key features like DPI, connectivity, and ergonomics.",
+    "context": "Brand: Logitech. Category: Computers&Accessories. Max price: ₹2000. Logitech has 20 products in this category, average price ₹2489. Several mouse options exist under ₹2000."
+  },
+  {
+    "id": "eval_066",
+    "agent": "product_agent",
+    "input": "Find me AmazonBasics cables under 300",
+    "expected": "AmazonBasics cable recommendations under ₹300 with cable type, length, and compatibility details.",
+    "context": "Brand: AmazonBasics. Category: Computers&Accessories. Max price: ₹300. AmazonBasics has 27 products in this category ranging from ₹179–₹999, including USB and Type-C cables."
+  },
+  {
+    "id": "eval_067",
+    "agent": "product_agent",
+    "input": "Noise smartwatch under 2000",
+    "expected": "Noise brand smartwatch recommendations under ₹2000 with display, battery life, health features, and price listed.",
+    "context": "Brand: Noise. Category: Electronics. Max price: ₹2000. Noise has 22 products ranging ₹499–₹4499, mostly smartwatches and earphones. Multiple smartwatch options available under ₹2000."
+  },
+  {
+    "id": "eval_068",
+    "agent": "product_agent",
+    "input": "Bajaj mixer grinder under 3000",
+    "expected": "Bajaj mixer grinder recommendations under ₹3000 with motor wattage, jar count, and warranty details.",
+    "context": "Brand: Bajaj. Category: Home&Kitchen. Max price: ₹3000. Bajaj has 30 Home&Kitchen products from ₹499–₹9590. Mixer grinders available in this range."
+  },
+  {
+    "id": "eval_069",
+    "agent": "product_agent",
+    "input": "Compare Prestige vs Hawkins pressure cooker",
+    "expected": "Side-by-side comparison of Prestige and Hawkins pressure cookers covering price, rating, material, capacity, and a recommendation.",
+    "context": "Comparison query. Prestige: avg ₹1800, rating 4.0, 20 Home&Kitchen products. Hawkins: avg ₹2095+, rating 4.5. Both make pressure cookers. Hawkins generally rated higher."
+  },
+  {
+    "id": "eval_070",
+    "agent": "product_agent",
+    "input": "boAt headphones above 4.2 rating and below 1000",
+    "expected": "boAt headphone recommendations with rating above 4.2 and price below ₹1000, each showing price, rating, and features.",
+    "context": "Brand: boAt. Search: headphones. Min rating: 4.2. Max price: ₹1000. boAt has 67 products; some headphone/earphone models fall in this range. Rating and price filters should both be applied correctly without contradiction."
+  },
+  {
+    "id": "eval_071",
+    "agent": "product_agent",
+    "input": "Laptops between 40000 and 60000",
+    "expected": "Laptop recommendations in the ₹40,000–₹60,000 price range with processor, RAM, storage, and use-case suitability.",
+    "context": "Search: laptops. Min price: ₹40000. Max price: ₹60000. Computers&Accessories category. Several laptops fall in this price band."
+  },
+  {
+    "id": "eval_072",
+    "agent": "product_agent",
+    "input": "Most discounted laptops",
+    "expected": "Laptop recommendations sorted by highest discount percentage, showing original price, discounted price, and discount percentage for each.",
+    "context": "Search: laptops. Sort by: discount (highest first). discount_pct stored as text like '60%'. Several laptops have significant discounts."
+  },
+  {
+    "id": "eval_073",
+    "agent": "product_agent",
+    "input": "Electronics with 60% or more off",
+    "expected": "Electronics products with 60%+ discount listed with original price, sale price, discount percentage, and rating.",
+    "context": "Category: Electronics. Min discount: 60%. DB has many products with discount_pct='60%' or higher in Electronics category."
+  },
+  {
+    "id": "eval_074",
+    "agent": "product_agent",
+    "input": "Best deals on headphones",
+    "expected": "Headphone recommendations sorted by highest discount, showing deal price, original price, and savings.",
+    "context": "Search: headphones. Sort by: discount. Looking for products with highest discount_pct in the headphone category."
+  },
+  {
+    "id": "eval_075",
+    "agent": "product_agent",
+    "input": "SanDisk pen drive under 500",
+    "expected": "SanDisk pen drive recommendations under ₹500 with storage capacity, speed (read/write), and price listed.",
+    "context": "Brand: SanDisk. Search: pen drive. Max price: ₹500. SanDisk has 8 products in Computers&Accessories, min price ₹289. Pen drives available in this range."
+  },
+  {
+    "id": "eval_076",
+    "agent": "product_agent",
+    "input": "TP-Link WiFi router under 1500",
+    "expected": "TP-Link router/networking product recommendations under ₹1500 with speed spec, range, and connectivity features.",
+    "context": "Brand: TP-Link. Max price: ₹1500. TP-Link has 17 Computers&Accessories products from ₹499–₹2499, avg rating 4.3. Routers available in this price range."
+  },
+  {
+    "id": "eval_077",
+    "agent": "product_agent",
+    "input": "Show me Casio calculator",
+    "expected": "Casio calculator recommendations from OfficeProducts category, showing model, price, rating, and whether it is scientific or basic.",
+    "context": "Brand: Casio. Category: OfficeProducts. Casio scientific calculator FX-991ES Plus at ₹1295 (4.5★) and basic MJ-120D at ₹535 (4.5★) are available."
+  },
+  {
+    "id": "eval_078",
+    "agent": "product_agent",
+    "input": "Classmate notebooks below 200",
+    "expected": "Classmate notebook recommendations under ₹200 showing page count, ruling type, and size.",
+    "context": "Brand: Classmate. Category: OfficeProducts. Max price: ₹200. Multiple Classmate notebooks available below ₹200 including spiral-bound and long books."
+  },
+  {
+    "id": "eval_079",
+    "agent": "product_agent",
+    "input": "Havells iron under 1500",
+    "expected": "Havells iron recommendations under ₹1500 with wattage, soleplate type, and key features like steam or dry.",
+    "context": "Brand: Havells. Category: Home&Kitchen. Max price: ₹1500. Havells has 19 Home&Kitchen products from ₹719–₹12499. Irons available in this price range."
+  },
+  {
+    "id": "eval_080",
+    "agent": "product_agent",
+    "input": "Ambrane power bank under 1000",
+    "expected": "Ambrane power bank recommendations under ₹1000 showing capacity (mAh), number of ports, and charging speed.",
+    "context": "Brand: Ambrane. Category: Computers&Accessories and Electronics. Max price: ₹1000. Ambrane has 17 products from ₹149–₹2499. Power banks available in this range."
+  },
+  {
+    "id": "eval_081",
+    "agent": "product_agent",
+    "input": "Find me a good gaming laptop",
+    "expected": "Gaming laptop recommendations highlighting processor (Ryzen/Intel), GPU, RAM, display refresh rate, and price.",
+    "context": "Use-case: gaming laptop. Search: gaming laptop. Category: Computers&Accessories. Several laptops marketed for gaming with dedicated graphics and high refresh displays are available."
+  },
+  {
+    "id": "eval_082",
+    "agent": "product_agent",
+    "input": "Wireless earphones for running above 4.3 stars",
+    "expected": "Wireless earphone recommendations with IPX water resistance, secure fit, and rating above 4.3 highlighted.",
+    "context": "Search: wireless earphones. Min rating: 4.3. Use-case: running. Earphones with sweat/water resistance and stable fit relevant. Several wireless earphones with 4.3+ rating available."
+  },
+  {
+    "id": "eval_083",
+    "agent": "product_agent",
+    "input": "Compare Logitech vs Zebronics keyboard",
+    "expected": "Side-by-side comparison of Logitech and Zebronics keyboards covering price, rating, key features (wireless/wired, layout) and a recommendation.",
+    "context": "Comparison query. Logitech: 20 Computers&Accessories products, avg ₹2489, avg rating 4.4. Zebronics: 21 products, avg ₹703, avg rating 3.8. Logitech is premium, Zebronics is budget."
+  },
+  {
+    "id": "eval_084",
+    "agent": "product_agent",
+    "input": "Redmi phones between 10000 and 20000",
+    "expected": "Redmi smartphone recommendations in the ₹10,000–₹20,000 range with display, camera specs, battery, and RAM.",
+    "context": "Brand: Redmi. Category: Electronics. Min price: ₹10000. Max price: ₹20000. Redmi has 25 Electronics products from ₹6499–₹32999. Several phones in this range."
+  },
+  {
+    "id": "eval_085",
+    "agent": "product_agent",
+    "input": "OnePlus phone above 4.3 rating",
+    "expected": "OnePlus smartphone recommendations with rating above 4.3, showing flagship features, price, and standout specs.",
+    "context": "Brand: OnePlus. Category: Electronics. Min rating: 4.3. OnePlus has 20 Electronics products from ₹4999–₹74999, average rating 4.3. High-rated OnePlus models should appear."
+  },
+  {
+    "id": "eval_086",
+    "agent": "product_agent",
+    "input": "Find me a good microphone for recording",
+    "expected": "Microphone recommendations for recording with polar pattern, connectivity, and frequency response mentioned.",
+    "context": "Search: microphone. Category: MusicalInstruments. Available: MAONO AU-400 Lavalier at ₹478 (3.8★) and Boya ByM1 at ₹798 (4.0★). Both are omnidirectional condenser mics."
+  },
+  {
+    "id": "eval_087",
+    "agent": "product_agent",
+    "input": "Show me Portronics USB hub",
+    "expected": "Portronics USB hub recommendations with number of ports, USB standard (2.0/3.0), and price.",
+    "context": "Brand: Portronics. Search: USB hub. Category: Computers&Accessories. Portronics has 18 products in this category, avg ₹515. USB hubs and accessories available."
+  },
+  {
+    "id": "eval_088",
+    "agent": "product_agent",
+    "input": "AmazonBasics products between 200 and 600 above 4.2 rating",
+    "expected": "AmazonBasics products in ₹200–₹600 range with rating above 4.2, each showing price, rating, and product type.",
+    "context": "Brand: AmazonBasics. Min price: ₹200. Max price: ₹600. Min rating: 4.2. AmazonBasics has many Computers&Accessories products in this price range with 4.2+ ratings."
+  },
+  {
+    "id": "eval_089",
+    "agent": "product_agent",
+    "input": "what brands sell laptops",
+    "expected": "List of laptop brands available in the catalog with product counts per brand.",
+    "context": "Brands query for laptops. Several brands offer laptops: HP (28 products), Lenovo, Dell, ASUS, Acer, etc. in Computers&Accessories category."
+  },
+  {
+    "id": "eval_090",
+    "agent": "product_agent",
+    "input": "Agaro air fryer",
+    "expected": "Agaro air fryer recommendations with capacity (litres), wattage, temperature range, and price.",
+    "context": "Brand: Agaro. Search: air fryer. Category: Home&Kitchen. Agaro has 14 Home&Kitchen products from ₹587–₹12609, average rating 4.2. Air fryers available."
+  },
+  {
+    "id": "eval_091",
+    "agent": "product_agent",
+    "input": "find me good cooker",
+    "expected": "Pressure cooker or multi-cooker recommendations with capacity, material (aluminium/stainless steel/anodised), safety features and price. Should NOT include egg boilers.",
+    "context": "Search: cooker. Category: Home&Kitchen. Pressure cookers from Pigeon, Hawkins, Prestige available. Egg boilers should be excluded as they are a different category."
+  },
+  {
+    "id": "eval_092",
+    "agent": "product_agent",
+    "input": "show egg boiler",
+    "expected": "Egg boiler/egg cooker product recommendations with egg capacity, wattage, and price.",
+    "context": "Search: egg boiler. Category: Home&Kitchen. Products like Themisto 350W Egg Boiler and similar egg-specific appliances should appear."
+  },
+  {
+    "id": "eval_093",
+    "agent": "product_agent",
+    "input": "Show me Wayona charging cables",
+    "expected": "Wayona charging cable recommendations with cable type (Type-C/Lightning/Micro-USB), length, and durability features.",
+    "context": "Brand: Wayona. Category: Computers&Accessories. Wayona has 21 products from ₹299–₹719, avg rating 4.2. All are charging/data cables."
+  },
+  {
+    "id": "eval_094",
+    "agent": "product_agent",
+    "input": "best rated water purifier",
+    "expected": "Top-rated water purifier recommendations sorted by rating, with purification technology (RO/UV/UF), capacity, and price.",
+    "context": "Search: water purifier. Sort by: rating. Category: Home&Kitchen. RO water purifiers from Kent, Aquaguard, etc. available with 4+ ratings."
+  },
+  {
+    "id": "eval_095",
+    "agent": "product_agent",
+    "input": "cheapest Zebronics keyboard",
+    "expected": "Most affordable Zebronics keyboard(s) sorted by price ascending, showing type (wired/wireless/mechanical) and price.",
+    "context": "Brand: Zebronics. Search: keyboard. Sort by: price_asc. Zebronics has 21 Computers&Accessories products from ₹128–₹5999."
+  },
+  {
+    "id": "eval_096",
+    "agent": "product_agent",
+    "input": "Mi phone under 15000",
+    "expected": "Mi brand smartphone recommendations under ₹15000 with display, processor, camera, and battery specs.",
+    "context": "Brand: Mi. Category: Electronics. Max price: ₹15000. Mi has 18 Electronics products from ₹499–₹46999. Smartphones available under ₹15000."
+  },
+
+  {
+    "id": "eval_097",
+    "agent": "support_agent",
+    "input": "show open tickets",
+    "expected": "List of all open support tickets with ticket ID, issue type, order reference, and creation date.",
+    "context": "User has raised tickets. Filter by status=Open. Expected response lists open tickets only. If no open tickets, agent should say so clearly."
+  },
+  {
+    "id": "eval_098",
+    "agent": "support_agent",
+    "input": "show closed tickets",
+    "expected": "List of all closed/resolved support tickets with ticket ID, issue type, and resolution date.",
+    "context": "User wants to see closed tickets. Filter by status=Closed or Resolved. If none exist, agent says so."
+  },
+  {
+    "id": "eval_099",
+    "agent": "support_agent",
+    "input": "show pending tickets",
+    "expected": "List of support tickets that are still pending/open with ticket ID, issue type, priority, and SLA deadline.",
+    "context": "User wants pending (unresolved) tickets. Agent should filter and list tickets with Open or In-Progress status."
+  },
+  {
+    "id": "eval_100",
+    "agent": "support_agent",
+    "input": "how many tickets have I raised",
+    "expected": "Total ticket count with a breakdown by status (Open, Closed, Resolved) or by priority.",
+    "context": "User wants ticket statistics. Agent should count and summarise tickets by status or show total count."
+  },
+  {
+    "id": "eval_101",
+    "agent": "support_agent",
+    "input": "this is absolutely unacceptable fraud, I will take legal action",
+    "expected": "Immediate escalation to PRIORITY_1. Ticket created with highest urgency. Apology acknowledging the severity. Response time of 2 hours mentioned. No further order selection required.",
+    "context": "Angry language detected: 'unacceptable', 'fraud', 'legal action'. These are P1 trigger keywords. Regardless of issue type or order history, priority must be PRIORITY_1 with 2-hour SLA. Ticket created immediately."
+  },
+  {
+    "id": "eval_102",
+    "agent": "support_agent",
+    "input": "I want to cancel my pending order",
+    "expected": "Agent asks which pending order to cancel, or if only one pending order exists, confirms cancellation of that specific order.",
+    "context": "Issue type: cancellation_request. User has one PENDING order: ORD1437 (RAM, SSD). Pending orders can be cancelled. Agent should identify the pending order and process or confirm cancellation."
+  },
+  {
+    "id": "eval_103",
+    "agent": "support_agent",
+    "input": "cancel my order ORD1491",
+    "expected": "Agent informs the user that ORD1491 is currently IN_TRANSIT and cannot be cancelled. Suggests returning the item after delivery instead.",
+    "context": "Cancellation requested for ORD1491. Status: IN_TRANSIT. Policy: orders in transit or out for delivery cannot be cancelled. Agent should block the cancellation and explain the policy."
+  },
+  {
+    "id": "eval_104",
+    "agent": "support_agent",
+    "input": "I want to return my Smartphone",
+    "expected": "Return request acknowledged for ORD1455 Smartphone, return pickup process explained, 10-day return window mentioned.",
+    "context": "Issue type: return_request. Order ORD1455 contains Smartphone. Status: DELIVERED on 2024-03-05. Policy: returns accepted within 10 days of delivery. Agent should initiate or confirm return for ORD1455."
+  },
+  {
+    "id": "eval_105",
+    "agent": "support_agent",
+    "input": "my order ORD1473 hasn't arrived yet",
+    "expected": "Agent confirms ORD1473 is out for delivery via Delhivery with ETA 2024-04-23. If delay is within acceptable range, reassures the user. Raises delayed delivery issue if ETA has passed.",
+    "context": "Order ORD1473. Status: OUT_FOR_DELIVERY. Carrier: Delhivery. ETA: 2024-04-23. Items: Books. Issue type: delayed_delivery or item_not_received depending on current date."
+  },
+  {
+    "id": "eval_106",
+    "agent": "support_agent",
+    "input": "I received the wrong item in my order",
+    "expected": "Agent asks which order had the wrong item, presenting a list of the user's orders to select from.",
+    "context": "Issue type: wrong_item. User has multiple delivered orders. Agent should ask which order had the wrong item before proceeding — similar to refund flow."
+  },
+  {
+    "id": "eval_107",
+    "agent": "support_agent",
+    "input": "my product has a warranty issue",
+    "expected": "Agent asks which order/product has the warranty issue, or provides warranty claim process details and asks for order reference.",
+    "context": "Issue type: warranty_claim. User has multiple orders with items. Agent should identify which product has the warranty issue before creating a ticket."
+  },
+  {
+    "id": "eval_108",
+    "agent": "support_agent",
+    "input": "I haven't received my order and it's been 2 weeks",
+    "expected": "Agent escalates as item_not_received, HIGH severity, ticket created with PRIORITY_2 (or P1 if repeat customer). Asks which order if multiple exist.",
+    "context": "Issue type: item_not_received. Severity: HIGH. User says order not received after 2 weeks. Policy: if order not received after 7+ business days from ETA, eligible for replacement or full refund. SLA: 4 hours."
+  },
+  {
+    "id": "eval_109",
+    "agent": "support_agent",
+    "input": "I'm very disappointed with the quality of the product",
+    "expected": "Empathetic response acknowledging dissatisfaction. General complaint handled with return/refund options offered. Asks for more details about the specific product and issue.",
+    "context": "Issue type: general_complaint. Severity: LOW. Policy: general complaints acknowledged, return window 10 days. Agent should acknowledge and ask for order/product details."
+  },
+  {
+    "id": "eval_110",
+    "agent": "support_agent",
+    "input": "reopen my ticket",
+    "expected": "Agent asks which ticket the user wants to reopen, or lists closed tickets if available for selection.",
+    "context": "Issue type: reopen_ticket. User wants to reopen a previously closed ticket. Agent should identify which closed ticket to reopen."
+  },
+  {
+    "id": "eval_111",
+    "agent": "support_agent",
+    "input": "my Motherboard is broken, I want a refund",
+    "expected": "Issue classified as damaged_goods (HIGH severity), ticket created. Refund is an acceptable resolution alongside replacement. SLA of 2 or 4 hours mentioned.",
+    "context": "Issue type: damaged_goods (HIGH) wins over refund_request (MEDIUM). Order ORD1491 Motherboard. Ticket created with PRIORITY_2 (or P1 if repeat). Policy: damaged goods eligible for full refund or replacement within 7 days."
+  },
+  {
+    "id": "eval_112",
+    "agent": "support_agent",
+    "input": "this is the worst service ever, my product is damaged and I am furious",
+    "expected": "PRIORITY_1 assigned due to angry language ('worst', 'furious'). Ticket created immediately. Apology for extreme inconvenience. 2-hour response time mentioned.",
+    "context": "Angry language: 'worst', 'furious' — these are P1 trigger words. Issue type: damaged_goods (HIGH). Priority override: PRIORITY_1 due to sentiment regardless of previous ticket count. SLA: 2 hours."
+  },
+  {
+    "id": "eval_113",
+    "agent": "support_agent",
+    "input": "hi",
+    "expected": "Friendly greeting response. Agent introduces itself as a customer support assistant and asks how it can help.",
+    "context": "Simple greeting. Should NOT be routed to support ticket creation. Agent should respond with a welcome message and list of what it can help with: orders, complaints, refunds, returns."
+  },
+  {
+    "id": "eval_114",
+    "agent": "support_agent",
+    "input": "my package is missing",
+    "expected": "Agent acknowledges the missing package issue. Asks which order is missing if multiple orders exist, or asks for order ID.",
+    "context": "Issue type: item_not_received. User's package is missing. If multiple orders exist, agent asks which one. If single order, agent creates ticket immediately."
+  },
+  {
+    "id": "eval_115",
+    "agent": "support_agent",
+    "input": "I was charged but the order shows failed",
+    "expected": "Payment failure with deduction acknowledged. Auto-refund within 5-7 business days explained. Transaction ID requested for manual follow-up if needed.",
+    "context": "Issue type: payment_failed. Severity: MEDIUM. Policy: if charged but order not confirmed, auto-refund within 5-7 business days. No ticket needed — draft resolution provided."
   }
 ]

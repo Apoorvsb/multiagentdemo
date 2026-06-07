@@ -1,11 +1,16 @@
 import re
 import json as _json
+import uuid
 import calendar
 import mlflow
 import psycopg2.extras
 from datetime import date as _date, timedelta as _td
+from typing import Optional
 from database import get_conn, save_message
 from langchain_groq import ChatGroq
+from langchain_core.tools import tool
+from langchain_core.messages import AIMessage
+from langgraph.prebuilt import ToolNode
 from state import AgentState
 from config import config
 from logger import get_log
@@ -60,6 +65,295 @@ def group_orders_by_status(orders: list) -> str:
 
 
 # ─────────────────────────────────────────────
+# TOOL — fetch_orders (@tool + ToolNode)
+# ─────────────────────────────────────────────
+
+
+@tool
+def fetch_orders(
+    user_id: str,
+    order_id: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    product_keyword: Optional[str] = None,
+    carrier_filter: Optional[str] = None,
+    shipping_mode: Optional[str] = None,
+    city_filter: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    limit: int = 10,
+    date_filter: Optional[str] = None,
+    month_filter: Optional[int] = None,
+    year_filter: Optional[int] = None,
+    special_query: Optional[str] = None,
+) -> str:
+    """Query the PostgreSQL orders table and return matching orders as JSON.
+
+    Use special_query for preset queries: 'count', 'cheapest', 'most_expensive',
+    'last_week', 'last_month', 'late_risk', 'upcoming', 'recent', 'oldest'.
+    All other params act as AND filters on the orders table.
+    Returns a JSON string with keys: type, orders, count, single_order, error.
+    """
+    try:
+        result = _execute_order_query(
+            user_id=user_id,
+            order_id=order_id,
+            status_filter=status_filter,
+            product_keyword=product_keyword,
+            carrier_filter=carrier_filter,
+            shipping_mode=shipping_mode,
+            city_filter=city_filter,
+            min_price=min_price,
+            max_price=max_price,
+            limit=limit,
+            date_filter=date_filter,
+            month_filter=month_filter,
+            year_filter=year_filter,
+            special_query=special_query,
+        )
+        return _json.dumps(result, default=str)
+    except Exception as e:
+        return _json.dumps({"type": "error", "error": str(e), "orders": []})
+
+
+_ITEMS_VARIANTS: dict[str, str] = {
+    "smartwatch": "smart watch",
+    "smart watch": "smartwatch",
+    "smartphone": "smart phone",
+    "smart phone": "smartphone",
+    "powerbank": "power bank",
+    "power bank": "powerbank",
+    "smarttv": "smart tv",
+    "smart tv": "smarttv",
+}
+
+
+def _items_cond(pk: str) -> tuple[str, list]:
+    """Return (condition_sql, params) for items ILIKE, covering compound-word variants."""
+    alt = _ITEMS_VARIANTS.get(pk.lower())
+    if alt:
+        return "(items::text ILIKE %s OR items::text ILIKE %s)", [f"%{pk}%", f"%{alt}%"]
+    return "items::text ILIKE %s", [f"%{pk}%"]
+
+
+def _execute_order_query(
+    user_id: str,
+    order_id=None,
+    status_filter=None,
+    product_keyword=None,
+    carrier_filter=None,
+    shipping_mode=None,
+    city_filter=None,
+    min_price=None,
+    max_price=None,
+    limit=10,
+    date_filter=None,
+    month_filter=None,
+    year_filter=None,
+    special_query=None,
+) -> dict:
+    """Pure DB query — returns a dict, no state/response logic."""
+
+    # ── Single order by ID ───────────────────────────────────
+    if order_id:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT * FROM orders WHERE order_id = %s", [order_id])
+                row = cur.fetchone()
+        if not row:
+            return {"type": "not_found", "order_id": order_id, "orders": []}
+        order = dict(row)
+        if order.get("user_id") and order.get("user_id") != user_id:
+            return {"type": "unauthorized", "order_id": order_id, "orders": []}
+        return {"type": "single_order", "single_order": order, "orders": [order]}
+
+    # ── Shared date condition builder ────────────────────────
+    import re as _re
+    def _date_conds(conds, params):
+        nonlocal month_filter, year_filter
+        # Detect partial date like "2026-06" (YYYY-MM) — treat as month+year filter
+        if date_filter and _re.match(r'^\d{4}-\d{2}$', str(date_filter)):
+            _y, _m = str(date_filter).split('-')
+            month_filter = int(_m)
+            year_filter  = int(_y)
+        # If month_filter is set, use it (even if date_filter also set — LLM sometimes sets both).
+        if month_filter and year_filter:
+            conds.append(
+                "EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s"
+            )
+            params.extend([month_filter, year_filter])
+        elif month_filter and not date_filter:
+            conds.append("EXTRACT(MONTH FROM order_date::date) = %s")
+            params.append(month_filter)
+        elif year_filter and not date_filter:
+            conds.append("EXTRACT(YEAR FROM order_date::date) = %s")
+            params.append(year_filter)
+        elif date_filter and not month_filter:
+            conds.append("order_date::date = %s")
+            params.append(date_filter)
+
+    # ── Count ────────────────────────────────────────────────
+    if special_query == "count":
+        conds, params = ["user_id = %s"], [user_id]
+        if product_keyword:
+            _cond, _p = _items_cond(product_keyword)
+            conds.append(_cond)
+            params.extend(_p)
+        if carrier_filter:
+            conds.append("carrier ILIKE %s")
+            params.append(f"%{carrier_filter}%")
+        if status_filter:
+            conds.append("status = %s")
+            params.append(status_filter)
+        if shipping_mode:
+            conds.append("shipping_mode ILIKE %s")
+            params.append(f"%{shipping_mode}%")
+        if city_filter:
+            conds.append("order_city ILIKE %s")
+            params.append(f"%{city_filter}%")
+        if min_price:
+            conds.append("sales_per_customer >= %s")
+            params.append(float(min_price))
+        if max_price:
+            conds.append("sales_per_customer <= %s")
+            params.append(float(max_price))
+        _date_conds(conds, params)
+        where = " AND ".join(conds)
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT COUNT(*) FROM orders WHERE {where}", params)
+                total = cur.fetchone()[0]
+                cur.execute(
+                    f"SELECT status, COUNT(*) FROM orders WHERE {where} GROUP BY status ORDER BY COUNT(*) DESC",
+                    params,
+                )
+                breakdown = [{"status": r[0], "count": r[1]} for r in cur.fetchall()]
+        return {
+            "type": "count",
+            "total": total,
+            "breakdown": breakdown,
+            "filters": {
+                "product_keyword": product_keyword,
+                "carrier_filter": carrier_filter,
+                "status_filter": status_filter,
+                "shipping_mode": shipping_mode,
+            },
+            "orders": [],
+        }
+
+    # ── Price extremes ────────────────────────────────────────
+    if special_query in ("cheapest", "most_expensive"):
+        conds, params = ["user_id = %s"], [user_id]
+        _date_conds(conds, params)
+        order_dir = "ASC" if special_query == "cheapest" else "DESC"
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    f"SELECT order_id, status, carrier, items, sales_per_customer, order_date "
+                    f"FROM orders WHERE {' AND '.join(conds)} "
+                    f"ORDER BY sales_per_customer {order_dir} NULLS LAST LIMIT 5",
+                    params,
+                )
+                orders = [dict(r) for r in cur.fetchall()]
+        return {"type": special_query, "orders": orders}
+
+    # ── Time-based presets ────────────────────────────────────
+    preset_sql = {
+        "last_week": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, order_date "
+            "FROM orders WHERE user_id = %s AND order_date::date >= CURRENT_DATE - INTERVAL '7 days' "
+            "ORDER BY order_date DESC LIMIT 10"
+        ),
+        "last_month": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders "
+            "WHERE user_id = %s "
+            "AND EXTRACT(YEAR FROM order_date::date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month') "
+            "AND EXTRACT(MONTH FROM order_date::date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month') "
+            "ORDER BY order_date DESC LIMIT 50"
+        ),
+        "late_risk": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer "
+            "FROM orders WHERE user_id = %s AND status NOT IN ('DELIVERED','RETURNED') "
+            "ORDER BY order_date DESC LIMIT 10"
+        ),
+        "upcoming": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer "
+            "FROM orders WHERE user_id = %s AND status NOT IN ('DELIVERED','RETURNED') "
+            "ORDER BY order_date DESC LIMIT 10"
+        ),
+        "recent": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, order_date "
+            "FROM orders WHERE user_id = %s ORDER BY order_date DESC LIMIT 5"
+        ),
+        "oldest": (
+            "SELECT order_id, status, carrier, estimated_delivery, items, order_date "
+            "FROM orders WHERE user_id = %s ORDER BY order_date ASC LIMIT 5"
+        ),
+    }
+    if special_query in preset_sql:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(preset_sql[special_query], [user_id])
+                orders = [dict(r) for r in cur.fetchall()]
+        return {"type": special_query, "orders": orders}
+
+    # ── General filter query ──────────────────────────────────
+    conds, params = ["user_id = %s"], [user_id]
+    if status_filter:
+        conds.append("status = %s")
+        params.append(status_filter)
+    if product_keyword:
+        _cond, _p = _items_cond(product_keyword)
+        conds.append(_cond)
+        params.extend(_p)
+    if carrier_filter:
+        conds.append("carrier ILIKE %s")
+        params.append(f"%{carrier_filter}%")
+    if shipping_mode:
+        conds.append("shipping_mode ILIKE %s")
+        params.append(f"%{shipping_mode}%")
+    if city_filter:
+        conds.append("order_city ILIKE %s")
+        params.append(f"%{city_filter}%")
+    if min_price:
+        conds.append("sales_per_customer >= %s")
+        params.append(float(min_price))
+    if max_price:
+        conds.append("sales_per_customer <= %s")
+        params.append(float(max_price))
+    _date_conds(conds, params)
+
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                f"SELECT order_id, status, carrier, estimated_delivery, items, "
+                f"sales_per_customer, order_date FROM orders WHERE {' AND '.join(conds)} "
+                f"ORDER BY order_date DESC LIMIT {limit}",
+                params,
+            )
+            orders = [dict(r) for r in cur.fetchall()]
+    return {
+        "type": "filter",
+        "orders": orders,
+        "filters": {
+            "status_filter": status_filter,
+            "product_keyword": product_keyword,
+            "carrier_filter": carrier_filter,
+            "shipping_mode": shipping_mode,
+            "city_filter": city_filter,
+            "min_price": min_price,
+            "max_price": max_price,
+            "date_filter": date_filter,
+            "month_filter": month_filter,
+            "year_filter": year_filter,
+        },
+    }
+
+
+# ToolNode wrapping the fetch_orders tool
+order_tool_node = ToolNode([fetch_orders])
+
+
+# ─────────────────────────────────────────────
 # NODE 1 — validate_input (LLM ONLY)
 # ─────────────────────────────────────────────
 
@@ -71,14 +365,60 @@ def validate_input(state: AgentState) -> AgentState:
     msg_lower = state["current_input"].lower()
     msg_upper = state["current_input"].upper()
 
-    # ── Greetings / identity queries (no DB needed) ───────
+    # ── Greetings / conversational messages (no DB needed) ────
+    _GOODBYE_PATTERNS = [
+        r"\bbye\b", r"\bgoodbye\b", r"\bsee you\b", r"\bsee ya\b",
+        r"\bcya\b", r"\bttyl\b", r"\btake care\b", r"\bgood night\b",
+    ]
+    if any(re.search(p, msg_lower) for p in _GOODBYE_PATTERNS):
+        log.info("Goodbye detected")
+        return {
+            **state,
+            "order_id": None,
+            "response": "Goodbye! Feel free to come back anytime if you need help with your orders. Have a great day!",
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    _THANKS_PATTERNS = [
+        r"\bthank(?:s| you| u)\b", r"\bthx\b", r"\bty\b",
+        r"\bcheers\b", r"\bappreciate\b",
+    ]
+    if any(re.search(p, msg_lower) for p in _THANKS_PATTERNS):
+        log.info("Thanks detected")
+        return {
+            **state,
+            "order_id": None,
+            "response": "You're welcome! Is there anything else you'd like to know about your orders?",
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    _HOW_ARE_YOU_PATTERNS = [
+        r"\bhow are you\b", r"\bhow r u\b", r"\bhow(?:'s| is) it going\b",
+        r"\bhow(?:'re| are) you doing\b", r"\bhow have you been\b",
+        r"\bhow do you do\b", r"\bwhat'?s up\b", r"\bwassup\b",
+    ]
+    if any(re.search(p, msg_lower) for p in _HOW_ARE_YOU_PATTERNS):
+        log.info("How-are-you detected")
+        return {
+            **state,
+            "order_id": None,
+            "response": (
+                "I'm doing great, thanks for asking! I'm here to help with your orders.\n\n"
+                "- **Track an order** — share your Order ID (e.g. ORD12345)\n"
+                "- **Check delivery status** — pending, in-transit, delivered, delayed\n"
+                "- **Browse order history** — filter by carrier, product, price, or date"
+            ),
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
     _GREETING_PATTERNS = [
-        r"^hi\b",
-        r"^hello\b",
-        r"^hey\b",
-        r"\bwho are you\b",
-        r"\bwhat can you do\b",
-        r"\bwhat do you do\b",
+        r"\bhi\b", r"\bhello\b", r"\bhey\b", r"\bhiya\b", r"\bhowdy\b",
+        r"\bgreetings\b", r"\bgood\s+(?:morning|afternoon|evening)\b",
+        r"\bwho are you\b", r"\bwhat are you\b",
+        r"\bwhat can you do\b", r"\bwhat do you do\b",
         r"\bintroduce yourself\b",
     ]
     if any(re.search(p, msg_lower) for p in _GREETING_PATTERNS):
@@ -276,7 +616,7 @@ Rules:
  'out for delivery orders' = OUT_FOR_DELIVERY
  'returned orders' = RETURNED
   DO NOT set status_filter for: 'where is my order', 'track my order', 'what is the status of my order'
-- product_keyword: any product or item name the user mentions when asking about their orders (e.g. "SSD", "laptop", "keyboard", "webcam"). Extract it even if it does not appear in the ordered products list above — the user may be searching for it. NEVER set for shipping modes, carriers, or status words
+- product_keyword: the product/item name ONLY (e.g. "jewellery", "SSD", "laptop", "power bank"). Extract ONLY the noun product name — strip action words like "arrives", "status", "delivery", "tracking", "when", "where", "order". NEVER include carrier names (BlueDart, FedEx, Delhivery, Ekart, Xpressbees, Shadowfax) or shipping modes or status words. Example: "when my jewellery arrives" → product_keyword="jewellery". "count my bluedart orders" → product_keyword=null (bluedart is a carrier, not a product).
 - shipping_mode: set if user mentions:
   express/express orders/express delivery = Express
   standard/standard class/standard orders = Standard Class
@@ -300,10 +640,12 @@ Rules:
 - city_filter: city name if mentioned
 - limit: if users message has "all" then 20, else 10
 - PRIORITY: status_filter and shipping_mode take priority over special_query
-- date_filter: if user mentions a specific date (e.g. "31-05-2026", "2026-05-31", "May 31 2026"), convert to YYYY-MM-DD format
-- month_filter: if user mentions a month name or number without a specific day (e.g. "in May", "in May 2026", "month 5"), extract as 1-12 integer. Set null if date_filter is set
-- year_filter: if user mentions a year (e.g. "in 2026", "placed in 2025"), extract as 4-digit integer
-- If a specific date is given, set date_filter and leave month_filter/year_filter null
+- date_filter: ONLY if user mentions a SPECIFIC DAY (e.g. "31-05-2026", "2026-05-31", "May 31 2026", "5th june"), convert to YYYY-MM-DD. Never set this for month-only queries.
+- month_filter: if user mentions a month WITHOUT a specific day (e.g. "in May", "june 2026", "orders in june", "june orders", "month 5"), extract as 1-12 integer. Set null if date_filter is set.
+- year_filter: if user mentions a year (e.g. "in 2026", "placed in 2025"), extract as 4-digit integer.
+- CRITICAL: "june 2026" → month_filter=6, year_filter=2026, date_filter=null. NOT date_filter="2026-06-01".
+- CRITICAL: "may 2025" → month_filter=5, year_filter=2025, date_filter=null.
+- If a SPECIFIC DAY is given, set date_filter and leave month_filter/year_filter null.
 
 Return ONLY valid JSON. No explanation."""
 
@@ -383,8 +725,8 @@ Return ONLY valid JSON. No explanation."""
         (r"\bdelayed\b", "DELAYED"),
         (r"\bdelivered\b", "DELIVERED"),
         (r"\breturned\b", "RETURNED"),
-        (r"\bin.transit\b", "IN_TRANSIT"),
-        (r"\bout.for.delivery\b", "OUT_FOR_DELIVERY"),
+        (r"\bin[\s_-]?transit\b|\bintransit\b", "IN_TRANSIT"),
+        (r"\bout[\s_-]?for[\s_-]?delivery\b", "OUT_FOR_DELIVERY"),
         (r"\bcancelled\b", "CANCELLED"),
     ]
     if not extracted.get("status_filter"):
@@ -392,6 +734,25 @@ Return ONLY valid JSON. No explanation."""
             if re.search(pattern, msg_lower):
                 extracted["status_filter"] = status
                 break
+
+    # ── Regex fallback for min_price / max_price ──────────
+    if not extracted.get("min_price"):
+        m = re.search(
+            r"(?:above|over|more\s+than|greater\s+than|minimum|at\s+least)\s+"
+            r"(?:rs\.?\s*|₹\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\b",
+            msg_lower,
+        )
+        if m:
+            extracted["min_price"] = float(m.group(1).replace(",", ""))
+
+    if not extracted.get("max_price"):
+        m = re.search(
+            r"(?:below|under|less\s+than|within|upto|up\s+to|cheaper\s+than)\s+"
+            r"(?:rs\.?\s*|₹\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\b",
+            msg_lower,
+        )
+        if m:
+            extracted["max_price"] = float(m.group(1).replace(",", ""))
 
     # ── Relative date shortcuts ───────────────────────────────────────
     _today = _date.today()
@@ -449,6 +810,25 @@ Return ONLY valid JSON. No explanation."""
     if not extracted.get("year_filter"):
         extracted["year_filter"] = None
 
+    # LLM correction: if the LLM set date_filter to "YYYY-MM-01" but the user only
+    # mentioned a month name + year (no specific day), it defaulted to the 1st.
+    # Convert to month_filter + year_filter so all orders in that month are returned.
+    _df = extracted.get("date_filter") or ""
+    if _df and _df.endswith("-01"):
+        _has_day_in_msg = bool(re.search(r"\b(?:1st|01|first)\b", msg_lower) or
+                               re.search(r"\b1\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\b", msg_lower) or
+                               re.search(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december)\s+1\b", msg_lower))
+        _has_month_name = any(re.search(r"\b" + n + r"\b", msg_lower) for n in _MONTH_NAMES)
+        if _has_month_name and not _has_day_in_msg:
+            # User said "may 2026" not "1 may 2026" — treat as full-month query
+            try:
+                _yr, _mo, _ = _df.split("-")
+                extracted["date_filter"] = None
+                extracted["month_filter"] = int(_mo)
+                extracted["year_filter"] = int(_yr)
+            except ValueError:
+                pass
+
     # 1. Specific date patterns — set date_filter only
     m = re.search(r"\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b", msg_lower)
     if m:
@@ -491,6 +871,35 @@ Return ONLY valid JSON. No explanation."""
         extracted.get("date_filter") or extracted.get("month_filter") or extracted.get("year_filter")
     ):
         extracted["special_query"] = None
+
+    # ── Sanitise LLM product_keyword ─────────────────────
+    # Clear product_keyword if it's only time/stop words (e.g. LLM returns
+    # "orders in" for "what are my orders in june 2026").
+    _TIME_STOP = {
+        "in", "on", "at", "for", "from", "by", "of", "the", "my", "i",
+        "orders", "order", "all", "recent", "what", "are", "show", "give",
+        # price prepositions — must never become product_keyword
+        "above", "below", "under", "over", "within", "upto",
+        # status words — must never become product_keyword
+        "pending", "delivered", "delayed", "returned", "transit",
+        "cancelled", "intransit",
+        # month names
+        "january", "february", "march", "april", "may", "june",
+        "july", "august", "september", "october", "november", "december",
+        "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
+    }
+    _pk = extracted.get("product_keyword") or ""
+    # Strip trailing noise words from product_keyword ("sunglasses orders" → "sunglasses")
+    _TRAILING_NOISE = {"orders", "order", "items", "item", "products", "product", "purchases"}
+    if _pk:
+        _pk_words = _pk.strip().split()
+        while _pk_words and _pk_words[-1].lower() in _TRAILING_NOISE:
+            _pk_words.pop()
+        _pk = " ".join(_pk_words)
+        extracted["product_keyword"] = _pk or None
+    # Clear entirely if only time/stop words remain
+    if _pk and all(w.lower() in _TIME_STOP or w.isdigit() for w in _pk.split()):
+        extracted["product_keyword"] = None
 
     # ── Regex fallback for product_keyword ───────────────
     # Catches cases where LLM skips product_keyword because the item
@@ -540,6 +949,38 @@ Return ONLY valid JSON. No explanation."""
                 if candidate not in _IGNORE and len(candidate) > 2:
                     extracted["product_keyword"] = candidate
 
+        # "when i ordered headphones", "what are the dates i ordered headphones"
+        if not extracted.get("product_keyword"):
+            m = re.search(r"\bordered?\s+(\w+(?:\s+\w+)?)\s*$", msg_lower)
+            if m:
+                candidate = m.group(1).strip()
+                if candidate not in _IGNORE and len(candidate) > 2:
+                    extracted["product_keyword"] = candidate
+
+    # ── Compound product name normalization ──────────────
+    _COMPOUND_NORM = {
+        "smartwatch": "smart watch",
+        "smarttv": "smart tv",
+        "powerbank": "power bank",
+        "earbud": "earbuds",
+    }
+    _raw_pk = extracted.get("product_keyword") or ""
+    if _raw_pk.lower() in _COMPOUND_NORM:
+        extracted["product_keyword"] = _COMPOUND_NORM[_raw_pk.lower()]
+
+    # ── Final sanitise pass (catches regex-set values too) ───
+    _final_pk = extracted.get("product_keyword") or ""
+    if _final_pk:
+        # Strip trailing noise words
+        _pk_words = _final_pk.split()
+        while _pk_words and _pk_words[-1].lower() in _TRAILING_NOISE:
+            _pk_words.pop()
+        _final_pk = " ".join(_pk_words)
+        # Clear if only stop/time words remain
+        if not _final_pk or all(w.lower() in _TIME_STOP or w.isdigit() for w in _final_pk.split()):
+            _final_pk = None
+        extracted["product_keyword"] = _final_pk
+
     # ── Always return all filters — NO DB QUERIES ─────────
     return {
         **state,
@@ -562,33 +1003,15 @@ Return ONLY valid JSON. No explanation."""
 
 
 # ─────────────────────────────────────────────
-# NODE 2 — fetch_order_data (handles EVERYTHING)
+# NODE 2 — fetch_order_data (uses ToolNode)
 # ─────────────────────────────────────────────
 
 
 def fetch_order_data(state: AgentState) -> AgentState:
+    """Calls fetch_orders via ToolNode then formats the response from returned data."""
     log = get_log(state["request_id"], "order_agent", "fetch_order_data")
-    log.info("Tool called: fetch_order_data")
-    with mlflow.start_span(name="fetch_order_data", span_type="TOOL") as span:
-        span.set_inputs(
-            {
-                "order_id": state.get("order_id"),
-                "special_query": state.get("special_query"),
-                "status_filter": state.get("status_filter"),
-                "limit": state.get("query_limit", 10),
-            }
-        )
-        result = _fetch_order_data_impl(state, log)
-        span.set_outputs(
-            {
-                "found": bool(result.get("order_data") or result.get("response")),
-                "has_data": bool(result.get("order_data")),
-            }
-        )
-    return result
+    log.info("Tool called: fetch_order_data via ToolNode")
 
-
-def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
     user_id = state.get("user_id")
     order_id = state.get("order_id")
     special_query = state.get("special_query")
@@ -603,343 +1026,161 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
     date_filter = state.get("date_filter")
     month_filter = state.get("month_filter")
     year_filter = state.get("year_filter")
-    log.info(
-        f"Query params — order_id={order_id} special={special_query} status={status_filter} product={product_keyword} carrier={carrier_filter} shipping={shipping_mode} limit={limit}"
-    )
     msg_lower = state["current_input"].lower()
 
-    # ── Single order fetch ────────────────────────────────
-    if order_id:
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT * FROM orders WHERE order_id = %s", [order_id])
-                row = cur.fetchone()
-                order = dict(row) if row else None
+    log.info(
+        f"Query params — order_id={order_id} special={special_query} "
+        f"status={status_filter} product={product_keyword} carrier={carrier_filter} limit={limit}"
+    )
 
-        if not order:
-            log.warning(f"Order not found: {order_id}")
-            log_tool_span(
-                "fetch_order_data",
-                "postgresql_orders_table",
-                {"order_id": order_id},
-                {"found": False, "reason": "not_found"},
-            )
-            return {
-                **state,
-                "order_data": None,
-                "response": f"Sorry, I could not find order #{order_id}. Please check the order ID and try again.",
+    # ── Build and invoke ToolNode ─────────────────────────────
+    call_id = str(uuid.uuid4())[:8]
+    ai_msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "fetch_orders",
+                "args": {
+                    "user_id": user_id,
+                    "order_id": order_id,
+                    "status_filter": status_filter,
+                    "product_keyword": product_keyword,
+                    "carrier_filter": carrier_filter,
+                    "shipping_mode": shipping_mode,
+                    "city_filter": city_filter,
+                    "min_price": min_price,
+                    "max_price": max_price,
+                    "limit": limit,
+                    "date_filter": date_filter,
+                    "month_filter": month_filter,
+                    "year_filter": year_filter,
+                    "special_query": special_query,
+                },
+                "id": call_id,
+                "type": "tool_call",
             }
+        ],
+    )
 
-        if order.get("user_id") and order.get("user_id") != user_id:
-            log.warning(f"Order {order_id} does not belong to user {user_id}")
-            log_tool_span(
-                "fetch_order_data",
-                "postgresql_orders_table",
-                {"order_id": order_id},
-                {"found": False, "reason": "unauthorized"},
-            )
-            return {
-                **state,
-                "order_data": None,
-                "response": f"Sorry, order #{order_id} does not belong to your account.",
-            }
+    with mlflow.start_span(name="fetch_order_data", span_type="TOOL") as span:
+        span.set_inputs({"order_id": order_id, "special_query": special_query, "limit": limit})
+        tool_result = order_tool_node.invoke({"messages": [ai_msg]})
+        data = _json.loads(tool_result["messages"][-1].content)
+        span.set_outputs({"type": data.get("type"), "count": len(data.get("orders", []))})
 
-        log.info(f"Order found and authorized: {order_id}")
-        log_tool_span(
-            "fetch_order_data",
-            "postgresql_orders_table",
-            {"order_id": order_id},
-            {"found": True, "order": str(order)},
-            trace_id=state.get("mlflow_trace_id"),
-            parent_id=state.get("mlflow_span_id"),
-        )
-        return {**state, "order_data": order}
+    log_tool_span(
+        "fetch_order_data",
+        "postgresql_orders_table",
+        {"order_id": order_id, "special_query": special_query},
+        {"type": data.get("type"), "result_count": len(data.get("orders", []))},
+        trace_id=state.get("mlflow_trace_id"),
+        parent_id=state.get("mlflow_span_id"),
+    )
 
-    # ── Special queries ───────────────────────────────────
-    if special_query == "count":
-        count_conditions = ["user_id = %s"]
-        count_params = [user_id]
-        if product_keyword:
-            count_conditions.append("items::text ILIKE %s")
-            count_params.append(f"%{product_keyword}%")
-        if carrier_filter:
-            count_conditions.append("carrier ILIKE %s")
-            count_params.append(f"%{carrier_filter}%")
-        if status_filter:
-            count_conditions.append("status = %s")
-            count_params.append(status_filter)
-        if shipping_mode:
-            count_conditions.append("shipping_mode ILIKE %s")
-            count_params.append(f"%{shipping_mode}%")
-        if city_filter:
-            count_conditions.append("order_city ILIKE %s")
-            count_params.append(f"%{city_filter}%")
-        if min_price:
-            count_conditions.append("sales_per_customer >= %s")
-            count_params.append(float(min_price))
-        if max_price:
-            count_conditions.append("sales_per_customer <= %s")
-            count_params.append(float(max_price))
-        if date_filter:
-            count_conditions.append("order_date::date = %s")
-            count_params.append(date_filter)
-        elif month_filter and year_filter:
-            count_conditions.append(
-                "EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s"
-            )
-            count_params.extend([month_filter, year_filter])
-        elif month_filter:
-            count_conditions.append("EXTRACT(MONTH FROM order_date::date) = %s")
-            count_params.append(month_filter)
-        elif year_filter:
-            count_conditions.append("EXTRACT(YEAR FROM order_date::date) = %s")
-            count_params.append(year_filter)
-        count_where = " AND ".join(count_conditions)
-        with get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"SELECT COUNT(*) FROM orders WHERE {count_where}", count_params)
-                total = cur.fetchone()[0]
-                cur.execute(
-                    f"SELECT status, COUNT(*) FROM orders WHERE {count_where} GROUP BY status ORDER BY COUNT(*) DESC",
-                    count_params,
-                )
-                breakdown = cur.fetchall()
-        breakdown_lines = "\n".join([f"  • {s}: {c}" for s, c in breakdown])
-        filter_parts = []
-        if product_keyword:
-            filter_parts.append(product_keyword)
-        if carrier_filter:
-            filter_parts.append(f"via {carrier_filter}")
-        if status_filter:
-            filter_parts.append(status_filter.lower().replace("_", " "))
-        if shipping_mode:
-            filter_parts.append(shipping_mode)
+    # ── Format response from tool data ────────────────────────
+    result_type = data.get("type")
+
+    if result_type == "not_found":
+        return {**state, "order_data": None, "response": f"Sorry, I could not find order #{order_id}. Please check the order ID and try again."}
+
+    if result_type == "unauthorized":
+        return {**state, "order_data": None, "response": f"Sorry, order #{order_id} does not belong to your account."}
+
+    if result_type == "single_order":
+        return {**state, "order_data": data["single_order"]}
+
+    if result_type == "count":
+        breakdown_lines = "\n".join([f"  • {b['status']}: {b['count']}" for b in data["breakdown"]])
+        filters = data.get("filters", {})
+        filter_parts = [v for v in [filters.get("product_keyword"), filters.get("carrier_filter"), filters.get("status_filter"), filters.get("shipping_mode")] if v]
         filter_desc = " " + " ".join(filter_parts) if filter_parts else ""
         suffix = "in total" if not filter_parts else ""
-        return {
-            **state,
-            "order_data": None,
-            "response": f"You have {total}{filter_desc} orders{' ' + suffix if suffix else ''}.\n\nBreakdown:\n{breakdown_lines}",
-        }
+        return {**state, "order_data": None, "response": f"You have {data['total']}{filter_desc} orders{' ' + suffix if suffix else ''}.\n\nBreakdown:\n{breakdown_lines}"}
 
-    elif special_query in ("cheapest", "most_expensive"):
-        _conds = ["user_id = %s"]
-        _params: list = [user_id]
-        if date_filter:
-            _conds.append("order_date::date = %s")
-            _params.append(date_filter)
-        elif month_filter and year_filter:
-            _conds.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
-            _params.extend([month_filter, year_filter])
-        elif month_filter:
-            _conds.append("EXTRACT(MONTH FROM order_date::date) = %s")
-            _params.append(month_filter)
-        elif year_filter:
-            _conds.append("EXTRACT(YEAR FROM order_date::date) = %s")
-            _params.append(year_filter)
-        _order = "ASC" if special_query == "cheapest" else "DESC"
-        _label = "cheapest" if special_query == "cheapest" else "most expensive"
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    f"SELECT order_id, status, carrier, items, sales_per_customer, order_date "
-                    f"FROM orders WHERE {' AND '.join(_conds)} "
-                    f"ORDER BY sales_per_customer {_order} NULLS LAST LIMIT 5",
-                    _params,
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type in ("cheapest", "most_expensive"):
+        orders = data.get("orders", [])
         if not orders:
-            return {**state, "order_data": None, "response": f"No orders found for that filter."}
-        lines = "\n".join(
-            [f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your {_label} orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
-        }
+            return {**state, "order_data": None, "response": "No orders found for that filter."}
+        label = "cheapest" if result_type == "cheapest" else "most expensive"
+        lines = "\n".join([f"• {o['order_id']} — ₹{o['sales_per_customer']} — {o['items']} — {o['status']}" for o in orders])
+        return {**state, "order_data": None, "response": f"Here are your {label} orders:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
 
-    elif special_query == "last_week":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s AND order_date::date >= CURRENT_DATE - INTERVAL '7 days' ORDER BY order_date DESC LIMIT 10",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "last_week":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders from the last week."}
-        lines = "\n".join(
-            [
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
-        }
+        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
+        return {**state, "order_data": None, "response": f"Here are your orders from the last week:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
 
-    elif special_query == "last_month":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    """SELECT order_id, status, carrier, estimated_delivery, items, order_date
-                       FROM orders WHERE user_id = %s
-                       AND EXTRACT(YEAR  FROM order_date::date) = EXTRACT(YEAR  FROM CURRENT_DATE - INTERVAL '1 month')
-                       AND EXTRACT(MONTH FROM order_date::date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')
-                       ORDER BY order_date DESC LIMIT 50""",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "last_month":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders from the last month."}
-        lines = "\n".join(
-            [
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details.",
-        }
+        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
+        return {**state, "order_data": None, "response": f"Here are your orders from the last month:\n\n{lines}\n\nReply with an Order ID to get full tracking details."}
 
-    elif special_query == "late_risk":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer FROM orders WHERE user_id = %s AND status NOT IN ('DELIVERED', 'RETURNED') ORDER BY order_date DESC LIMIT 10",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "late_risk":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "None of your orders have a late delivery risk."}
-        lines = "\n".join(
-            [
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Delivery: {o['estimated_delivery']}) — Items: {o['items']}"
-                for o in orders
-            ]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details.",
-        }
+        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Delivery: {o['estimated_delivery']}) — Items: {o['items']}" for o in orders])
+        return {**state, "order_data": None, "response": f"These orders have a late delivery risk:\n\n{lines}\n\nReply with an Order ID for full details."}
 
-    elif special_query == "upcoming":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer FROM orders WHERE user_id = %s AND status NOT IN ('DELIVERED', 'RETURNED') ORDER BY order_date DESC LIMIT 10",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "upcoming":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "All your orders have been delivered."}
         grouped = group_orders_by_status(orders)
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your upcoming orders:\n\n{grouped}\n\nReply with an Order ID for full details.",
-        }
+        return {**state, "order_data": None, "response": f"Here are your upcoming orders:\n\n{grouped}\n\nReply with an Order ID for full details."}
 
-    elif special_query == "recent":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s ORDER BY order_date DESC LIMIT 5",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "recent":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders in our system yet."}
-        lines = "\n".join(
-            [
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your most recent orders:\n\n{lines}\n\nReply with an Order ID for full details.",
-        }
+        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
+        return {**state, "order_data": None, "response": f"Here are your most recent orders:\n\n{lines}\n\nReply with an Order ID for full details."}
 
-    elif special_query == "oldest":
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "SELECT order_id, status, carrier, estimated_delivery, items, order_date FROM orders WHERE user_id = %s ORDER BY order_date ASC LIMIT 5",
-                    [user_id],
-                )
-                orders = [dict(r) for r in cur.fetchall()]
+    if result_type == "oldest":
+        orders = data.get("orders", [])
         if not orders:
             return {**state, "order_data": None, "response": "You have no orders in our system yet."}
-        lines = "\n".join(
-            [
-                f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}"
-                for o in orders
-            ]
-        )
-        return {
-            **state,
-            "order_data": None,
-            "response": f"Here are your oldest orders:\n\n{lines}\n\nReply with an Order ID for full details.",
-        }
+        lines = "\n".join([f"• {o['order_id']} — {o['status']} via {o['carrier']} (Ordered: {o['order_date']}) — Items: {o['items']}" for o in orders])
+        return {**state, "order_data": None, "response": f"Here are your oldest orders:\n\n{lines}\n\nReply with an Order ID for full details."}
 
-    # ── Filter queries ────────────────────────────────────
-    conditions = ["user_id = %s"]
-    params = [user_id]
+    # ── General filter result ─────────────────────────────────
+    orders = data.get("orders", [])
+    filters = data.get("filters", {})
+    if not orders:
+        pk = filters.get("product_keyword")
+        sm = filters.get("shipping_mode")
+        cf = filters.get("carrier_filter")
+        cy = filters.get("city_filter")
+        mn = filters.get("min_price")
+        mx = filters.get("max_price")
+        df = filters.get("date_filter")
+        mf = filters.get("month_filter")
+        yf = filters.get("year_filter")
+        if sm:
+            return {**state, "order_data": None, "response": f"I could not find any {sm} orders in your account."}
+        elif pk:
+            return {**state, "order_data": None, "response": f"I could not find any orders containing '{pk}'. Would you like to see all your recent orders instead?"}
+        elif cf:
+            return {**state, "order_data": None, "response": f"I could not find any orders shipped via '{cf}' in your account."}
+        elif cy:
+            return {**state, "order_data": None, "response": f"I could not find any orders from '{cy}' in your account."}
+        elif mn or mx:
+            return {**state, "order_data": None, "response": "I could not find any orders matching that price range."}
+        elif df:
+            return {**state, "order_data": None, "response": f"You have no orders placed on {df}."}
+        elif mf and yf:
+            return {**state, "order_data": None, "response": f"You have no orders placed in {calendar.month_name[mf]} {yf}."}
+        elif mf:
+            return {**state, "order_data": None, "response": f"You have no orders placed in {calendar.month_name[mf]}."}
+        elif yf:
+            return {**state, "order_data": None, "response": f"You have no orders placed in {yf}."}
+        return {**state, "order_data": None, "response": "You have no orders in our system yet."}
 
-    if status_filter:
-        conditions.append("status = %s")
-        params.append(status_filter)
-    if product_keyword:
-        conditions.append("items::text ILIKE %s")
-        params.append(f"%{product_keyword}%")
-    if carrier_filter:
-        conditions.append("carrier ILIKE %s")
-        params.append(f"%{carrier_filter}%")
-    if shipping_mode:
-        conditions.append("shipping_mode ILIKE %s")
-        params.append(f"%{shipping_mode}%")
-    if city_filter:
-        conditions.append("order_city ILIKE %s")
-        params.append(f"%{city_filter}%")
-    if min_price:
-        conditions.append("sales_per_customer >= %s")
-        params.append(float(min_price))
-    if max_price:
-        conditions.append("sales_per_customer <= %s")
-        params.append(float(max_price))
-    if date_filter:
-        conditions.append("order_date::date = %s")
-        params.append(date_filter)
-    elif month_filter and year_filter:
-        conditions.append("EXTRACT(MONTH FROM order_date::date) = %s AND EXTRACT(YEAR FROM order_date::date) = %s")
-        params.extend([month_filter, year_filter])
-    elif month_filter:
-        conditions.append("EXTRACT(MONTH FROM order_date::date) = %s")
-        params.append(month_filter)
-    elif year_filter:
-        conditions.append("EXTRACT(YEAR FROM order_date::date) = %s")
-        params.append(year_filter)
-
-    where = " AND ".join(conditions)
-    with get_conn() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(
-                f"""SELECT order_id, status, carrier, estimated_delivery, items, sales_per_customer, order_date
-                FROM orders WHERE {where}
-                ORDER BY order_date DESC LIMIT {limit}""",
-                params,
-            )
-            orders = [dict(r) for r in cur.fetchall()]
-
-    # Single match + arrival keyword → fetch full order directly
+    # Single arrival-keyword match → return full order data
     arrival_keywords = ["when arrives", "when will", "when does", "when is", "arrives", "arrival"]
     if len(orders) == 1 and any(kw in msg_lower for kw in arrival_keywords):
         with get_conn() as conn:
@@ -949,56 +1190,8 @@ def _fetch_order_data_impl(state: AgentState, log) -> AgentState:
                 if row:
                     return {**state, "order_data": dict(row)}
 
-    if not orders:
-        if shipping_mode:
-            return {
-                **state,
-                "order_data": None,
-                "response": f"I could not find any {shipping_mode} orders in your account.",
-            }
-        elif product_keyword:
-            return {
-                **state,
-                "order_data": None,
-                "response": f"I could not find any orders containing '{product_keyword}'. Would you like to see all your recent orders instead?",
-            }
-        elif carrier_filter:
-            return {
-                **state,
-                "order_data": None,
-                "response": f"I could not find any orders shipped via '{carrier_filter}' in your account.",
-            }
-        elif city_filter:
-            return {
-                **state,
-                "order_data": None,
-                "response": f"I could not find any orders from '{city_filter}' in your account.",
-            }
-        elif min_price or max_price:
-            return {**state, "order_data": None, "response": "I could not find any orders matching that price range."}
-        elif date_filter:
-            return {**state, "order_data": None, "response": f"You have no orders placed on {date_filter}."}
-        elif month_filter and year_filter:
-            month_name = calendar.month_name[month_filter]
-            return {
-                **state,
-                "order_data": None,
-                "response": f"You have no orders placed in {month_name} {year_filter}.",
-            }
-        elif month_filter:
-            month_name = calendar.month_name[month_filter]
-            return {**state, "order_data": None, "response": f"You have no orders placed in {month_name}."}
-        elif year_filter:
-            return {**state, "order_data": None, "response": f"You have no orders placed in {year_filter}."}
-        else:
-            return {**state, "order_data": None, "response": "You have no orders in our system yet."}
-
     grouped = group_orders_by_status(orders)
-    return {
-        **state,
-        "order_data": None,
-        "response": f"Here are your matching orders:\n\n{grouped}\n\nWhich order would you like to track? Reply with the Order ID (e.g. ORD2001).",
-    }
+    return {**state, "order_data": None, "response": f"Here are your matching orders:\n\n{grouped}\n\nWhich order would you like to track? Reply with the Order ID (e.g. ORD2001)."}
 
 
 # ─────────────────────────────────────────────

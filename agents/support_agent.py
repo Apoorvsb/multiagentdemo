@@ -1,10 +1,15 @@
 import re
 import uuid
+import json as _json
 import mlflow
 import psycopg2
 import psycopg2.extras
+from typing import Optional
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
+from langchain_core.tools import tool
+from langchain_core.messages import AIMessage
+from langgraph.prebuilt import ToolNode
 
 from state import AgentState
 from config import config
@@ -19,6 +24,10 @@ def _clean_response(text: str) -> str:
     text = re.sub(r"\[Name\]", "Customer Support Team", text, flags=re.IGNORECASE)
     text = re.sub(
         r"\[.*?(?:name|team|agent|rep|representative).*?\]", "Customer Support Team", text, flags=re.IGNORECASE
+    )
+    # Remove duplicate trailing signatures the LLM sometimes appends after [Your Name] substitution
+    text = re.sub(
+        r"\n+Customer Support (?:Agent|Representative|Team|Staff)\s*$", "", text, flags=re.IGNORECASE
     )
     return text.strip()
 
@@ -44,7 +53,23 @@ _VALID_ISSUE_TYPES = {
     "technical_issue",
     "general_complaint",
     "show_tickets",
+    "reopen_ticket",
 }
+
+# ── Sentiment triggers — escalate to P1 immediately ────────────────────────
+_ANGRY_SIGNALS = [
+    "unacceptable", "outrageous", "disgusting", "terrible", "worst", "horrible",
+    "fraud", "cheated", "scam", "lied", "lawsuit", "consumer court", "legal action",
+    "never again", "pathetic", "useless", "fed up", "furious", "appalling",
+    "extremely disappointed", "very angry", "absolutely ridiculous",
+]
+
+# ── Ticket re-open triggers ─────────────────────────────────────────────────
+_REOPEN_SIGNALS = [
+    "still not resolved", "issue persists", "not fixed", "problem still exists",
+    "still broken", "still wrong", "still not received", "not satisfied",
+    "same problem again", "reopen", "re-open", "issue came back", "happening again",
+]
 
 _KEYWORD_OVERRIDES = {
     # ── Special: list tickets (short-circuits the whole support flow) ──
@@ -74,6 +99,22 @@ _KEYWORD_OVERRIDES = {
         "status of my ticket",
         "status of ticket",
         "check my ticket",
+    ],
+    # ── Re-open ────────────────────────────────────────────────────────
+    "reopen_ticket": [
+        "still not resolved",
+        "issue persists",
+        "not fixed",
+        "problem still",
+        "still broken",
+        "still wrong",
+        "still not received",
+        "same problem again",
+        "reopen",
+        "re-open",
+        "issue came back",
+        "happening again",
+        "not satisfied with resolution",
     ],
     # ── HIGH severity ─────────────────────────────────────────────────
     "damaged_goods": [
@@ -278,21 +319,67 @@ def _fetch_user_tickets(user_id: str) -> list:
 def classify_issue(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "classify_issue")
 
-    # ── Greetings / identity queries ──────────────────────
+    # ── Greetings / conversational messages ──────────────
     _msg = state["current_input"].lower().strip()
-    _GREETINGS = [
-        "hello",
-        "hi",
-        "hey",
-        "who are you",
-        "what are you",
-        "what can you do",
-        "help",
-        "what do you do",
-        "introduce yourself",
-        "who r you",
+
+    _GOODBYE_PATTERNS = [
+        r"\bbye\b", r"\bgoodbye\b", r"\bsee you\b", r"\bsee ya\b",
+        r"\bcya\b", r"\bttyl\b", r"\btake care\b", r"\bgood night\b",
     ]
-    if any(re.search(rf"\b{re.escape(g)}\b", _msg) for g in _GREETINGS):
+    if any(re.search(p, _msg) for p in _GOODBYE_PATTERNS):
+        log.info("Goodbye detected")
+        return {
+            **state,
+            "issue_type": "greeting",
+            "response": "Goodbye! If you ever need support again, don't hesitate to reach out. Take care!",
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    _THANKS_PATTERNS = [
+        r"\bthank(?:s| you| u)\b", r"\bthx\b", r"\bty\b",
+        r"\bcheers\b", r"\bappreciate\b",
+    ]
+    if any(re.search(p, _msg) for p in _THANKS_PATTERNS):
+        log.info("Thanks detected")
+        return {
+            **state,
+            "issue_type": "greeting",
+            "response": "You're welcome! Is there anything else I can help you with?",
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    _HOW_ARE_YOU_PATTERNS = [
+        r"\bhow are you\b", r"\bhow r u\b", r"\bhow(?:'s| is) it going\b",
+        r"\bhow(?:'re| are) you doing\b", r"\bhow have you been\b",
+        r"\bhow do you do\b", r"\bwhat'?s up\b", r"\bwassup\b",
+    ]
+    if any(re.search(p, _msg) for p in _HOW_ARE_YOU_PATTERNS):
+        log.info("How-are-you detected")
+        return {
+            **state,
+            "issue_type": "greeting",
+            "response": (
+                "I'm doing well, thanks for asking! I'm here to help you with any support needs.\n\n"
+                "- **Order issues** — tracking, delays, missing items\n"
+                "- **Returns & refunds** — initiate or check status\n"
+                "- **Damaged or wrong items** — raise a complaint\n"
+                "- **Cancellations** — cancel an order\n\n"
+                "What can I help you with today?"
+            ),
+            "total_tokens": state.get("total_tokens", 0),
+            "total_cost_usd": state.get("total_cost_usd", 0.0),
+        }
+
+    _GREETING_PATTERNS = [
+        r"\bhi\b", r"\bhello\b", r"\bhey\b", r"\bhiya\b", r"\bhowdy\b",
+        r"\bgreetings\b", r"\bgood\s+(?:morning|afternoon|evening)\b",
+        r"\bwho are you\b", r"\bwhat are you\b",
+        r"\bwhat can you do\b", r"\bwhat do you do\b",
+        r"\bintroduce yourself\b", r"\bwho r you\b", r"\bhelp\b",
+    ]
+    if any(re.search(p, _msg) for p in _GREETING_PATTERNS):
         log.info("Greeting detected — returning intro response")
         return {
             **state,
@@ -361,15 +448,90 @@ def classify_issue(state: AgentState) -> AgentState:
             log.info("Input is not an order selection — discarding pending, reclassifying")
 
     msg_lower = state["current_input"].lower()
+
+    # ── Sentiment detection: angry/frustrated → force P1 escalation ──────────
+    is_angry = any(sig in msg_lower for sig in _ANGRY_SIGNALS)
+    if is_angry:
+        log.info("Angry sentiment detected — will force PRIORITY_1 escalation")
+
+    # ── Ticket re-open detection ──────────────────────────────────────────────
+    if any(sig in msg_lower for sig in _REOPEN_SIGNALS):
+        log.info("Ticket re-open request detected")
+        # Find most recent resolved ticket for this user and re-open it
+        try:
+            with get_conn() as _conn:
+                with _conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as _cur:
+                    _cur.execute(
+                        """SELECT ticket_id, issue_type, resolution FROM tickets
+                           WHERE user_id=%s AND status='Resolved'
+                           ORDER BY updated_at DESC LIMIT 1""",
+                        [state.get("user_id", "")],
+                    )
+                    _resolved = _cur.fetchone()
+                    if _resolved:
+                        _cur.execute(
+                            "UPDATE tickets SET status='Open', resolution=NULL, updated_at=NOW() WHERE ticket_id=%s",
+                            [_resolved["ticket_id"]],
+                        )
+                        _conn.commit()
+                        log.info(f"Re-opened ticket {_resolved['ticket_id']}")
+                        return {
+                            **state,
+                            "issue_type": _resolved["issue_type"] or "general_complaint",
+                            "response": (
+                                f"I've re-opened your ticket **{_resolved['ticket_id']}** since the issue persists. "
+                                "A support agent will review it with high priority and get back to you shortly. "
+                                "We apologise for the inconvenience."
+                            ),
+                            "total_tokens": state.get("total_tokens", 0),
+                            "total_cost_usd": state.get("total_cost_usd", 0.0),
+                        }
+        except Exception as _e:
+            log.warning(f"Could not re-open ticket: {_e}")
+
+    # ── Resolved ticket check: show resolution if user asks about it ──────────
+    _RESOLUTION_CHECK = ["my ticket", "ticket status", "what happened", "resolved", "resolution", "ticket update"]
+    if any(sig in msg_lower for sig in _RESOLUTION_CHECK):
+        try:
+            with get_conn() as _conn:
+                with _conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as _cur:
+                    _cur.execute(
+                        """SELECT ticket_id, issue_type, resolution, updated_at FROM tickets
+                           WHERE user_id=%s AND status='Resolved' AND resolution IS NOT NULL
+                           ORDER BY updated_at DESC LIMIT 1""",
+                        [state.get("user_id", "")],
+                    )
+                    _res = _cur.fetchone()
+                    if _res:
+                        _date = _res["updated_at"].strftime("%d %b %Y") if _res["updated_at"] else ""
+                        log.info(f"Showing resolution for ticket {_res['ticket_id']}")
+                        return {
+                            **state,
+                            "issue_type": "show_tickets",
+                            "response": (
+                                f"✅ Your ticket **{_res['ticket_id']}** was resolved on {_date}.\n\n"
+                                f"**Resolution:** {_res['resolution']}\n\n"
+                                "If the issue is still not resolved, type *'still not resolved'* and I'll re-open it."
+                            ),
+                            "total_tokens": state.get("total_tokens", 0),
+                            "total_cost_usd": state.get("total_cost_usd", 0.0),
+                        }
+        except Exception as _e:
+            log.warning(f"Could not fetch resolved ticket: {_e}")
+
     for _issue, _keywords in _KEYWORD_OVERRIDES.items():
         if any(kw in msg_lower for kw in _keywords):
             log.info(f"Keyword override — issue classified: {_issue}")
-            return {
+            state_update = {
                 **state,
                 "issue_type": _issue,
                 "total_tokens": state.get("total_tokens", 0),
                 "total_cost_usd": state.get("total_cost_usd", 0.0),
             }
+            # Angry sentiment → inject into state so assign_priority can use it
+            if is_angry:
+                state_update["angry_sentiment"] = True
+            return state_update
 
     log.info("LLM called")
     summary = state.get("conversation_summary") or ""
@@ -472,27 +634,105 @@ def severity_edge(state: AgentState) -> str:
     return "draft_resolution"
 
 
-def lookup_policy(state: AgentState) -> AgentState:
-    log = get_log(state["request_id"], "support_agent", "lookup_policy")
-    log.info("Tool called: lookup_policy")
-
-    issue_type = state.get("issue_type", "general_complaint")
-    policy = None
-
+@tool
+def get_support_policy(issue_type: str) -> str:
+    """Fetch the support policy for a given issue type from the policies table.
+    Falls back to general_complaint policy if no specific policy exists.
+    Returns JSON with policy details or empty dict if not found.
+    """
     try:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute("SELECT * FROM policies WHERE issue_type = %s", [issue_type])
                 row = cur.fetchone()
-                if row:
-                    policy = dict(row)
-                else:
+                if not row:
                     cur.execute("SELECT * FROM policies WHERE issue_type = 'general_complaint'")
                     row = cur.fetchone()
-                    if row:
-                        policy = dict(row)
+        return _json.dumps(dict(row) if row else {}, default=str)
     except Exception as e:
-        log.error(f"Policy lookup error: {e}")
+        return _json.dumps({})
+
+
+@tool
+def get_ticket_history(user_id: str) -> str:
+    """Fetch the last 5 support tickets for a user from the tickets table.
+    Returns JSON list of tickets with ticket_id, issue_type, priority, status, created_at.
+    """
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT ticket_id, issue_type, priority, status, created_at, description "
+                    "FROM tickets WHERE user_id = %s ORDER BY created_at DESC LIMIT 5",
+                    [user_id],
+                )
+                return _json.dumps([dict(r) for r in cur.fetchall()], default=str)
+    except Exception:
+        return _json.dumps([])
+
+
+@tool
+def create_support_ticket(
+    ticket_id: str,
+    user_id: str,
+    session_id: str,
+    issue_type: str,
+    severity: str,
+    priority: str,
+    description: str,
+    order_id: Optional[str] = None,
+) -> str:
+    """Insert a new support ticket — checks for duplicate open ticket first.
+    Returns JSON with ticket_id on success or error message on failure.
+    """
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                # Duplicate detection: check for open ticket on same order+issue_type
+                if order_id:
+                    cur.execute(
+                        """SELECT ticket_id, created_at FROM tickets
+                           WHERE user_id=%s AND order_id=%s AND issue_type=%s AND status='Open'
+                           ORDER BY created_at DESC LIMIT 1""",
+                        [user_id, order_id, issue_type],
+                    )
+                    existing = cur.fetchone()
+                    if existing:
+                        return _json.dumps({
+                            "ticket_id": existing["ticket_id"],
+                            "status": "already_open",
+                            "message": f"An open ticket {existing['ticket_id']} already exists for this order and issue.",
+                        })
+
+                cur.execute(
+                    """INSERT INTO tickets
+                       (ticket_id, user_id, session_id, order_id, issue_type,
+                        severity, priority, status, description)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                    [ticket_id, user_id, session_id, order_id, issue_type, severity, priority, "Open", description],
+                )
+        return _json.dumps({"ticket_id": ticket_id, "status": "created"})
+    except Exception as e:
+        return _json.dumps({"ticket_id": "TKT_ERROR", "error": str(e)})
+
+
+# ToolNode for support tools
+support_tool_node = ToolNode([get_support_policy, get_ticket_history, create_support_ticket])
+
+
+def lookup_policy(state: AgentState) -> AgentState:
+    """Fetches support policy via ToolNode (get_support_policy)."""
+    log = get_log(state["request_id"], "support_agent", "lookup_policy")
+    log.info("Tool called: lookup_policy via ToolNode")
+
+    issue_type = state.get("issue_type", "general_complaint")
+    call_id = str(uuid.uuid4())[:8]
+    ai_msg = AIMessage(
+        content="",
+        tool_calls=[{"name": "get_support_policy", "args": {"issue_type": issue_type}, "id": call_id, "type": "tool_call"}],
+    )
+    result = support_tool_node.invoke({"messages": [ai_msg]})
+    policy = _json.loads(result["messages"][-1].content) or None
 
     log_tool_span(
         span_name="lookup_policy",
@@ -546,30 +786,23 @@ def lookup_policy(state: AgentState) -> AgentState:
 
 
 def check_history(state: AgentState) -> AgentState:
+    """Fetches ticket history via ToolNode (get_ticket_history)."""
     log = get_log(state["request_id"], "support_agent", "check_history")
 
     if state.get("order_id") == "__PENDING__":
         return state
 
-    log.info("Checking complaint history")
+    log.info("Checking complaint history via ToolNode")
     user_id = state.get("user_id")
-    previous_tickets = []
-    ticket_count = 0
 
-    try:
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    """SELECT ticket_id, issue_type, priority, status, created_at, description
-                       FROM tickets WHERE user_id = %s
-                       ORDER BY created_at DESC LIMIT 5""",
-                    [user_id],
-                )
-                rows = cur.fetchall()
-                previous_tickets = [dict(r) for r in rows]
-                ticket_count = len(previous_tickets)
-    except Exception as e:
-        log.error(f"History check error: {e}")
+    call_id = str(uuid.uuid4())[:8]
+    ai_msg = AIMessage(
+        content="",
+        tool_calls=[{"name": "get_ticket_history", "args": {"user_id": user_id}, "id": call_id, "type": "tool_call"}],
+    )
+    result = support_tool_node.invoke({"messages": [ai_msg]})
+    previous_tickets = _json.loads(result["messages"][-1].content)
+    ticket_count = len(previous_tickets)
 
     log_tool_span(
         span_name="check_history",
@@ -607,7 +840,11 @@ def assign_priority(state: AgentState) -> AgentState:
     ticket_count = state.get("ticket_count", 0)
     severity = state.get("severity", "LOW")
 
-    if severity == "HIGH" and ticket_count >= 2:
+    # Angry/frustrated customer → always PRIORITY_1
+    if state.get("angry_sentiment"):
+        log.info("Angry sentiment flag set — assigning PRIORITY_1")
+        priority = "PRIORITY_1"
+    elif severity == "HIGH" and ticket_count >= 2:
         priority = "PRIORITY_1"
     elif severity == "HIGH":
         priority = "PRIORITY_2"
@@ -632,41 +869,43 @@ def assign_priority(state: AgentState) -> AgentState:
 
 
 def create_ticket(state: AgentState) -> AgentState:
+    """Creates a support ticket via ToolNode (create_support_ticket)."""
     log = get_log(state["request_id"], "support_agent", "create_ticket")
 
-    # Skip if awaiting order selection or an existing ticket was already found
     if state.get("order_id") == "__PENDING__" or state.get("ticket_id"):
         return state
 
-    log.info("Tool called: create_ticket")
+    log.info("Tool called: create_ticket via ToolNode")
     ticket_id = f"TKT{str(uuid.uuid4())[:8].upper()}"
     order_ref = f"[Order: {state.get('order_id')}] " if state.get("order_id") else ""
     description = (order_ref + state["current_input"])[:500]
+    order_id = state.get("order_id") if state.get("order_id") != "__PENDING__" else None
 
-    try:
-        with get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """INSERT INTO tickets
-                       (ticket_id, user_id, session_id, order_id, issue_type,
-                        severity, priority, status, description)
-                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                    [
-                        ticket_id,
-                        state.get("user_id"),
-                        state.get("session_id"),
-                        state.get("order_id") if state.get("order_id") != "__PENDING__" else None,
-                        state.get("issue_type"),
-                        state.get("severity"),
-                        state.get("priority"),
-                        "Open",
-                        description,
-                    ],
-                )
-        log.info(f"Ticket created: {ticket_id}")
-    except Exception as e:
-        log.error(f"Ticket creation error: {e}")
-        ticket_id = "TKT_ERROR"
+    call_id = str(uuid.uuid4())[:8]
+    ai_msg = AIMessage(
+        content="",
+        tool_calls=[
+            {
+                "name": "create_support_ticket",
+                "args": {
+                    "ticket_id": ticket_id,
+                    "user_id": state.get("user_id"),
+                    "session_id": state.get("session_id"),
+                    "issue_type": state.get("issue_type"),
+                    "severity": state.get("severity"),
+                    "priority": state.get("priority"),
+                    "description": description,
+                    "order_id": order_id,
+                },
+                "id": call_id,
+                "type": "tool_call",
+            }
+        ],
+    )
+    result = support_tool_node.invoke({"messages": [ai_msg]})
+    data = _json.loads(result["messages"][-1].content)
+    ticket_id = data.get("ticket_id", "TKT_ERROR")
+    log.info(f"Ticket created: {ticket_id}")
 
     log_tool_span(
         span_name="create_ticket",
@@ -695,6 +934,46 @@ def build_escalation_subgraph():
 def draft_resolution(state: AgentState) -> AgentState:
     log = get_log(state["request_id"], "support_agent", "draft_resolution")
     log.info("LLM called")
+
+    # ── Cancellation policy check ─────────────────────────────────────────────
+    # Block cancellation if the order is already in transit or out for delivery.
+    if state.get("issue_type") == "cancellation_request":
+        order_id = state.get("order_id")
+        if order_id and order_id != "__PENDING__":
+            try:
+                from database import get_conn
+                import psycopg2.extras
+
+                with get_conn() as conn:
+                    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                        cur.execute("SELECT status FROM orders WHERE order_id = %s", [order_id])
+                        row = cur.fetchone()
+                        if row:
+                            status = row["status"].upper()
+                            if status in ("IN_TRANSIT", "OUT_FOR_DELIVERY"):
+                                log.info(f"Cancellation blocked — order {order_id} is {status}")
+                                return {
+                                    **state,
+                                    "response": (
+                                        f"I'm sorry, but **{order_id}** cannot be cancelled at this stage — "
+                                        f"it is currently **{status.replace('_', ' ').title()}** and is already on its way to you.\n\n"
+                                        "Once you receive the item, you can:\n"
+                                        "- **Return it** — raise a return request within the return window\n"
+                                        "- **Refuse delivery** — ask the delivery agent to return it\n\n"
+                                        "Would you like help with anything else?"
+                                    ),
+                                }
+                            elif status == "DELIVERED":
+                                log.info(f"Cancellation blocked — order {order_id} already DELIVERED")
+                                return {
+                                    **state,
+                                    "response": (
+                                        f"**{order_id}** has already been **Delivered** and cannot be cancelled. "
+                                        "If you'd like to return it, I can raise a return request for you. Would you like to proceed?"
+                                    ),
+                                }
+            except Exception as e:
+                log.warning(f"Could not check order status for cancellation: {e}")
 
     policy = state.get("policy", {})
     ticket_id = state.get("ticket_id")
@@ -780,12 +1059,33 @@ def generate_escalation_response(state: AgentState) -> AgentState:
             "that",
             "damaged",
             "wrong",
+            "broken",
+            "cracked",
+            "defective",
+            "faulty",
+            "missing",
+            "came",
+            "come",
+            "arrived",
+            "arrive",
+            "delivered",
+            "delivery",
+            "not",
+            "haven",
+            "havent",
+            "received",
+            "receive",
+            "recent",
+            "latest",
+            "all",
+            "show",
+            "track",
+            "status",
             "product",
             "item",
             "please",
             "help",
             "got",
-            "received",
         }
         words = [w for w in re.findall(r"\b\w+\b", original_msg) if w not in _STOP and len(w) > 2]
         keyword = " ".join(words[:2]) if words else ""
@@ -966,7 +1266,8 @@ def build_support_agent():
 
     graph.add_node("classify_issue", classify_issue)
     graph.add_node("assess_severity", assess_severity)
-    graph.add_node("lookup_policy", lookup_policy)
+    graph.add_node("lookup_policy", lookup_policy)            # calls support_tool_node internally
+    graph.add_node("support_tools", support_tool_node)        # ToolNode — policy, history, ticket
     graph.add_node("escalation_handler", build_escalation_subgraph())
     graph.add_node("draft_resolution", draft_resolution)
     graph.add_node("generate_escalation_response", generate_escalation_response)
